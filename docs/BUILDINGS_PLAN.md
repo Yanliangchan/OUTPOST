@@ -12,8 +12,9 @@ export const RELEASE_MAX_LEVEL = 10;
 ## Rules
 - **The HQ caps everything.** No building can be upgraded above the current HQ level.
 - **Footprints never change.** An upgrade replaces the model on the same tiles, so it never needs re-placing (as in Clash of Clans).
+- **Height budget:** a building's bulk stays within about **4 storeys** so it never hides what's behind it; only thin elements (masts, flags, spires) go higher.
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
-- **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Strategic (16–20, reserve).
+- **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
 - **Stats live in data:** cost, Reputation, build time, HP and building-specific stats, defined per level in each building's file.
 
 ## Roster and build order
@@ -61,11 +62,11 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 13 | Helipad Tower | 2,200,000 | 6,600 | 5 d | 13,400 | 450,000 | 5 | Air Defence, 5th construction crew, Buildings to Lv 13 |
 | 14 | Command Centre · Twin Towers | 3,000,000 | 8,200 | 6 d | 15,400 | 575,000 | 5 | Buildings to Lv 14 |
 | 15 | Command Centre · Landmark | 4,000,000 | 10,000 | 7 d | 17,500 | 700,000 | 5 | Buildings to Lv 15, Landmark status |
-| 16 | Strategic HQ · Rotunda | 5,200,000 | 12,000 | 8 d | 19,800 | 850,000 | 5 | Buildings to Lv 16 |
-| 17 | Strategic HQ · Skybridge | 6,600,000 | 14,500 | 9 d | 22,300 | 1,000,000 | 6 | Buildings to Lv 17, 6th construction crew |
-| 18 | Strategic HQ · Control Tower | 8,200,000 | 17,000 | 10 d | 25,000 | 1,200,000 | 6 | Buildings to Lv 18 |
-| 19 | Strategic HQ · Satellite Uplink | 10,000,000 | 20,000 | 11 d | 28,000 | 1,400,000 | 6 | Buildings to Lv 19 |
-| 20 | Citadel · Gardens | 12,000,000 | 23,000 | 12 d | 31,000 | 1,600,000 | 7 | Buildings to Lv 20, 7th construction crew, Citadel status |
+| 16 | Secure Compound | 5,200,000 | 12,000 | 8 d | 19,800 | 850,000 | 5 | Buildings to Lv 16 |
+| 17 | Operations Centre | 6,600,000 | 14,500 | 9 d | 22,300 | 1,000,000 | 6 | Buildings to Lv 17, 6th construction crew |
+| 18 | Bunker Command | 8,200,000 | 17,000 | 10 d | 25,000 | 1,200,000 | 6 | Buildings to Lv 18 |
+| 19 | Comms Hub | 10,000,000 | 20,000 | 11 d | 28,000 | 1,400,000 | 6 | Buildings to Lv 19 |
+| 20 | Citadel | 12,000,000 | 23,000 | 12 d | 31,000 | 1,600,000 | 7 | Buildings to Lv 20, 7th construction crew, Citadel status |
 *Levels 11–15 are post-release; 16–20 are reserve.* "Crews" means construction crews (simultaneous builds). All numbers are first-pass balance and will be tuned against the economy in Phase 6.
 
 ## Visual progression
@@ -84,13 +85,13 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 10 | **HQ Complex:** five-storey tower, two-storey wings with red roofs, white columned portico with a pediment *(release cap)* |
 | 11 | **Ops Block · Radar:** wide four-storey flat-roof block topped by a **giant white radar dome** on a drum; clock over a projecting entrance; low red-roofed pavilions either side |
 | 12 | **Command HQ · Atrium:** **full-width two-storey glass atrium** with sun fins across the front; rooftop garden |
-| 13 | **Helipad Tower:** **asymmetric**: four-storey red-roofed block and a **tall six-storey slab with a rooftop helipad** |
-| 14 | **Command Centre · Twin Towers:** **twin six-storey towers** bridged by a glass block, with a **giant red-and-white lattice comms mast** between them |
-| 15 | **Command Centre · Landmark:** **single eight-storey tower with a gold belvedere crown and spire** on a podium; red-roofed wings; fountain plaza and ceremonial arch |
-| 16 | **Strategic HQ · Rotunda:** round colonnaded three-storey hall with a green dome; the crowned tower rises through it |
-| 17 | **Skybridge:** two crowned nine-storey towers joined by glass sky-bridges above a podium |
-| 18 | **Control Tower:** slender ten-storey shaft with a wide glass observation deck and radar, like an airport tower |
-| 19 | **Satellite Uplink:** crowned tower beside a block carrying a huge satellite dish; lattice mast |
-| 20 | **Citadel · Gardens:** stepped twelve-storey tower with green terraces at every setback, gold crown; "Supertree" sculptures on the plaza |
+| 13 | **Helipad Tower:** asymmetric: three-storey red-roofed block and a **four-storey slab with a rooftop helipad** |
+| 14 | **Command Centre · Twin Towers:** **twin four-storey towers** bridged by a three-storey glass block, with a red-and-white lattice comms mast between them |
+| 15 | **Command Centre · Landmark:** **five-storey crowned tower** on a podium; red-roofed wings; fountain plaza and ceremonial arch |
+| 16 | **Secure Compound:** the secure band begins. **Perimeter wall with mesh fence, gatehouse, boom gate, bollards and CCTV**; wide three-storey concrete block with dark ribbon windows, glass lobby, rooftop solar |
+| 17 | **Operations Centre:** a **glass fourth storey cantilevered** over the entrance, with a green roof |
+| 18 | **Bunker Command:** **earth-bermed** concrete core with steel blast doors and vents; green roof with a glass command pavilion and radar (~2.5 storeys) |
+| 19 | **Comms Hub:** three-storey block with a **saw-tooth solar roof**; big satellite dish on a low terrace; short lattice mast |
+| 20 | **Citadel:** low **courtyard ring** of three-storey ranges with **glass corner towers**, gold accent band, Supertree garden in the courtyard and a glass gate |
 
 Review scene: open the game with `?showcase=hq`.

@@ -5,7 +5,7 @@ import { DAY, HOUR, MIN, type BuildingDef, type LevelStats } from './types';
 /*
  * HQ — the heart of the outpost. Its level caps every other building's level,
  * unlocks new buildings and gates land clearance. 15 designed levels in four bands:
- *   Field (1–3) → Camp (4–6) → Base (7–10, release cap) → Command (11–15) → Strategic (16–20, reserve)
+ *   Field (1–3) → Camp (4–6) → Base (7–10, release cap) → Command (11–15) → Secure (16–20, reserve)
  */
 
 const L = (
@@ -30,11 +30,11 @@ export const HQ_LEVELS: LevelStats[] = [
   L(14, 'Command Centre · Twin Towers', 3_000_000, 8_200, 6 * DAY, 15400, 575_000, 5, ['Buildings to Lv 14']),
   L(15, 'Command Centre · Landmark', 4_000_000, 10_000, 7 * DAY, 17500, 700_000, 5, ['Buildings to Lv 15', 'Landmark status']),
   // Reserve levels (designed in advance; not yet scheduled for release).
-  L(16, 'Strategic HQ · Rotunda', 5_200_000, 12_000, 8 * DAY, 19800, 850_000, 5, ['Buildings to Lv 16']),
-  L(17, 'Strategic HQ · Skybridge', 6_600_000, 14_500, 9 * DAY, 22300, 1_000_000, 6, ['Buildings to Lv 17', '6th construction crew']),
-  L(18, 'Strategic HQ · Control Tower', 8_200_000, 17_000, 10 * DAY, 25000, 1_200_000, 6, ['Buildings to Lv 18']),
-  L(19, 'Strategic HQ · Satellite Uplink', 10_000_000, 20_000, 11 * DAY, 28000, 1_400_000, 6, ['Buildings to Lv 19']),
-  L(20, 'Citadel · Gardens', 12_000_000, 23_000, 12 * DAY, 31000, 1_600_000, 7, ['Buildings to Lv 20', '7th construction crew', 'Citadel status']),
+  L(16, 'Secure Compound', 5_200_000, 12_000, 8 * DAY, 19800, 850_000, 5, ['Buildings to Lv 16']),
+  L(17, 'Operations Centre', 6_600_000, 14_500, 9 * DAY, 22300, 1_000_000, 6, ['Buildings to Lv 17', '6th construction crew']),
+  L(18, 'Bunker Command', 8_200_000, 17_000, 10 * DAY, 25000, 1_200_000, 6, ['Buildings to Lv 18']),
+  L(19, 'Comms Hub', 10_000_000, 20_000, 11 * DAY, 28000, 1_400_000, 6, ['Buildings to Lv 19']),
+  L(20, 'Citadel', 12_000_000, 23_000, 12 * DAY, 31000, 1_600_000, 7, ['Buildings to Lv 20', '7th construction crew', 'Citadel status']),
 ];
 
 // ------------------------------------------------------------------ visuals
@@ -378,54 +378,54 @@ function atrium(k: Kit, y: number) {
   forecourt(k, y, 'COMMAND HQ');
 }
 
-/** 13 — Helipad Tower: asymmetric; a tall six-storey slab carries the helipad. */
+/** 13 — Helipad Tower: asymmetric; a four-storey slab carries the helipad. */
 function helipadTower(k: Kit, y: number) {
-  // Lower four-storey block on the left
+  // Lower three-storey block on the left
   const lw = 2.8, ld = 2.0, lx = -0.9, lz = -1.4;
-  const lh = k.block(lw, ld, 4, lx, y, lz);
+  const lh = k.block(lw, ld, 3, lx, y, lz);
   k.hipRoof(lw, ld, 0.6, lx, y + lh, lz);
-  frontWindows(k, lx, lz, lw, ld, 4, y, 4, [1, 2]);
+  frontWindows(k, lx, lz, lw, ld, 3, y, 4, [1, 2]);
   k.windowRow('left', lx, lz, lw, ld, 2, y + 0.42);
   // Tall slab on the right
   const tw = 1.7, td = 2.6, tx = 1.55, tz = -1.1;
-  const th = k.block(tw, td, 6, tx, y, tz, C.wallAlt);
+  const th = k.block(tw, td, 4, tx, y, tz, C.wallAlt);
   k.flatRoof(tw, td, tx, y + th, tz);
-  for (let f = 0; f < 6; f++) {
+  for (let f = 0; f < 4; f++) {
     k.windowRow('front', tx, tz, tw, td, 2, y + f * STOREY + 0.42, { louvre: f > 0 });
     k.windowRow('left', tx, tz, tw, td, 3, y + f * STOREY + 0.42, { louvre: f > 0 });
   }
-  k.fins(tw - 0.1, 6 * STOREY - 0.3, tx, y + 0.15, tz + td / 2 + 0.07, 5);
+  k.fins(tw - 0.1, 4 * STOREY - 0.3, tx, y + 0.15, tz + td / 2 + 0.07, 5);
   k.helipad(tx, y + th + 0.06, tz, 1.5);
   k.windsock(tx + 0.75, y + th + 0.06, tz - 1.1);
-  aircons(k, tx + tw / 2, tz, 6, y, 1);
+  aircons(k, tx + tw / 2, tz, 4, y, 1);
   // Glass link between the two blocks, and a glass entrance on the low block
   k.glassBox(1.1, 2 * STOREY - 0.1, 1.0, lx + 0.4, y, lz + ld / 2 + 0.5);
   k.door('front', lx + 0.4, lz + ld / 2 + 0.5, 1.1, 1.0, 0, y, 0.5, 0.66, '#3d5a6c');
   k.box(1.3, 0.07, 0.5, C.roofGreen, lx + 0.4, y + 0.9, lz + ld / 2 + 1.2);
-  clock(k, y + 3 * STOREY + 0.5, lz + ld / 2);
+  clock(k, y + 2 * STOREY + 0.5, lz + ld / 2);
   k.radarDome(lx - 0.7, y + lh + 0.25, lz, 0.28);
   k.hedge(-2.2, 1.0, 0.8, 0.25, y);
   forecourt(k, y, 'COMMAND HQ');
 }
 
-/** 14 — Command Centre: twin towers bridged by a glass block, giant comms mast between. */
+/** 14 — Command Centre: twin four-storey towers bridged by a glass block, giant comms mast between. */
 function twinTowers(k: Kit, y: number) {
   for (const s of [-1, 1]) {
     const tw = 1.35, td = 2.2, tx = s * 1.8, tz = -1.2;
-    const th = k.block(tw, td, 6, tx, y, tz);
+    const th = k.block(tw, td, 4, tx, y, tz);
     k.hipRoof(tw, td, 0.5, tx, y + th, tz);
-    for (let f = 0; f < 6; f++) {
+    for (let f = 0; f < 4; f++) {
       k.windowRow('front', tx, tz, tw, td, 2, y + f * STOREY + 0.42, { louvre: f > 0 });
       k.windowRow(s < 0 ? 'left' : 'right', tx, tz, tw, td, 2, y + f * STOREY + 0.42);
     }
-    k.fins(tw - 0.1, 6 * STOREY - 0.3, tx, y + 0.15, tz + td / 2 + 0.07, 4);
-    aircons(k, tx + (s * tw) / 2, tz, 6, y, s as 1 | -1);
+    k.fins(tw - 0.1, 4 * STOREY - 0.3, tx, y + 0.15, tz + td / 2 + 0.07, 4);
+    aircons(k, tx + (s * tw) / 2, tz, 4, y, s as 1 | -1);
   }
   // Glass bridge block: four storeys between the towers
   const bw = 2.25, bd = 1.8, bz = -1.3;
-  k.glassBox(bw, 4 * STOREY - 0.1, bd, 0, y, bz);
-  k.flatRoof(bw, bd, 0, y + 4 * STOREY, bz);
-  k.latticeMast(0, y + 4 * STOREY + 0.06, bz - 0.1, 4.0, 0.7);
+  k.glassBox(bw, 3 * STOREY - 0.1, bd, 0, y, bz);
+  k.flatRoof(bw, bd, 0, y + 3 * STOREY, bz);
+  k.latticeMast(0, y + 3 * STOREY + 0.06, bz - 0.1, 2.6, 0.6);
   // Entrance canopy and clock on the bridge
   k.door('front', 0, bz, bw, bd, 0, y, 0.6, 0.7, '#3d5a6c');
   k.box(1.6, 0.08, 0.7, C.roofGreen, 0, y + 0.9, bz + bd / 2 + 0.35);
@@ -435,7 +435,7 @@ function twinTowers(k: Kit, y: number) {
   forecourt(k, y, 'COMMAND CENTRE');
 }
 
-/** 15 — Landmark: one eight-storey tower with a gold crown on a stepped podium. */
+/** 15 — Landmark: one five-storey tower with a gold crown on a stepped podium. */
 function landmark(k: Kit, y: number) {
   // Podium: three storeys, stepped
   const pw = 3.4, pd = 2.4, pz = -1.3;
@@ -450,7 +450,7 @@ function landmark(k: Kit, y: number) {
   }
   // Tower
   const tw = 1.4, td = 1.4, tz = pz;
-  const floors = 8;
+  const floors = 5;
   const th = k.block(tw, td, floors, 0, y, tz, C.wallAlt);
   for (let f = 2; f < floors; f++) {
     k.window('front', 0, tz, tw, td, -0.32, y + f * STOREY + 0.36, 0.3, 0.44);
@@ -458,14 +458,7 @@ function landmark(k: Kit, y: number) {
     k.window('right', 0, tz, tw, td, 0, y + f * STOREY + 0.36, 0.5, 0.44);
   }
   clock(k, y + (floors - 1) * STOREY + 0.5, tz + td / 2);
-  // Gold crown: band, open belvedere, pyramid, spire
-  k.box(tw + 0.16, 0.12, td + 0.16, '#d9b24a', 0, y + th, tz);
-  const cy = y + th + 0.12;
-  for (const [cx, cz] of [[-0.45, -0.45], [0.45, -0.45], [-0.45, 0.45], [0.45, 0.45]]) k.box(0.16, 0.85, 0.16, C.white, cx, cy, tz + cz);
-  k.box(0.7, 0.85, 0.7, '#5d8aa3', 0, cy, tz);
-  k.box(1.2, 0.1, 1.2, '#d9b24a', 0, cy + 0.85, tz);
-  k.hipRoof(1.1, 1.1, 0.6, 0, cy + 0.95, tz, '#d9b24a', 0.05);
-  k.cyl(0.035, 0.7, '#d9b24a', 0, cy + 1.5, tz, 6, 0.005);
+  crown(k, 0, y + th, tz, 0.8);
   // Grand entrance and plaza
   portico(k, pz + pd / 2 + 0.42, 2.0, y, 6);
   k.box(3.0, 0.015, 1.3, '#e3dccb', 0, y, 2.05);
@@ -493,16 +486,6 @@ function crown(k: Kit, x: number, y: number, z: number, s = 1) {
   k.cyl(0.035, 0.7 * s, GOLD, x, cy + 0.85 * s + 0.6 * s, z, 6, 0.005);
 }
 
-/** Plain tower shaft with windows on the two camera-facing sides; returns its top y. */
-function shaft(k: Kit, x: number, z: number, w: number, d: number, floors: number, y: number, wall: string = C.wallAlt) {
-  const h = k.block(w, d, floors, x, y, z, wall);
-  for (let f = 1; f < floors; f++) {
-    k.window('front', x, z, w, d, -w * 0.22, y + f * STOREY + 0.36, 0.28, 0.42);
-    k.window('front', x, z, w, d, w * 0.22, y + f * STOREY + 0.36, 0.28, 0.42);
-    k.window('right', x, z, w, d, 0, y + f * STOREY + 0.36, 0.4, 0.42);
-  }
-  return y + h;
-}
 
 function bigDish(k: Kit, x: number, y: number, z: number, r: number, rotY = 0.7) {
   k.cyl(0.18, 0.5, C.metal, x, y, z, 8);
@@ -533,150 +516,187 @@ function supertree(k: Kit, x: number, z: number, h: number, y: number, color = '
 }
 
 function strategic(k: Kit, level: number, y: number) {
-  k.path(1.2, 1.2, 0, 2.3, y);
-  if (level === 16) rotunda(k, y);
-  else if (level === 17) skybridge(k, y);
-  else if (level === 18) controlTower(k, y);
-  else if (level === 19) uplink(k, y);
+  perimeter(k, y);
+  if (level === 16) secureCompound(k, y);
+  else if (level === 17) opsCentre(k, y);
+  else if (level === 18) bunker(k, y);
+  else if (level === 19) commsHub(k, y);
   else citadel(k, y);
 }
 
-/** 16 — Rotunda: a round colonnaded hall with a green dome; the crowned tower rises through it. */
-function rotunda(k: Kit, y: number) {
-  const cz = -0.7, r = 2.0;
-  k.cyl(r, 3 * STOREY, C.wall, 0, y, cz, 20);
-  for (let f = 0; f <= 3; f++) k.cyl(r + 0.03, f === 3 ? 0.08 : 0.06, f === 3 ? C.white : C.trim, 0, y + f * STOREY - (f === 3 ? 0.08 : 0.03), cz, 20);
-  // Windows around the upper floors
-  for (let f = 1; f < 3; f++) {
-    for (let i = 0; i < 14; i++) {
-      const a = (i / 14) * Math.PI * 2;
-      const w = k.box(0.3, 0.38, 0.05, C.glass, Math.sin(a) * (r + 0.02), y + f * STOREY + 0.28, cz + Math.cos(a) * (r + 0.02));
-      w.rotation.y = a;
+const CONCRETE = '#d8d4cb';
+const DARK_GLASS = '#2f4a57';
+
+/** Perimeter security: wall with mesh fence on top, gatehouse, boom gate, bollards, CCTV. */
+function perimeter(k: Kit, y: number) {
+  const e = 2.72, gate = 0.75, h = 0.32;
+  const wall = (x0: number, z0: number, x1: number, z1: number) => {
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    const along = Math.abs(x1 - x0) > Math.abs(z1 - z0);
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    k.box(along ? len : 0.14, h, along ? 0.14 : len, CONCRETE, cx, y, cz);
+    k.box(along ? len : 0.16, 0.04, along ? 0.16 : len, C.trim, cx, y + h, cz);
+    // Mesh fence: posts + thin top rail
+    const n = Math.max(2, Math.round(len / 0.6));
+    for (let i = 0; i <= n; i++) {
+      const t = -len / 2 + (len / n) * i;
+      k.box(0.03, 0.32, 0.03, C.metal, along ? cx + t : cx, y + h, along ? cz : cz + t);
     }
+    k.box(along ? len : 0.02, 0.02, along ? 0.02 : len, C.metal, cx, y + h + 0.3, cz);
+    k.box(along ? len : 0.01, 0.24, along ? 0.01 : len, '#9aa3a6', cx, y + h + 0.05, cz).material = new THREE.MeshStandardMaterial({ color: '#9aa3a6', transparent: true, opacity: 0.35 });
+  };
+  wall(-e, -e, e, -e);
+  wall(-e, -e, -e, e);
+  wall(e, -e, e, e);
+  wall(-e, e, -gate, e);
+  wall(gate, e, e, e);
+  // Gatehouse + boom gate
+  k.box(0.55, 0.62, 0.5, C.white, -gate - 0.4, y, e - 0.45);
+  k.box(0.57, 0.18, 0.04, DARK_GLASS, -gate - 0.4, y + 0.36, e - 0.19);
+  k.box(0.65, 0.06, 0.6, C.trim, -gate - 0.4, y + 0.62, e - 0.45);
+  k.box(0.12, 0.3, 0.12, '#f2c230', -gate + 0.02, y, e);
+  for (let i = 0; i < 5; i++) k.box(0.28, 0.035, 0.035, i % 2 ? '#ffffff' : '#d8342c', -gate + 0.15 + i * 0.28, y + 0.26, e);
+  for (const x of [-0.45, -0.15, 0.15, 0.45]) k.cyl(0.04, 0.18, '#f2c230', x, y, e - 0.35, 6);
+  // CCTV on poles at the rear corners
+  for (const [x, z] of [[-e + 0.15, -e + 0.15], [e - 0.15, -e + 0.15], [e - 0.15, e - 0.15]]) {
+    k.cyl(0.025, 1.0, C.metal, x, y, z, 5);
+    k.box(0.16, 0.07, 0.07, '#f4f4f0', x + 0.05, y + 1.0, z + 0.05);
   }
-  // Ground-floor colonnade with a green ring canopy
-  for (let i = 0; i < 18; i++) {
-    const a = (i / 18) * Math.PI * 2;
-    k.cyl(0.06, 0.85, C.white, Math.sin(a) * (r + 0.35), y, cz + Math.cos(a) * (r + 0.35), 6);
-  }
-  k.cyl(r + 0.48, 0.08, C.roofGreen, 0, y + 0.85, cz, 20);
-  // Dome around the tower base
-  const dome = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#5e9e8a', flatShading: true }));
-  dome.position.set(0, y + 3 * STOREY, cz);
-  dome.scale.y = 0.7;
-  k.add(dome);
-  const top = shaft(k, 0, cz, 1.2, 1.2, 9, y);
-  clock(k, top - 0.45, cz + 0.6);
-  crown(k, 0, top, cz, 0.9);
-  k.fountain(0, 2.35, 0.32, y);
-  forecourt(k, y, '', false);
+  k.flagpole(-1.6, 2.25, 2.2, y);
+  k.flagpole(1.6, 2.25, 2.2, y);
 }
 
-/** 17 — Skybridge: two crowned towers joined by a glass bridge high above a podium. */
-function skybridge(k: Kit, y: number) {
-  const pz = -1.1;
-  const ph = k.block(4.8, 2.4, 2, 0, y, pz);
-  k.flatRoof(4.8, 2.4, 0, y + ph, pz);
-  frontWindows(k, 0, pz, 4.8, 2.4, 2, y, 8, [3, 4]);
-  for (const s of [-1, 1]) {
-    const top = shaft(k, s * 1.45, pz - 0.1, 1.3, 1.5, 9, y);
-    crown(k, s * 1.45, top, pz - 0.1, 0.85);
+/** Concrete block with dark ribbon windows on the front and right; returns its height. */
+function ribbonBlock(k: Kit, x: number, z: number, w: number, d: number, floors: number, y: number) {
+  const h = floors * STOREY;
+  k.box(w, h, d, CONCRETE, x, y, z);
+  for (let f = 0; f < floors; f++) {
+    const fy = y + f * STOREY + 0.32;
+    k.box(w - 0.3, 0.36, 0.04, DARK_GLASS, x, fy, z + d / 2 + 0.01);
+    k.box(0.04, 0.36, d - 0.3, DARK_GLASS, x + w / 2 + 0.01, fy, z);
+    k.box(w + 0.04, 0.06, d + 0.04, C.trim, x, y + f * STOREY, z);
   }
-  k.glassBox(1.6, STOREY - 0.1, 0.8, 0, y + 6 * STOREY, pz - 0.1);
-  k.glassBox(1.6, STOREY - 0.1, 0.8, 0, y + 3 * STOREY, pz - 0.1);
-  clock(k, y + 7.5 * STOREY, pz + 0.65);
-  k.glassBox(1.6, STOREY * 1.6, 0.7, 0, y, pz + 1.55);
-  k.door('front', 0, pz + 1.55, 1.6, 0.7, 0, y, 0.5, 0.66, '#3d5a6c');
-  for (const s of [-1, 1]) pavilion(k, s * 2.35, 1.05, 1.0, 0.9, y);
-  forecourt(k, y, 'STRATEGIC HQ');
+  k.box(w + 0.08, 0.1, d + 0.08, C.white, x, y + h, z);
+  return h;
 }
 
-/** 18 — Control Tower: slender shaft carrying a wide glass observation deck. */
-function controlTower(k: Kit, y: number) {
-  const tz = -1.0;
-  // Red-roofed two-storey wings and a glass lobby
-  for (const s of [-1, 1]) {
-    const wx = s * 1.75;
-    const wh = k.block(1.6, 2.2, 2, wx, y, tz);
-    k.hipRoof(1.6, 2.2, 0.5, wx, y + wh, tz);
-    for (let f = 0; f < 2; f++) k.windowRow('front', wx, tz, 1.6, 2.2, 2, y + f * STOREY + 0.42, { louvre: f > 0 });
-    aircons(k, wx + s * 0.8, tz, 2, y, s as 1 | -1);
-  }
-  k.glassBox(1.9, 2 * STOREY - 0.1, 1.4, 0, y, tz + 0.6);
-  k.door('front', 0, tz + 0.6, 1.9, 1.4, 0, y, 0.5, 0.66, '#3d5a6c');
-  // Shaft
-  const sh = 10 * STOREY;
-  k.box(1.0, sh, 1.0, C.wallAlt, 0, y, tz - 0.3);
-  for (let f = 2; f < 10; f++) k.window('front', 0, tz - 0.3, 1.0, 1.0, 0, y + f * STOREY + 0.36, 0.22, 0.4);
-  for (let f = 1; f < 10; f++) k.box(1.03, 0.05, 1.03, C.trim, 0, y + f * STOREY, tz - 0.3);
-  // Flared support, glass cab, roof, radar
-  const cy = y + sh;
-  k.cyl(0.6, 0.5, C.white, 0, cy, tz - 0.3, 8, 1.2);
-  k.cyl(1.2, 0.85, '#86b7cc', 0, cy + 0.5, tz - 0.3, 8);
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-    k.box(0.05, 0.85, 0.05, C.trim, Math.sin(a) * 1.13, cy + 0.5, tz - 0.3 + Math.cos(a) * 1.13);
-  }
-  k.cyl(1.4, 0.1, C.roofGreen, 0, cy + 1.35, tz - 0.3, 8);
-  k.radarDome(0, cy + 1.45, tz - 0.3, 0.4);
-  k.antenna(0.8, cy + 1.45, tz - 0.6, 0.9);
-  forecourt(k, y, 'STRATEGIC HQ');
+/** 16 — Secure Compound: wide three-storey concrete block with ribbon windows and a glass lobby. */
+function secureCompound(k: Kit, y: number) {
+  const bz = -0.8;
+  const h = ribbonBlock(k, 0, bz, 4.6, 2.4, 3, y);
+  k.glassBox(1.4, 2 * STOREY - 0.1, 0.5, 0, y, bz + 1.4);
+  k.door('front', 0, bz + 1.4, 1.4, 0.5, 0, y, 0.5, 0.66, DARK_GLASS);
+  k.box(2.0, 0.08, 0.6, C.roofGreen, 0, y + 0.95, bz + 1.85);
+  k.solarPanels(-1.1, y + h + 0.1, bz - 0.2, 1.6, 0.9);
+  k.solarPanels(1.1, y + h + 0.1, bz - 0.2, 1.6, 0.9);
+  k.radarDome(1.7, y + h + 0.1, bz + 0.7, 0.25);
+  k.antenna(-1.8, y + h + 0.1, bz + 0.7, 0.8);
+  k.plaque('HQ', 1.25, 1.85, y, 0.8);
+  k.planter(-1.3, 1.4, 0.8, y);
 }
 
-/** 19 — Satellite Uplink: crowned tower beside a huge dish on its own block. */
-function uplink(k: Kit, y: number) {
-  const top = shaft(k, -1.35, -1.2, 1.4, 1.5, 9, y);
-  crown(k, -1.35, top, -1.2, 0.9);
-  clock(k, top - 0.45, -1.2 + 0.75 + 0.0);
-  k.latticeMast(-2.45, y, -2.4, 3.6, 0.55);
-  // Dish block
-  const bx = 1.25, bz = -0.9;
-  const bh = k.block(2.6, 2.8, 3, bx, y, bz);
-  k.flatRoof(2.6, 2.8, bx, y + bh, bz);
-  for (let f = 0; f < 3; f++) k.windowRow('front', bx, bz, 2.6, 2.8, 3, y + f * STOREY + 0.42, { louvre: f > 0 });
-  aircons(k, bx + 1.3, bz, 3, y, 1);
-  bigDish(k, bx, y + bh + 0.06, bz, 1.05, 0.7);
-  k.dish(bx + 1.0, y + bh + 0.06, bz - 1.1, 0.4);
-  k.dish(bx - 1.0, y + bh + 0.06, bz - 1.1, 2.4);
-  // Glass link and entrance
-  k.glassBox(1.2, 2 * STOREY - 0.1, 1.1, -0.2, y, 0.65);
-  k.door('front', -0.2, 0.65, 1.2, 1.1, 0, y, 0.5, 0.66, '#3d5a6c');
-  k.box(1.4, 0.07, 0.5, C.roofGreen, -0.2, y + 0.9, 1.4);
-  pavilion(k, -2.3, 0.9, 1.0, 1.0, y);
-  forecourt(k, y, 'UPLINK HQ');
+/** 17 — Operations Centre: three-storey base with a glass fourth storey cantilevered over the entrance. */
+function opsCentre(k: Kit, y: number) {
+  const bz = -1.0;
+  const h = ribbonBlock(k, 0, bz, 4.4, 2.2, 3, y);
+  // Cantilevered glass box projecting forward over the drop-off
+  k.glassBox(3.0, STOREY - 0.05, 2.6, 0.3, y + h + 0.1, bz + 0.4);
+  k.box(3.1, 0.1, 2.7, C.white, 0.3, y + h, bz + 0.4);
+  k.hedge(0.3, bz + 0.4, 2.6, 2.2, y + h + STOREY + 0.1);
+  for (const x of [-0.8, 1.4]) k.box(0.12, h, 0.12, C.white, x, y, bz + 1.6);
+  k.door('front', 0, bz, 4.4, 2.2, 0.3, y, 0.6, 0.66, DARK_GLASS);
+  k.dish(-1.7, y + h + 0.1, bz - 0.6, 0.5);
+  k.plaque('OPS CENTRE', -1.1, 1.85, y, 1.1);
 }
 
-/** 20 — Citadel Gardens: stepped tower with planted terraces; supertrees on the plaza. */
+/** 18 — Bunker Command: earth-bermed lower floors, glass pavilion on top, blast doors. */
+function bunker(k: Kit, y: number) {
+  const bz = -0.7;
+  // Concrete core
+  k.box(4.2, 1.6, 2.6, CONCRETE, 0, y, bz);
+  // Grass berms (wedges) along the sides and back
+  const berm = (w: number, d: number, x: number, z: number, rotY: number) => {
+    const g = new THREE.BufferGeometry();
+    const W = w / 2;
+    const v = [
+      -W, 0, 0, W, 0, 0, W, 1.6, -d, -W, 0, 0, W, 1.6, -d, -W, 1.6, -d,
+      -W, 0, 0, -W, 1.6, -d, -W, 0, -d, W, 0, 0, W, 0, -d, W, 1.6, -d,
+    ];
+    g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: '#6cbf45', flatShading: true, side: THREE.DoubleSide }));
+    m.position.set(x, y, z);
+    m.rotation.y = rotY;
+    k.add(m);
+  };
+  berm(2.6, 0.7, -2.8, bz, Math.PI / 2);
+  berm(2.6, 0.7, 2.8, bz, -Math.PI / 2);
+  // Blast doors and vents on the exposed front
+  k.box(1.3, 1.0, 0.08, '#6b7075', 0, y, bz + 1.32);
+  k.box(0.04, 1.0, 0.1, C.dark, 0, y, bz + 1.33);
+  for (const s of [-1, 1]) for (let i = 0; i < 4; i++) k.box(0.05, 0.05, 0.1, '#f2c230', s * 0.62, y + 0.1 + i * 0.25, bz + 1.35);
+  for (const x of [-1.5, 1.5]) {
+    k.box(0.6, 0.35, 0.06, '#8a9196', x, y + 0.8, bz + 1.32);
+    for (let i = 0; i < 4; i++) k.box(0.55, 0.03, 0.08, C.dark, x, y + 0.85 + i * 0.07, bz + 1.34);
+  }
+  // Green roof + glass command pavilion on top
+  k.box(4.2, 0.08, 2.6, '#6cbf45', 0, y + 1.6, bz);
+  k.glassBox(2.2, STOREY - 0.05, 1.4, 0, y + 1.68, bz - 0.2);
+  k.box(2.5, 0.08, 1.7, C.roofGreen, 0, y + 1.68 + STOREY, bz - 0.2);
+  k.radarDome(1.6, y + 1.68, bz + 0.6, 0.28);
+  for (const x of [-1.6, -1.0]) k.cyl(0.08, 0.35, '#8a9196', x, y + 1.68, bz + 0.7, 8);
+  k.antenna(-1.7, y + 1.68, bz - 0.8, 0.8);
+  k.plaque('COMMAND', 1.25, 1.85, y, 1.0);
+}
+
+/** 19 — Comms Hub: three-storey block with a saw-tooth solar roof and a big dish on a low terrace. */
+function commsHub(k: Kit, y: number) {
+  const bx = -0.7, bz = -1.0;
+  const h = ribbonBlock(k, bx, bz, 3.2, 2.4, 3, y);
+  for (let i = 0; i < 4; i++) {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.04, 0.6), new THREE.MeshStandardMaterial({ color: '#284a73', flatShading: true, roughness: 0.4 }));
+    p.position.set(bx, y + h + 0.3, bz - 0.9 + i * 0.6);
+    p.rotation.x = -0.6;
+    k.add(p);
+    k.box(3.0, 0.3, 0.04, C.white, bx, y + h + 0.1, bz - 0.65 + i * 0.6);
+  }
+  // Low terrace with the dish
+  const tx = 1.75, tz = -0.4;
+  k.box(1.6, 0.9, 2.2, CONCRETE, tx, y, tz);
+  k.box(1.64, 0.06, 2.24, C.trim, tx, y + 0.9, tz);
+  bigDish(k, tx, y + 0.96, tz - 0.2, 0.75, 0.7);
+  k.latticeMast(-2.2, y + h + 0.1, bz - 0.8, 2.0, 0.4);
+  k.glassBox(1.2, STOREY * 1.6, 0.5, bx, y, bz + 1.45);
+  k.door('front', bx, bz + 1.45, 1.2, 0.5, 0, y, 0.5, 0.66, DARK_GLASS);
+  k.plaque('COMMS HUB', 1.3, 1.85, y, 1.1);
+}
+
+/** 20 — Citadel: low courtyard ring with glass corners, gold band and a supertree garden. */
 function citadel(k: Kit, y: number) {
-  const tz = -1.0;
-  const tiers: [number, number, number][] = [[4.6, 3.2, 3], [3.6, 2.5, 3], [2.6, 1.9, 3], [1.6, 1.4, 3]];
-  let ty = y;
-  tiers.forEach(([w, d, floors], i) => {
-    const h = k.block(w, d, floors, 0, ty, tz, i % 2 ? C.wallAlt : C.wall);
-    for (let f = 0; f < floors; f++) k.windowRow('front', 0, tz, w, d, Math.max(2, Math.round(w / 0.6)), ty + f * STOREY + 0.42, { louvre: f > 0, skip: i === 0 && f === 0 ? [3, 4] : [] });
-    for (let f = 0; f < floors; f++) k.windowRow('right', 0, tz, w, d, Math.max(2, Math.round(d / 0.6)), ty + f * STOREY + 0.42);
-    ty += h;
-    if (i < tiers.length - 1) {
-      // Planted terrace on the setback
-      const [nw, nd] = tiers[i + 1];
-      k.box(w, 0.08, d, '#cfc9bc', 0, ty, tz);
-      k.hedge(0, tz + nd / 2 + (d - nd) / 4, w - 0.2, (d - nd) / 2 - 0.1, ty + 0.08);
-      for (const s of [-1, 1]) k.hedge(s * (nw / 2 + (w - nw) / 4), tz, (w - nw) / 2 - 0.1, d - 0.2, ty + 0.08);
-      ty += 0.08;
-    }
-  });
-  k.flatRoof(1.6, 1.4, 0, ty, tz);
-  crown(k, 0, ty + 0.06, tz, 1.0);
-  clock(k, y + 7.5 * STOREY + 0.2, tz + 1.25);
-  k.door('front', 0, tz, 4.6, 3.2, 0, y, 0.6, 0.7, '#3d5a6c');
-  k.box(1.8, 0.08, 0.6, C.roofGreen, 0, y + 0.9, tz + 1.9);
-  // Plaza with supertrees and arch
-  k.box(5.4, 0.015, 1.4, '#e3dccb', 0, y, 2.15);
-  supertree(k, -2.3, 2.0, 1.7, y);
-  supertree(k, 2.3, 2.0, 1.7, y, '#c0567e');
-  supertree(k, -1.5, 2.45, 1.2, y, '#d98a3c');
-  supertree(k, 1.5, 2.45, 1.2, y);
-  k.arch(0, 2.72, 1.9, 'CITADEL', y);
+  const cx = 0, cz = -0.5, W = 4.8, D = 4.0, t = 1.0, floors = 3;
+  const h = floors * STOREY;
+  // Four ranges around a courtyard
+  ribbonBlock(k, cx, cz - D / 2 + t / 2, W, t, floors, y);
+  ribbonBlock(k, cx - W / 2 + t / 2, cz, t, D - 2 * t, floors, y);
+  ribbonBlock(k, cx + W / 2 - t / 2, cz, t, D - 2 * t, floors, y);
+  for (const s of [-1, 1]) ribbonBlock(k, cx + s * (W / 2 - 0.95), cz + D / 2 - t / 2, 1.9, t, floors, y);
+  // Glass corner towers, one storey higher
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    k.glassBox(1.0, h + STOREY - 0.1, 1.0, cx + sx * (W / 2 - 0.5), y, cz + sz * (D / 2 - 0.5));
+  }
+  // Gold accent band and entrance gap with a glass gate
+  for (const s of [-1, 1]) k.box(1.95, 0.08, t + 0.06, '#d9b24a', cx + s * (W / 2 - 0.95), y + h + 0.1, cz + D / 2 - t / 2);
+  k.box(W + 0.06, 0.08, t + 0.06, '#d9b24a', cx, y + h + 0.1, cz - D / 2 + t / 2);
+  k.box(1.0, 1.6, 0.1, DARK_GLASS, cx, y, cz + D / 2 - 0.1);
+  k.box(1.1, 0.1, 0.3, '#d9b24a', cx, y + 1.6, cz + D / 2 - 0.1);
+  // Courtyard garden
+  k.box(W - 2 * t, 0.06, D - 2 * t, '#6cbf45', cx, y, cz);
+  supertree(k, cx, cz, 1.4, y + 0.06);
+  k.hedge(cx - 0.9, cz + 0.6, 0.6, 0.2, y + 0.06);
+  k.hedge(cx + 0.9, cz - 0.6, 0.6, 0.2, y + 0.06);
+  k.solarPanels(cx, y + h + 0.1, cz - D / 2 + t / 2, 2.6, 0.7);
+  k.radarDome(cx + W / 2 - 0.5, y + h + STOREY, cz - D / 2 + 0.5, 0.25);
+  k.plaque('CITADEL', 1.3, 2.0, y, 1.0);
 }
 
 export function buildHq(level: number): Kit {
