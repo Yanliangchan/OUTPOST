@@ -25,7 +25,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 |---|---|---|---|---|---|
 | 1 | **HQ** | 6×6 | — | Caps levels; unlocks buildings; gates land clearance | ✅ 20/20 designed |
 | 2 | **Bunk** | 6×4 | 1 | Houses Recruits | ✅ 20/20 designed |
-| 3 | Cookhouse | 5×4 | 1 | Food → Morale and work speed | concept Lv 1–3 |
+| 3 | **Cookhouse** | 5×4 | 1 | Food → Morale and work speed | ✅ 20/20 designed |
 | 4 | QM Store | 4×4 | 1 | Stores Supplies; delivery trucks unload here | planned |
 | 5 | Workshop | 4×4 | 2 | Produces Supplies; repairs | planned |
 | 6 | Utilities | 3×3 | 2 | Power and water; buildings run better when supplied | planned |
@@ -153,3 +153,61 @@ Houses Recruits. Higher levels house more of them and help them rest faster. Foo
 | 20 | **Quarters Citadel:** modern courtyard U with glass corner towers, gold band, Supertree |
 
 Review scene: open the game with `?showcase=bunk`.
+
+---
+
+# Cookhouse: full specification
+
+Feeds the outpost. Well-fed Recruits work faster and Morale rises. Footprint **5×4**; height budget about 4 storeys.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Seats | Meals/h | Morale |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Field Kitchen | 150 | 0 | 1 min | 280 | 8 | 20 | +2 |
+| 2 | Mess Tent | 500 | 0 | 5 min | 340 | 12 | 32 | +2 |
+| 3 | Atap Canteen | 1,300 | 25 | 20 min | 400 | 16 | 44 | +3 |
+| 4 | Cookhouse | 3,500 | 100 | 1 h | 480 | 20 | 56 | +3 |
+| 5 | Cookhouse · Kitchen Wing | 8,000 | 250 | 2 h | 580 | 24 | 68 | +4 |
+| 6 | Cookhouse · Clerestory | 16,000 | 450 | 4 h | 700 | 28 | 80 | +4 |
+| 7 | Dining Hall · Veranda | 30,000 | 800 | 6 h | 840 | 32 | 92 | +5 |
+| 8 | Food Court | 55,000 | 1,200 | 10 h | 1,000 | 36 | 104 | +5 |
+| 9 | Dining Hall · Upper Deck | 90,000 | 1,800 | 16 h | 1,200 | 40 | 116 | +6 |
+| 10 | Cookhouse Complex *(release cap)* | 150,000 | 2,500 | 1 d | 1,440 | 44 | 128 | +6 |
+| 11 | Modern Dining Hall | 240,000 | 3,400 | 1.5 d | 1,730 | 48 | 140 | +7 |
+| 12 | Rooftop Dining | 360,000 | 4,500 | 2 d | 2,080 | 52 | 152 | +7 |
+| 13 | Central Kitchen | 500,000 | 5,800 | 2.5 d | 2,500 | 56 | 164 | +8 |
+| 14 | Food Court Pavilion | 680,000 | 7,300 | 3 d | 3,000 | 60 | 176 | +8 |
+| 15 | Grand Dining Hall | 900,000 | 9,000 | 3.5 d | 3,590 | 64 | 188 | +9 |
+| 16 | Secure Mess | 1,200,000 | 10,800 | 4 d | 4,310 | 68 | 200 | +9 |
+| 17 | Ration Centre | 1,500,000 | 13,000 | 4.5 d | 5,180 | 72 | 212 | +10 |
+| 18 | Bermed Kitchen | 1,850,000 | 15,500 | 5 d | 6,210 | 76 | 224 | +10 |
+| 19 | Solar Kitchen | 2,250,000 | 18,300 | 5.5 d | 7,450 | 80 | 236 | +11 |
+| 20 | Mess Citadel | 2,700,000 | 21,300 | 6 d | 8,950 | 84 | 248 | +11 |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Cookhouse level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Field Kitchen:** olive tarp fly over steaming pots, trestle tables, jerrycans |
+| 2 | **Mess Tent:** big canvas tent plus a timber cook shed with a smoking chimney |
+| 3 | **Atap Canteen:** open timber shelter with a zinc roof, long tables, kitchen shed |
+| 4 | **Cookhouse:** first enclosed cream hall with louvre windows; kitchen block behind |
+| 5 | **Kitchen Wing:** L-plan; kitchen wing projects forward with a loading dock; link-way |
+| 6 | **Clerestory:** big hall with a raised clerestory roof; outdoor umbrellas |
+| 7 | **Veranda:** hall wrapped in a deep columned veranda under one big hip roof |
+| 8 | **Food Court:** hawker-centre pavilion: **two-tier teal roof** with a ventilation lantern, colourful stalls, round tables and stools, ceiling fans |
+| 9 | **Upper Deck:** two-storey hall with a covered upper dining deck and umbrellas |
+| 10 | **Cookhouse Complex:** food-court pavilion, two-storey central kitchen, cold room |
+| 11 | **Modern Dining Hall:** glass walls under a deep white flat roof with fins |
+| 12 | **Rooftop Dining:** two storeys with a rooftop terrace and umbrellas |
+| 13 | **Central Kitchen:** concrete ribbon block, tall stainless exhaust stacks, cold store |
+| 14 | **Food Court Pavilion:** thin white canopy on slim columns, skylights, stalls |
+| 15 | **Grand Dining Hall:** U-shape around a garden court, gold band, Supertree, arch |
+| 16 | **Secure Mess:** perimeter wall; concrete block with a loading dock and solar roof |
+| 17 | **Ration Centre:** stacked steel containers with a green canopy over tables |
+| 18 | **Bermed Kitchen:** earth-bermed concrete, blast door, exhaust vents, glass pavilion on top |
+| 19 | **Solar Kitchen:** saw-tooth solar roof, full fins, canopy |
+| 20 | **Mess Citadel:** courtyard ring with glass corners, gold band, Supertree garden with tables |
+
+Review scene: open the game with `?showcase=cookhouse`.
