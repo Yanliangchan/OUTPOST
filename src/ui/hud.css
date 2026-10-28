@@ -1,0 +1,49 @@
+:root {
+  --panel: rgba(255, 255, 252, 0.92);
+  --ink: #26332a;
+  --ink-soft: #5d6b60;
+  --accent: #3f9b4a;
+  --highlight: #ffc93c;
+  --radius: 14px;
+  --shadow: 0 4px 14px rgba(20, 50, 30, 0.18);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: linear-gradient(#8fd3f4, #dff4f6);
+}
+#app { position: fixed; inset: 0; }
+#app canvas { display: block; touch-action: none; }
+.hud { position: fixed; inset: 0; pointer-events: none; }
+.hud > * { pointer-events: auto; position: absolute; }
+.chip {
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.brand { top: 14px; left: 14px; display: flex; gap: 10px; align-items: center; }
+.brand .logo {
+  width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center;
+  background: var(--accent); color: #fff; font-size: 16px;
+}
+.brand b { display: block; font-weight: 900; letter-spacing: 0.12em; font-size: 16px; }
+.brand small { color: var(--ink-soft); font-weight: 700; font-size: 11px; }
+.toggles { top: 14px; right: 14px; display: flex; gap: 8px; }
+.toggles button {
+  font: inherit; font-weight: 800; font-size: 13px; color: var(--ink);
+  background: var(--panel); border: 0; border-radius: 12px; padding: 8px 12px;
+  box-shadow: var(--shadow); cursor: pointer; transition: transform 0.08s, background 0.15s;
+}
+.toggles button:hover { transform: translateY(-1px); }
+.toggles button.on { background: var(--highlight); }
+.hints { bottom: 14px; left: 14px; color: var(--ink-soft); }
+.fps { bottom: 14px; right: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+kbd {
+  font: inherit; font-size: 11px; padding: 1px 5px; border-radius: 5px;
+  background: rgba(38, 51, 42, 0.08); color: var(--ink);
+}
