@@ -15,6 +15,7 @@ import { ClearanceUi } from './ui/clearanceUi';
 import { gameClock } from './core/gameClock';
 import { plateauZoneAt, ZONES } from './world/zones';
 import { createShowcase } from './buildings/showcase';
+import { buildingMetrics } from './buildings/metrics';
 
 const app = document.getElementById('app')!;
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -124,6 +125,7 @@ renderer.setAnimationLoop(() => {
     if (g) g.group.visible = !cleared;
   },
   zones: () => Object.keys(vegetation.clearables),
+  metrics: buildingMetrics,
   get frames() {
     return frames;
   },

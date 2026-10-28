@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { C, Kit, STOREY } from './kit';
-import { CONCRETE, DARK_GLASS, perimeter } from './common';
+import { CONCRETE, DARK_GLASS, perimeter, roofCanopy } from './common';
 import { DAY, HOUR, MIN, type BuildingDef, type LevelStats } from './types';
 
 /*
@@ -119,7 +119,7 @@ function store(k: Kit, w: number, d: number, x: number, z: number, y: number, st
   return h;
 }
 
-function camoNet(k: Kit, w: number, d: number, x: number, z: number, y: number, h = 0.95) {
+function camoNet(k: Kit, w: number, d: number, x: number, z: number, y: number, h = 0.7) {
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.05, h, 0.05, C.wood, x + (sx * w) / 2, y, z + (sz * d) / 2);
   const net = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.3, d + 0.3, 6, 6).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: OLIVE, flatShading: true, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }));
   const pos = net.geometry.getAttribute('position');
@@ -145,6 +145,9 @@ function field(k: Kit, level: number, y: number) {
   if (level === 2) {
     // Container Store: olive container with a lean-to canopy and pallets.
     container(k, -0.2, -1.1, y, 2.6, '#5b6b3a');
+    container(k, -0.4, -1.1, y + 0.6, 2.2, '#7a8a3a');
+    pallet(k, 1.2, 0.6, y, 'drums', 3);
+    pallet(k, -1.4, 0.8, y, 'crates', 2);
     for (const x of [-1.4, 0, 1.0]) k.box(0.05, 0.8, 0.05, C.wood, x, y, 0.1);
     const lean = k.box(2.6, 0.04, 1.1, C.zinc, -0.2, y + 0.82, -0.35);
     lean.rotation.x = -0.12;
@@ -197,7 +200,7 @@ function camp(k: Kit, level: number, y: number) {
     return;
   }
   // 6: Quonset Store: corrugated half-cylinder hut, end wall with shutter.
-  const r = 1.15, len = 3.2, z = -0.5;
+  const r = 1.5, len = 3.2, z = -0.4;
   const q = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 14, 1, true, -Math.PI / 2, Math.PI), new THREE.MeshStandardMaterial({ color: C.zinc, flatShading: true, side: THREE.DoubleSide }));
   q.rotation.x = Math.PI / 2;
   q.rotation.y = Math.PI / 2;
@@ -213,10 +216,15 @@ function camp(k: Kit, level: number, y: number) {
   const end = new THREE.Mesh(new THREE.CircleGeometry(r, 14, 0, Math.PI), new THREE.MeshStandardMaterial({ color: C.wall, flatShading: true, side: THREE.DoubleSide }));
   end.position.set(0, y, z + len / 2);
   k.add(end);
-  k.shutter('front', 0, z, 1.6, len, 0, 0.8, 0.75);
+  k.shutter('front', 0, z, 1.6, len, 0, 0.9, 0.9);
   dock(k, 0, z + len / 2 + 0.24, 1.4, y);
-  pallet(k, -1.4, 1.5, y, 'crates', 0);
-  forklift(k, 1.2, 1.5, y, Math.PI);
+  // Lean-to bay along the side
+  k.box(0.9, 0.05, 3.0, C.zinc, 1.6, y + 1.0, -0.4);
+  for (const z2 of [-1.6, 0.7]) k.box(0.05, 1.0, 0.05, '#8a9196', 1.95, y, z2);
+  pallet(k, 1.65, -1.0, y, 'drums', 1);
+  pallet(k, 1.65, -0.2, y, 'sacks', 2);
+  pallet(k, -1.5, 1.55, y, 'crates', 0);
+  forklift(k, 1.3, 1.55, y, Math.PI);
 }
 
 function base(k: Kit, level: number, y: number) {
@@ -268,13 +276,14 @@ function base(k: Kit, level: number, y: number) {
     return;
   }
   // 10: Logistics Hub: high-bay + cold store + covered dock + weighbridge.
-  const h = 2.0;
-  k.box(2.4, h, 2.4, '#d9d2c3', -0.6, y, -0.6);
-  k.box(2.42, 0.2, 2.42, C.trim, -0.6, y, -0.6);
-  k.hipRoof(2.4, 2.4, 0.45, -0.6, y + h, -0.6);
-  k.shutter('front', -0.6, -0.6, 2.4, 2.4, -0.3, 1.0, 1.0);
-  k.box(1.1, 1.0, 1.4, '#e8e8e2', 1.2, y, -1.0); // cold store
-  k.box(0.4, 0.3, 0.2, '#c9ced2', 1.2, y + 1.0, -1.0);
+  const h = 2.4;
+  k.box(2.6, h, 2.6, '#d9d2c3', -0.6, y, -0.6);
+  k.box(2.62, 0.2, 2.62, C.trim, -0.6, y, -0.6);
+  k.box(2.3, 0.2, 0.04, DARK_GLASS, -0.6, y + 2.0, 0.71);
+  k.hipRoof(2.6, 2.6, 0.45, -0.6, y + h, -0.6);
+  k.shutter('front', -0.6, -0.6, 2.6, 2.6, -0.3, 1.0, 1.0);
+  k.box(1.1, 1.4, 1.6, '#e8e8e2', 1.25, y, -0.9); // cold store
+  k.box(0.4, 0.3, 0.2, '#c9ced2', 1.25, y + 1.4, -0.9);
   k.box(1.6, 0.06, 0.7, C.roofGreen, -0.6, y + 1.05, 0.9);
   dock(k, -0.6, 0.85, 2.0, y);
   k.box(1.0, 0.04, 0.6, '#5c6166', 1.2, y, 1.2); // weighbridge
@@ -298,8 +307,9 @@ function command(k: Kit, level: number, y: number) {
   if (level === 12) {
     // Drone Depot: flat roof with drone pads and a delivery drone in flight.
     const w = 3.4, d = 2.6, z = -0.5;
-    const h = k.block(w, d, 2, 0, y, z, C.wallAlt);
+    const h = k.block(w, d, 3, 0, y, z, C.wallAlt);
     k.flatRoof(w, d, 0, y + h, z);
+    for (let f = 1; f < 3; f++) k.windowRow('front', 0, z, w, d, 5, y + f * STOREY + 0.42, { louvre: true });
     for (const [x, zz] of [[-0.9, -1.0], [0.9, -1.0], [0, 0.2]]) {
       k.cyl(0.42, 0.03, '#4a4f54', x, y + h + 0.06, zz, 12);
       k.cyl(0.36, 0.01, '#ffc93c', x, y + h + 0.09, zz, 12);
@@ -318,28 +328,29 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level === 13) {
     // Vertical Store: glass automated tower beside a low dock hall.
-    k.glassBox(1.2, 4 * STOREY - 0.1, 1.2, -1.15, y, -1.0);
-    for (let l = 0; l < 6; l++) k.box(1.0, 0.04, 1.0, RACK_UP, -1.15, y + 0.5 + l * 0.55, -1.0);
-    k.box(1.3, 0.12, 1.3, C.white, -1.15, y + 4 * STOREY - 0.1, -1.0);
-    const h = store(k, 2.4, 1.8, 0.75, -0.6, y, 1, CONCRETE);
-    k.flatRoof(2.4, 1.8, 0.75, y + h, -0.6);
+    k.glassBox(1.2, 3.1, 1.2, -1.15, y, -1.0);
+    for (let l = 0; l < 5; l++) k.box(1.0, 0.04, 1.0, RACK_UP, -1.15, y + 0.5 + l * 0.55, -1.0);
+    k.box(1.3, 0.12, 1.3, C.white, -1.15, y + 3.1, -1.0);
+    const h = store(k, 2.4, 2.6, 0.75, -0.5, y, 3, CONCRETE);
+    k.flatRoof(2.4, 2.6, 0.75, y + h, -0.5);
     const belt = k.box(0.9, 0.08, 0.2, '#5c6166', -0.15, y + 1.2, -1.0);
     belt.rotation.z = -0.3;
-    dock(k, 0.75, 0.55, 2.0, y);
-    forklift(k, 0.4, 1.4, y, Math.PI);
-    pallet(k, 1.4, 1.4, y, 'drums', 1);
+    dock(k, 0.75, 1.05, 2.0, y);
+    forklift(k, 0.3, 1.6, y, Math.PI);
+    pallet(k, 1.4, 1.6, y, 'drums', 1);
     return;
   }
   if (level === 14) {
     // Wave-Roof Depot: undulating roof of alternating arcs over a glazed shed.
     const w = 3.4, d = 2.6, z = -0.5;
-    k.box(w, 1.3, d, CONCRETE, 0, y, z);
-    k.box(w - 0.3, 0.4, 0.04, DARK_GLASS, 0, y + 0.8, z + d / 2 + 0.01);
+    k.box(w, 2.85, d, CONCRETE, 0, y, z);
+    k.box(w - 0.3, 0.4, 0.04, DARK_GLASS, 0, y + 2.2, z + d / 2 + 0.01);
+    k.box(w + 0.02, 0.06, d + 0.02, C.trim, 0, y + 1.15, z);
     for (let i = 0; i < 4; i++) {
       const arc = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, d + 0.3, 10, 1, true, -Math.PI / 2, Math.PI), new THREE.MeshStandardMaterial({ color: i % 2 ? C.white : '#9aa3a6', flatShading: true, side: THREE.DoubleSide }));
       arc.rotation.x = Math.PI / 2;
       arc.scale.set(1, 1, i % 2 ? 0.45 : 0.75);
-      arc.position.set(-1.27 + i * 0.85, y + 1.3, z);
+      arc.position.set(-1.27 + i * 0.85, y + 2.85, z);
       arc.rotation.y = 0;
       arc.castShadow = true;
       k.add(arc);
@@ -352,8 +363,9 @@ function command(k: Kit, level: number, y: number) {
   }
   // 15: Grand Goods Shed: railway-style shed with three arched gable doorways and gold trim.
   const w = 3.6, d = 2.2, z = -0.6;
-  const h = k.block(w, d, 1, 0, y, z) + 0.3;
-  k.box(w, 0.3, d, C.wall, 0, y + STOREY, z);
+  const h = k.block(w, d, 2, 0, y, z) + 0.3;
+  k.box(w, 0.3, d, C.wall, 0, y + 2 * STOREY, z);
+  k.windowRow('front', 0, z, w, d, 6, y + STOREY + 0.45, { louvre: true });
   for (let i = 0; i < 3; i++) {
     const g = new Kit();
     g.gableRoof(1.1, d, 0.55, 0, 0, 0, C.roof, 0.08);
@@ -375,8 +387,9 @@ function secure(k: Kit, level: number, y: number) {
   perimeter(k, y, 1.72, 1.72, false);
   if (level === 16) {
     // Vault Store: windowless concrete box with a round vault door; fenced cage of crates.
-    k.box(2.8, 1.8, 2.0, CONCRETE, -0.3, y, -0.8);
-    for (let i = 0; i < 4; i++) k.box(2.82, 0.03, 2.02, '#c2bdb3', -0.3, y + 0.4 + i * 0.4, -0.8);
+    k.box(2.8, 2.9, 2.0, CONCRETE, -0.3, y, -0.8);
+    for (let i = 0; i < 7; i++) k.box(2.82, 0.03, 2.02, '#c2bdb3', -0.3, y + 0.4 + i * 0.4, -0.8);
+    roofCanopy(k, 2.4, 1.6, -0.3, y + 2.9, -0.8, 0.3);
     const door = k.cyl(0.5, 0.12, '#8a9196', -0.3, y + 0.15, 0.25, 16);
     door.rotation.x = Math.PI / 2;
     door.position.set(-0.3, y + 0.62, 0.22);
@@ -388,13 +401,13 @@ function secure(k: Kit, level: number, y: number) {
   }
   if (level === 17) {
     // Robotic Warehouse: glass walls reveal a colourful robot shelving grid.
-    k.glassBox(3.0, 1.5, 2.2, 0, y, -0.7);
+    k.glassBox(3.0, 2.85, 2.2, 0, y, -0.7);
     for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) {
       const col = ['#ffc93c', '#2bb3a3', '#ff8a3d', '#5d8aa3'][(i + j) % 4];
-      k.box(0.32, 0.9, 0.32, col, -1.1 + i * 0.55, y + 0.05, -1.4 + j * 0.6);
+      k.box(0.32, 2.2, 0.32, col, -1.1 + i * 0.55, y + 0.05, -1.4 + j * 0.6);
       k.box(0.26, 0.08, 0.26, '#e94f37', -1.1 + i * 0.55, y, -1.4 + j * 0.6 + 0.3);
     }
-    k.box(3.1, 0.1, 2.3, C.white, 0, y + 1.5, -0.7);
+    k.box(3.1, 0.1, 2.3, C.white, 0, y + 2.85, -0.7);
     const belt = k.box(1.4, 0.08, 0.25, '#5c6166', 0.6, y + 0.35, 0.75);
     belt.rotation.y = 0;
     dock(k, -0.6, 0.65, 1.2, y);
@@ -406,11 +419,12 @@ function secure(k: Kit, level: number, y: number) {
     for (const [x, z] of [[-0.75, -0.8], [0.75, -0.8], [0, 0.55]]) {
       const peak = new THREE.Mesh(new THREE.ConeGeometry(0.95, 0.75, 4, 1, true), new THREE.MeshStandardMaterial({ color: '#f7f5ef', flatShading: true, side: THREE.DoubleSide }));
       peak.rotation.y = Math.PI / 4;
-      peak.position.set(x, y + 1.35, z);
+      peak.position.set(x, y + 2.55, z);
       peak.castShadow = true;
       k.add(peak);
-      for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.05, 1.0, 0.05, '#8a9196', x + sx * 0.6, y, z + sz * 0.6);
-      k.cyl(0.02, 0.4, '#8a9196', x, y + 1.6, z, 4);
+      for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.05, 2.2, 0.05, '#8a9196', x + sx * 0.6, y, z + sz * 0.6);
+      k.cyl(0.02, 0.4, '#8a9196', x, y + 2.8, z, 4);
+      racking(k, x, z - 0.35, y, 1.0, 2);
       pallet(k, x - 0.22, z, y, 'crates', Math.round(x * 3 + z));
       pallet(k, x + 0.3, z + 0.1, y, 'drums', 1);
     }
@@ -423,8 +437,13 @@ function secure(k: Kit, level: number, y: number) {
     for (let i = 0; i < 9; i++) k.box(0.6, 0.03, 0.08, '#7a5a3b', -1.05, y, -1.7 + i * 0.4);
     k.box(0.5, 0.5, 1.6, '#a8473a', -1.05, y + 0.15, -0.6);
     k.box(0.52, 0.05, 1.62, '#7d3b27', -1.05, y + 0.65, -0.6);
+    // Platform canopy over the siding
+    k.box(1.4, 0.07, 3.0, C.roofGreen, -1.05, y + 2.0, -0.3);
+    for (const z2 of [-1.6, -0.3, 1.0]) k.box(0.06, 2.0, 0.06, C.white, -0.4, y, z2);
     for (const z of [-1.2, 0.0]) k.cyl(0.08, 0.06, '#2a2b2d', -1.05, y + 0.08, z, 8).rotation.z = Math.PI / 2;
-    const h = store(k, 1.9, 2.4, 0.8, -0.6, y, 1, CONCRETE);
+    const h = store(k, 1.9, 2.4, 0.8, -0.6, y, 3, CONCRETE);
+    k.box(1.9, 0.07, 0.9, C.roofGreen, 0.8, y + 1.0, 1.05);
+    for (const x2 of [0.0, 1.6]) k.box(0.06, 1.0, 0.06, C.white, x2, y, 1.45);
     k.box(2.4, 0.08, 2.6, C.roofGreen, 0.55, y + h + 0.1, -0.6);
     dock(k, -0.45, -0.6, 0.35, y, 2.2, 0.3);
     forklift(k, 0.6, 1.2, y, Math.PI);
@@ -433,11 +452,13 @@ function secure(k: Kit, level: number, y: number) {
   }
   // 20: Dome Depot: geodesic storage dome with a gold ring and a glazed dock entrance.
   const dome = new THREE.Mesh(new THREE.IcosahedronGeometry(1.45, 1), new THREE.MeshStandardMaterial({ color: '#e9ecee', flatShading: true }));
-  dome.position.set(0, y, -0.45);
-  dome.scale.y = 0.85;
+  k.cyl(1.5, 1.4, CONCRETE, 0, y, -0.45, 14);
+  dome.position.set(0, y + 1.4, -0.45);
+  dome.scale.set(1.05, 1.15, 1.05);
+  k.cyl(0.08, 0.5, '#d9b24a', 0, y + 3.05, -0.45, 6, 0.01);
   dome.castShadow = true;
   k.add(dome);
-  k.cyl(1.47, 0.1, '#d9b24a', 0, y + 0.05, -0.45, 14);
+  k.cyl(1.55, 0.1, '#d9b24a', 0, y + 1.4, -0.45, 14);
   k.glassBox(1.2, 0.9, 0.6, 0, y, 0.95);
   k.box(1.4, 0.08, 0.8, '#d9b24a', 0, y + 0.9, 0.95);
   forklift(k, -1.2, 1.25, y, 0);

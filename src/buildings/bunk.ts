@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { C, Kit, STOREY } from './kit';
-import { CONCRETE, DARK_GLASS, perimeter, supertree } from './common';
+import { CONCRETE, DARK_GLASS, perimeter, roofCanopy, supertree } from './common';
 import { DAY, HOUR, MIN, type BuildingDef, type LevelStats } from './types';
 
 /*
@@ -122,8 +122,8 @@ function endStair(k: Kit, x: number, bz: number, storeys: number, y: number) {
 /** Single-storey barrack with louvre windows; zinc or red roof. */
 function barrack(k: Kit, x: number, z: number, w: number, d: number, y: number, roof: 'zinc' | 'red') {
   const h = k.block(w, d, 1, x, y, z);
-  if (roof === 'zinc') k.gableRoof(w, d, 0.5, x, y + h, z, C.zinc);
-  else k.hipRoof(w, d, 0.5, x, y + h, z);
+  if (roof === 'zinc') k.gableRoof(w, d, 0.75, x, y + h, z, C.zinc);
+  else k.hipRoof(w, d, 0.75, x, y + h, z);
   k.windowRow('front', x, z, w, d, Math.max(4, Math.round(w / 0.7)), y + 0.42, { louvre: true, skip: [1, Math.max(4, Math.round(w / 0.7)) - 2] });
   k.windowRow('back', x, z, w, d, Math.max(4, Math.round(w / 0.7)), y + 0.42, { louvre: true });
   for (const dx of [-w * 0.28, w * 0.28]) k.door('front', x, z, w, d, dx, y);
@@ -187,12 +187,12 @@ function field(k: Kit, level: number, y: number) {
     return;
   }
   // 3: kampong barrack on stilts
-  const w = 4.6, d = 1.8, z = -0.6, lift = 0.35;
+  const w = 4.6, d = 1.8, z = -0.6, lift = 0.22;
   for (let i = 0; i < 6; i++) for (const sz of [-d / 2 + 0.1, d / 2 - 0.1]) k.box(0.1, lift, 0.1, '#7a5a3b', -w / 2 + 0.15 + (i * (w - 0.3)) / 5, y, z + sz);
   k.box(w + 0.1, 0.06, d + 0.1, '#9c6b45', 0, y + lift, z);
   const h = k.block(w, d, 1, 0, y + lift + 0.06, z, C.wood);
   for (let i = 1; i < 6; i++) k.box(w + 0.01, 0.015, d + 0.01, '#8a5a3b', 0, y + lift + 0.06 + i * 0.15, z);
-  k.gableRoof(w, d, 0.6, 0, y + lift + 0.06 + h, z, C.zinc, 0.2, C.wood);
+  k.gableRoof(w, d, 0.42, 0, y + lift + 0.06 + h, z, C.zinc, 0.2, C.wood);
   k.windowRow('front', 0, z, w, d, 5, y + lift + 0.5, { louvre: true, skip: [2] });
   k.door('front', 0, z, w, d, 0, y + lift + 0.06);
   k.stairs(0, z + d / 2 + 0.3, 0.5, 0.5, lift + 0.06);
@@ -221,7 +221,7 @@ function camp(k: Kit, level: number, y: number) {
   // 6: first two-storey bunk block
   corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 2, y });
   endStair(k, 2.68, -0.95, 2, y);
-  k.clothesLine(-1.9, 1.5, 1.4, y);
+  k.linkway(-2.3, 1.45, 0.9, 1.45, y, 0.7, 0.6);
   k.bicycleRack(1.6, 1.55, 3, y);
 }
 
@@ -286,20 +286,23 @@ function base(k: Kit, level: number, y: number) {
 
 function command(k: Kit, level: number, y: number) {
   if (level === 11) {
-    const top = corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 3, y, voidDeck: true, roof: 'flat' });
+    const top = corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 4, y, voidDeck: true, roof: 'flat' });
     k.fins(4.8, top - STOREY - 0.1, 0, y + STOREY, -0.95 + 0.675 + 0.6, 10);
-    k.solarPanels(0, y + top + 0.06, -0.9, 3.6, 0.9);
-    k.planter(-1.5, 1.65, 0.8, y);
-    k.planter(1.5, 1.65, 0.8, y);
+    roofCanopy(k, 4.4, 1.7, 0, y + top + 0.06, -0.7);
+    for (const s of [-1, 1]) k.glassBox(0.5, top - 0.1, 1.4, s * 2.65, y, -0.8);
+    k.linkway(-2.4, 1.6, 2.4, 1.6, y, 0.75, 0.6);
     return;
   }
   if (level === 12) {
-    const top = corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 3, y, voidDeck: true, roof: 'flat' });
+    const top = corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 4, y, voidDeck: true, roof: 'flat' });
     const ry = y + top + 0.06;
     // Roof garden with a pergola
     k.box(4.6, 0.04, 1.7, '#6cbf45', 0, ry, -0.7);
     for (const x of [-1.6, -0.6, 0.4, 1.4]) for (const z of [-1.2, -0.2]) k.box(0.06, 0.6, 0.06, C.white, x, ry, z);
     for (let i = 0; i < 8; i++) k.box(0.05, 0.05, 1.1, C.wood, -1.7 + i * 0.45, ry + 0.6, -0.7);
+    k.box(3.3, 0.04, 1.15, '#b07a4a', -0.1, ry + 0.66, -0.7);
+    k.glassBox(0.5, top - 0.1, 1.4, -2.65, y, -0.8);
+    k.linkway(-2.4, 1.6, 2.4, 1.6, y, 0.75, 0.6);
     k.hedge(-1.8, -0.1, 0.8, 0.2, ry);
     k.hedge(1.6, -1.3, 0.9, 0.2, ry);
     k.glassBox(0.7, top - 0.1, 1.2, 2.7, y, -0.9);
@@ -307,12 +310,14 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level === 13) {
     for (const s of [-1, 1]) {
-      corridorBlock(k, { bx: s * 1.55, bw: 2.3, bd: 1.3, bz: -0.95, storeys: 3, y, roof: 'hip' });
+      corridorBlock(k, { bx: s * 1.55, bw: 2.3, bd: 1.3, bz: -0.95, storeys: 4, y, roof: 'hip' });
     }
     k.glassBox(0.8, STOREY - 0.1, 0.7, 0, y + STOREY, -1.0);
     k.glassBox(0.8, STOREY - 0.1, 0.7, 0, y + 2 * STOREY, -1.0);
+    k.glassBox(0.8, STOREY - 0.1, 0.7, 0, y + 3 * STOREY, -1.0);
     k.box(0.8, 0.04, 1.6, '#6cbf45', 0, y, 0.3);
-    k.planter(0, 1.65, 0.6, y);
+    k.linkway(-2.4, 1.6, 2.4, 1.6, y, 0.75, 0.6);
+    k.glassBox(0.8, STOREY - 0.1, 0.9, 0, y, 0.3);
     return;
   }
   if (level === 14) {
@@ -326,7 +331,7 @@ function command(k: Kit, level: number, y: number) {
     });
     k.hipRoof(5.0, 1.0, 0.45, 0, y + 4 * STOREY, -1.45);
     k.aircon(2.58, y + 0.3, 0.55, Math.PI / 2);
-    k.bicycleRack(1.6, 1.6, 3, y);
+    k.linkway(-2.4, 1.6, 2.4, 1.6, y, 0.75, 0.6);
     return;
   }
   // 15: Residences: U-shape with red roofs, gold band, entrance gate
@@ -343,6 +348,10 @@ function command(k: Kit, level: number, y: number) {
   k.box(2.4, 0.04, 1.4, '#6cbf45', 0, y, 0.35);
   supertree(k, 0, 0.4, 0.9, y + 0.04, '#d98a3c');
   k.arch(0, 1.75, 1.6, 'RESIDENCES', y);
+  for (const sx of [-1, 1]) {
+    k.box(1.3, 0.07, 0.6, C.roofGreen, sx * 1.95, y + 0.85, 1.55);
+    for (const px of [sx * 1.4, sx * 2.5]) k.box(0.06, 0.85, 0.06, C.white, px, y, 1.8);
+  }
 }
 
 /** Signature for the bunk at every level: laundry on the rails. */
@@ -353,8 +362,8 @@ function secure(k: Kit, level: number, y: number) {
   if (level === 16) {
     // Long three-storey block with recessed, colour-panelled balconies and laundry.
     const w = 4.8, d = 1.4, z = -0.8;
-    k.box(w, 3 * STOREY, d, CONCRETE, 0, y, z);
-    for (let f = 0; f < 3; f++) {
+    k.box(w, 4 * STOREY, d, CONCRETE, 0, y, z);
+    for (let f = 0; f < 4; f++) {
       const fy = y + f * STOREY;
       k.box(w + 0.04, 0.06, d + 0.04, C.trim, 0, fy, z);
       for (let i = 0; i < 5; i++) {
@@ -365,14 +374,17 @@ function secure(k: Kit, level: number, y: number) {
         k.box(0.14, 0.18, 0.012, TOWELS[(i + f) % TOWELS.length], bx + 0.2, fy + 0.3, z + d / 2 + 0.34);
       }
     }
-    k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 3 * STOREY, z);
-    k.solarPanels(0, y + 3 * STOREY + 0.1, z, 3.6, 0.8);
+    k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 4 * STOREY, z);
+    roofCanopy(k, 4.4, 1.2, 0, y + 4 * STOREY + 0.1, z);
+    k.glassBox(0.5, 4 * STOREY - 0.1, 1.2, 2.55, y, z);
+    k.box(3.0, 0.08, 0.6, C.roofGreen, -0.8, y + 0.9, 0.55);
+    for (const x of [-2.2, 0.6]) k.box(0.07, 0.9, 0.07, C.white, x, y, 0.8);
     k.door('right', 0, z, w, d, 0, y, 0.4, 0.66, DARK_GLASS);
     return;
   }
   if (level === 17) {
     // Stacked modular pods with coloured doors and steel walkways
-    for (let f = 0; f < 3; f++) {
+    for (let f = 0; f < 4; f++) {
       for (let i = 0; i < 4; i++) {
         const px = -1.8 + i * 1.2 + (f % 2) * 0.3;
         k.box(1.1, STOREY - 0.05, 1.5, i % 2 ? C.wallAlt : CONCRETE, px, y + f * STOREY, -0.75);
@@ -385,22 +397,23 @@ function secure(k: Kit, level: number, y: number) {
         towels(k, -2.2, 2.4, y + f * STOREY + 0.05, 0.47, f);
       }
     }
-    k.stairs(2.6, -0.2, 0.4, 1.6, 2 * STOREY);
-    k.solarPanels(0, y + 3 * STOREY + 0.05, -0.75, 3.6, 0.8);
+    k.stairs(2.6, -0.2, 0.4, 1.6, 3 * STOREY);
+    roofCanopy(k, 4.2, 1.3, 0.3, y + 4 * STOREY + 0.05, -0.75);
     return;
   }
   if (level === 18) {
     // Garden Quarters: two slim two-storey slabs with a planted, pergola-covered street between.
     for (const [z, flip] of [[-1.25, 1], [0.75, -1]] as [number, number][]) {
-      k.box(4.8, 2 * STOREY, 0.75, C.wallAlt, 0, y, z);
-      for (let f = 0; f < 2; f++) {
+      k.box(4.8, 4 * STOREY, 0.75, C.wallAlt, 0, y, z);
+      for (let f = 0; f < 4; f++) {
         k.box(4.84, 0.06, 0.79, C.trim, 0, y + f * STOREY, z);
         for (let i = 0; i < 6; i++) {
           const bx = -2.0 + i * 0.8;
           k.door(flip > 0 ? 'front' : 'back', 0, z, 4.8, 0.75, flip > 0 ? bx : -bx, y + f * STOREY, 0.26, 0.56);
         }
       }
-      k.box(4.88, 0.1, 0.83, '#6cbf45', 0, y + 2 * STOREY, z);
+      k.box(4.88, 0.1, 0.83, '#6cbf45', 0, y + 4 * STOREY, z);
+      k.hedge(0, z, 4.4, 0.4, y + 4 * STOREY + 0.1);
     }
     // Street: paving, trees, pergola with towels on lines
     k.box(4.6, 0.02, 1.2, '#e3dccb', 0, y, -0.25);
@@ -416,18 +429,19 @@ function secure(k: Kit, level: number, y: number) {
   }
   if (level === 19) {
     // Green-wall block: planted facade panels between windows, rooftop wind turbines.
-    const w = 4.6, d = 1.6, z = -0.7;
-    k.box(w, 3 * STOREY, d, CONCRETE, 0, y, z);
-    for (let f = 0; f < 3; f++) {
+    const w = 4.6, d = 2.0, z = -0.55;
+    k.box(w, 4 * STOREY, d, CONCRETE, 0, y, z);
+    roofCanopy(k, 2.4, 1.4, -1.0, y + 4 * STOREY + 0.1, z);
+    for (let f = 0; f < 4; f++) {
       for (let i = 0; i < 6; i++) {
         const green = (i + f) % 2 === 0;
         k.box(0.68, STOREY - 0.12, 0.06, green ? '#4fae3a' : DARK_GLASS, -1.9 + i * 0.76, y + f * STOREY + 0.06, z + d / 2 + 0.01);
         if (!green) k.box(0.14, 0.16, 0.012, TOWELS[(i + f) % TOWELS.length], -1.9 + i * 0.76 + 0.18, y + f * STOREY + 0.3, z + d / 2 + 0.05);
       }
     }
-    k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 3 * STOREY, z);
-    for (const x of [-1.4, 0, 1.4]) {
-      const ty = y + 3 * STOREY + 0.1;
+    k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 4 * STOREY, z);
+    for (const x of [0.6, 1.6]) {
+      const ty = y + 4 * STOREY + 0.1;
       k.cyl(0.03, 0.7, C.white, x, ty, z, 6);
       for (let b = 0; b < 3; b++) {
         const blade = k.box(0.04, 0.32, 0.02, C.white, x, ty + 0.7, z + 0.04);
@@ -440,10 +454,14 @@ function secure(k: Kit, level: number, y: number) {
     return;
   }
   // 20: Quarters Citadel: staggered row of four townhouse units with roof terraces and gold trim.
-  const units: [number, number, number][] = [[-1.8, -0.9, 3], [-0.6, -0.55, 4], [0.6, -0.9, 3], [1.8, -0.55, 4]];
+  const units: [number, number, number][] = [[-1.8, -0.9, 4], [-0.6, -0.55, 4], [0.6, -0.9, 4], [1.8, -0.55, 4]];
   units.forEach(([x, z, floors], i) => {
     const wall = i % 2 ? C.wallAlt : C.wall;
     k.box(1.15, floors * STOREY, 1.5, wall, x, y, z);
+    // Covered front porch with a planter
+    k.box(1.0, 0.06, 0.55, C.roofGreen, x, y + 0.85, z + 1.05);
+    for (const px of [x - 0.45, x + 0.45]) k.box(0.05, 0.85, 0.05, C.white, px, y, z + 1.3);
+    k.planter(x, z + 1.55, 0.6, y);
     for (let f = 0; f < floors; f++) {
       const fy = y + f * STOREY;
       k.box(1.19, 0.05, 1.54, C.trim, x, fy, z);

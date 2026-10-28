@@ -125,3 +125,14 @@ export function ribbonBlock(k: Kit, x: number, z: number, w: number, d: number, 
   return h;
 }
 
+
+/** Rooftop solar canopy on slim posts: gives modern flat roofs presence without extra storeys. */
+export function roofCanopy(k: Kit, w: number, d: number, x: number, y: number, z: number, h = 0.5) {
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(0.05, h, 0.05, C.metal, x + sx * (w / 2 - 0.1), y, z + sz * (d / 2 - 0.1));
+  const p = new THREE.Mesh(new THREE.BoxGeometry(w, 0.05, d), new THREE.MeshStandardMaterial({ color: '#284a73', flatShading: true, roughness: 0.4 }));
+  p.position.set(x, y + h, z);
+  p.rotation.x = -0.08;
+  p.castShadow = true;
+  k.add(p);
+  k.box(w + 0.04, 0.03, 0.04, C.white, x, y + h + 0.03, z + d / 2);
+}

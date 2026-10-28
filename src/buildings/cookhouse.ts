@@ -118,8 +118,8 @@ function kitchen(k: Kit, w: number, d: number, x: number, z: number, y: number, 
 function field(k: Kit, level: number, y: number) {
   if (level === 1) {
     // Tarp fly over field stoves
-    for (const [x, z] of [[-1.6, -1.4], [1.6, -1.4], [-1.6, 0.2], [1.6, 0.2]]) k.box(0.05, 0.85, 0.05, C.wood, x, y, z);
-    k.gableRoof(3.3, 1.7, 0.4, 0, y + 0.85, -0.6, '#5b6b3a', 0.08, '#5b6b3a', false);
+    for (const [x, z] of [[-1.6, -1.4], [1.6, -1.4], [-1.6, 0.2], [1.6, 0.2]]) k.box(0.05, 0.62, 0.05, C.wood, x, y, z);
+    k.gableRoof(3.3, 1.7, 0.3, 0, y + 0.62, -0.6, '#5b6b3a', 0.08, '#5b6b3a', false);
     for (const x of [-0.9, -0.3, 0.3]) pot(k, x, -1.05, y);
     k.box(1.0, 0.28, 0.4, C.wood, 1.0, y, -1.05);
     k.diningTable(-0.6, 1.2, 1.1, y);
@@ -196,11 +196,11 @@ function base(k: Kit, level: number, y: number) {
     const vw = 4.4, vd = 2.6, vz = 0.35;
     for (let i = 0; i < 6; i++) {
       const x = -vw / 2 + 0.06 + (i * (vw - 0.12)) / 5;
-      k.box(0.08, 0.9, 0.08, C.white, x, y, vz + vd / 2 - 0.06);
+      k.box(0.08, 1.15, 0.08, C.white, x, y, vz + vd / 2 - 0.06);
     }
-    for (const s of [-1, 1]) for (let i = 0; i < 3; i++) k.box(0.08, 0.9, 0.08, C.white, s * (vw / 2 - 0.06), y, vz - vd / 2 + 0.5 + i * 0.8);
+    for (const s of [-1, 1]) for (let i = 0; i < 3; i++) k.box(0.08, 1.15, 0.08, C.white, s * (vw / 2 - 0.06), y, vz - vd / 2 + 0.5 + i * 0.8);
     k.box(vw, 0.04, vd, '#c9c3b5', 0, y, vz);
-    k.hipRoof(vw, vd, 0.6, 0, y + 0.92, vz);
+    k.hipRoof(vw, vd, 1.0, 0, y + 1.17, vz);
     kitchen(k, 3.6, 0.75, 0, -1.55, y, 1, 3);
     k.lamp(-2.3, 1.75, y);
     return;
@@ -222,15 +222,15 @@ function base(k: Kit, level: number, y: number) {
   }
   if (level === 9) {
     // Two-storey dining hall with an upper deck and umbrellas
-    hall(k, 3.6, 1.7, 0, -0.4, y, 2);
-    k.hipRoof(3.6, 1.7, 0.55, 0, y + 2 * STOREY, -0.4);
-    const dz = 0.85;
-    k.box(3.6, 0.08, 0.8, '#cfc9bc', 0, y + STOREY - 0.08, dz);
-    for (let i = 0; i < 5; i++) k.box(0.08, STOREY - 0.08, 0.08, C.white, -1.75 + i * 0.875, y, dz + 0.36);
-    k.box(3.6, 0.28, 0.04, C.white, 0, y + STOREY, dz + 0.38);
-    umbrella(k, -0.9, dz, y + STOREY, PALETTE.accentOrange);
-    umbrella(k, 0.9, dz, y + STOREY, PALETTE.accentTeal);
-    kitchen(k, 1.0, 1.7, 2.1, -0.4, y, 2, 2);
+    hall(k, 3.8, 2.0, -0.4, -0.5, y, 2);
+    k.hipRoof(3.8, 2.0, 0.6, -0.4, y + 2 * STOREY, -0.5);
+    const dz = 1.0;
+    k.box(3.8, 0.08, 1.0, '#cfc9bc', -0.4, y + STOREY - 0.08, dz);
+    for (let i = 0; i < 5; i++) k.box(0.08, STOREY - 0.08, 0.08, C.white, -2.25 + i * 0.925, y, dz + 0.46);
+    k.box(3.8, 0.28, 0.04, C.white, -0.4, y + STOREY, dz + 0.48);
+    umbrella(k, -1.3, dz, y + STOREY, PALETTE.accentOrange);
+    umbrella(k, 0.5, dz, y + STOREY, PALETTE.accentTeal);
+    kitchen(k, 1.0, 2.0, 2.0, -0.5, y, 2, 2);
     return;
   }
   // 10: complex: food-court pavilion + two-storey central kitchen + cold room
@@ -251,21 +251,22 @@ function base(k: Kit, level: number, y: number) {
 function command(k: Kit, level: number, y: number) {
   if (level === 11) {
     // Glass dining hall under a V-shaped butterfly roof
-    k.glassBox(3.8, STOREY * 1.2, 2.0, 0, y, 0.25);
+    k.glassBox(3.8, STOREY * 2, 2.0, 0, y, 0.25);
+    k.box(3.82, 0.06, 2.02, C.trim, 0, y + STOREY, 0.25);
     for (const s of [-1, 1]) {
-      const r = k.box(2.3, 0.1, 2.7, C.white, s * 1.1, y + STOREY * 1.2 + 0.2, 0.25);
+      const r = k.box(2.3, 0.1, 2.7, C.white, s * 1.1, y + STOREY * 2 + 0.2, 0.25);
       r.rotation.z = s * 0.22;
     }
-    k.cyl(0.05, STOREY * 1.2 + 0.1, C.metal, 0, y, 1.45, 6); // rainwater chain at the valley
-    kitchen(k, 4.0, 0.8, 0, -1.5, y, 1, 3);
+    k.cyl(0.05, STOREY * 2 + 0.1, C.metal, 0, y, 1.45, 6);
+    kitchen(k, 4.0, 0.8, 0, -1.5, y, 2, 3); // rainwater chain at the valley
     k.door('front', 0, 0.25, 3.8, 2.0, 0, y, 0.6, 0.7, DARK_GLASS);
     k.planter(-1.5, 1.75, 0.8, y);
     return;
   }
   if (level === 12) {
     // Two storeys with a rooftop dining terrace
-    const h = hall(k, 4.0, 2.4, 0, -0.5, y, 2);
-    k.flatRoof(4.0, 2.4, 0, y + h, -0.5);
+    const h = hall(k, 4.6, 2.5, 0, -0.45, y, 2);
+    k.flatRoof(4.6, 2.5, 0, y + h, -0.45);
     for (const [x, c] of [[-1.2, PALETTE.accentOrange], [0, PALETTE.accentTeal], [1.2, PALETTE.accentYellow]] as [number, string][]) {
       umbrella(k, x, -0.3, y + h + 0.06, c);
     }
@@ -277,7 +278,7 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level === 13) {
     // Central kitchen: stainless exhaust stacks, cold store, solar roof
-    const h = ribbonBlock(k, -0.5, -0.5, 3.6, 2.4, 2, y);
+    const h = ribbonBlock(k, -0.5, -0.5, 3.6, 2.4, 3, y);
     k.solarPanels(-0.5, y + h + 0.1, -0.5, 3.0, 1.4);
     for (const x of [1.6, 2.05]) k.cyl(0.14, h + 1.0, '#c9ced2', x, y, -1.4, 10);
     k.emitters.push({ pos: new THREE.Vector3(1.6, y + h + 1.1, -1.4), kind: 'steam' }, { pos: new THREE.Vector3(2.05, y + h + 1.1, -1.4), kind: 'steam' });
@@ -288,21 +289,24 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level === 14) {
     // Modern food-court pavilion: thin white canopy raised high on slim columns, skylights
-    const ch = 1.45;
+    const ch = 2.9;
+    k.box(4.4, 0.08, 1.0, '#cfc9bc', 0, y + 1.45, -0.9);
+    k.box(4.4, 0.26, 0.04, C.white, 0, y + 1.53, -0.42);
+    for (const x of [-1, 1]) umbrella(k, x, -0.9, y + 1.53, x < 0 ? PALETTE.accentOrange : PALETTE.accentTeal);
     for (let i = 0; i < 5; i++) for (const z of [-1.4, 1.6]) k.cyl(0.05, ch, C.white, -2.1 + i * 1.05, y, z, 8);
     k.box(4.7, 0.1, 3.4, C.white, 0, y + ch, 0.1);
     for (const x of [-1.4, 0, 1.4]) k.box(0.7, 0.04, 0.7, '#86b7cc', x, y + ch + 0.08, 0.1);
     k.box(4.72, 0.04, 3.42, C.trim, 0, y + ch - 0.02, 0.1);
     STALL_COLORS.slice(0, 4).forEach((c, i) => stall(k, -1.8 + i * 1.2, -1.15, y, c, 1.0));
     for (const x of [-1.6, 0, 1.6]) for (const z of [0.25, 1.1]) roundTable(k, x, z, y);
-    for (const x of [-1.55, 0, 1.55]) ceilingFan(k, x, y + 1.45, 0.6);
+    for (const x of [-1.55, 0, 1.55]) ceilingFan(k, x, y + 2.9, 0.6);
     return;
   }
   // 15: Grand Dining Hall: barrel-vaulted hall with a colonnade and a pergola garden with string lights.
   const hw = 4.4, hd = 2.0, hz = -0.5;
-  const wh = k.block(hw, hd, 1, 0, y, hz) + 0.25;
-  k.box(hw, 0.25, hd, C.wall, 0, y + STOREY, hz);
+  const wh = k.block(hw, hd, 2, 0, y, hz);
   k.windowRow('front', 0, hz, hw, hd, 6, y + 0.45, { louvre: true, skip: [2, 3] });
+  k.windowRow('front', 0, hz, hw, hd, 6, y + STOREY + 0.45, { louvre: true });
   for (const dx of [-0.22, 0.22]) k.door('front', 0, hz, hw, hd, dx, y, 0.42, 0.66);
   const vault = new THREE.Mesh(
     new THREE.CylinderGeometry(hd / 2 + 0.15, hd / 2 + 0.15, hw + 0.3, 12, 1, false, -Math.PI / 2, Math.PI),
@@ -319,6 +323,7 @@ function command(k: Kit, level: number, y: number) {
   // Pergola garden with string lights
   for (const x of [-2.0, -0.7, 0.7, 2.0]) for (const z of [0.95, 1.65]) k.box(0.06, 0.8, 0.06, C.wood, x, y, z);
   for (let i = 0; i < 9; i++) k.box(0.05, 0.05, 0.85, C.wood, -2.0 + i * 0.5, y + 0.8, 1.3);
+  k.box(4.1, 0.03, 0.8, '#5fae34', 0, y + 0.86, 1.3); // creeper over the pergola
   for (let i = 0; i < 16; i++) k.box(0.05, 0.05, 0.05, '#ffe48a', -2.0 + i * 0.27, y + 0.74 - Math.sin((i / 15) * Math.PI) * 0.08, 1.3);
   for (const x of [-1.3, 0, 1.3]) roundTable(k, x, 1.3, y);
 }
@@ -327,8 +332,10 @@ function secure(k: Kit, level: number, y: number) {
   perimeter(k, y, 2.22, 1.75, false);
   if (level === 16) {
     // Secure Mess: compact two-storey kitchen with steel stacks; a huge cantilevered canopy over dining.
-    const h = 2 * STOREY;
+    const h = 3 * STOREY;
     k.box(4.0, h, 1.1, CONCRETE, 0, y, -1.0);
+    k.box(4.04, 0.06, 1.14, C.trim, 0, y + 2 * STOREY, -1.0);
+    k.box(3.6, 0.36, 0.04, DARK_GLASS, 0, y + 2 * STOREY + 0.32, -0.44);
     k.box(4.04, 0.06, 1.14, C.trim, 0, y + STOREY, -1.0);
     k.box(3.6, 0.36, 0.04, DARK_GLASS, 0, y + STOREY + 0.32, -0.44);
     k.shutter('front', 0, -1.0, 4.0, 1.1, -1.2, 0.8, 0.66);
@@ -345,11 +352,12 @@ function secure(k: Kit, level: number, y: number) {
   if (level === 17) {
     // Ration centre: stacked steel containers with a canopy
     const cols = ['#5d6b35', '#7a8a3a', CONCRETE, '#5d8aa3'];
-    for (let f = 0; f < 2; f++) for (let i = 0; i < 3; i++) {
+    for (let f = 0; f < 4; f++) for (let i = 0; i < 3; i++) {
       k.box(1.3, 0.75, 0.8, cols[(i + f) % 4], -1.2 + i * 1.35, y + f * 0.77, -1.0);
       for (let r = 0; r < 4; r++) k.box(0.02, 0.7, 0.82, '#33383d', -1.75 + i * 1.35 + r * 0.33, y + f * 0.77 + 0.02, -1.0);
     }
-    k.chimney(1.4, y + 1.54, -1.0, 0.45, 'steam');
+    k.chimney(1.4, y + 3.08, -1.0, 0.45, 'steam');
+    k.stairs(-2.0, -0.2, 0.3, 0.8, 2.3);
     k.box(4.2, 0.08, 1.4, C.roofGreen, 0, y + 1.0, 0.4);
     for (const x of [-1.9, 0, 1.9]) k.box(0.08, 1.0, 0.08, C.white, x, y, 1.0);
     for (const x of [-1.2, 0.4]) k.diningTable(x, 0.4, 1.0, y);
@@ -357,8 +365,9 @@ function secure(k: Kit, level: number, y: number) {
   }
   if (level === 18) {
     // Hydroponic Kitchen: kitchen block plus glass greenhouses growing the outpost's greens.
-    const kh = 2 * STOREY;
+    const kh = 3 * STOREY;
     k.box(1.5, kh, 2.6, CONCRETE, -1.3, y, -0.4);
+    k.box(1.54, 0.06, 2.64, C.trim, -1.3, y + 2 * STOREY, -0.4);
     k.box(1.54, 0.06, 2.64, C.trim, -1.3, y + STOREY, -0.4);
     k.box(0.04, 0.36, 2.2, DARK_GLASS, -0.54, y + STOREY + 0.32, -0.4);
     k.chimney(-1.6, y + kh, -1.2, 0.5, 'steam');
@@ -383,16 +392,17 @@ function secure(k: Kit, level: number, y: number) {
   if (level === 19) {
     // Silo Kitchen: food silos feed the kitchen by a conveyor bridge.
     for (const [x, z] of [[1.4, -1.1], [2.0, -0.35], [1.4, 0.4]]) {
-      k.cyl(0.32, 1.9, '#d6d8da', x, y, z, 12);
-      k.cyl(0.33, 0.04, C.trim, x, y + 1.0, z, 12);
-      k.cyl(0.33, 0.35, '#c9ced2', x, y + 1.9, z, 12, 0.05);
+      k.cyl(0.32, 2.6, '#d6d8da', x, y, z, 12);
+      k.cyl(0.33, 0.04, C.trim, x, y + 1.3, z, 12);
+      k.cyl(0.33, 0.35, '#c9ced2', x, y + 2.6, z, 12, 0.05);
       k.cyl(0.05, 0.4, C.metal, x, y, z, 6);
     }
-    const kh = 2 * STOREY;
+    const kh = 3 * STOREY;
     k.box(2.6, kh, 2.4, CONCRETE, -0.9, y, -0.4);
+    k.box(2.64, 0.06, 2.44, C.trim, -0.9, y + 2 * STOREY, -0.4);
     k.box(2.64, 0.06, 2.44, C.trim, -0.9, y + STOREY, -0.4);
     k.box(2.2, 0.36, 0.04, DARK_GLASS, -0.9, y + STOREY + 0.32, 0.81);
-    const conveyor = k.box(1.3, 0.12, 0.2, '#8a9196', 0.85, y + 1.65, -0.7);
+    const conveyor = k.box(1.3, 0.12, 0.2, '#8a9196', 0.85, y + 2.3, -0.7);
     conveyor.rotation.z = 0.25;
     k.chimney(-1.6, y + kh, -1.2, 0.5, 'steam');
     k.box(2.6, 0.08, 0.8, C.roofGreen, -0.9, y + 0.9, 1.2);
@@ -402,16 +412,17 @@ function secure(k: Kit, level: number, y: number) {
     return;
   }
   // 20: Mess Citadel: octagonal glass dining pavilion with a gold-ringed faceted roof; kitchen behind.
-  k.box(4.2, 2 * STOREY, 0.9, CONCRETE, 0, y, -1.2);
-  for (const x of [-1.5, -0.5, 0.5, 1.5]) k.chimney(x, y + 2 * STOREY, -1.35, 0.45, x < 0 ? 'steam' : 'smoke');
-  k.cyl(1.45, STOREY * 1.3, '#86b7cc', 0, y, 0.35, 8);
+  k.box(4.2, 3 * STOREY, 0.9, CONCRETE, 0, y, -1.2);
+  for (const x of [-1.5, -0.5, 0.5, 1.5]) k.chimney(x, y + 3 * STOREY, -1.35, 0.45, x < 0 ? 'steam' : 'smoke');
+  k.cyl(1.45, STOREY * 2.2, '#86b7cc', 0, y, 0.35, 8);
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-    k.box(0.06, STOREY * 1.3, 0.06, C.trim, Math.sin(a) * 1.36, y, 0.35 + Math.cos(a) * 1.36);
+    k.box(0.06, STOREY * 2.2, 0.06, C.trim, Math.sin(a) * 1.36, y, 0.35 + Math.cos(a) * 1.36);
   }
-  k.cyl(1.62, 0.1, '#d9b24a', 0, y + STOREY * 1.3, 0.35, 8);
-  k.cyl(1.55, 0.7, C.roof, 0, y + STOREY * 1.3 + 0.1, 0.35, 8, 0.25);
-  k.cyl(0.25, 0.3, '#d9b24a', 0, y + STOREY * 1.3 + 0.8, 0.35, 8, 0.02);
+  k.cyl(1.62, 0.1, '#d9b24a', 0, y + STOREY * 2.2, 0.35, 8);
+  k.cyl(1.55, 0.7, C.roof, 0, y + STOREY * 2.2 + 0.1, 0.35, 8, 0.25);
+  k.cyl(0.25, 0.3, '#d9b24a', 0, y + STOREY * 2.2 + 0.8, 0.35, 8, 0.02);
+  k.cyl(1.47, 0.06, C.trim, 0, y + STOREY, 0.35, 8);
   k.door('front', 0, 0.35, 2.4, 2.9, 0, y, 0.5, 0.66, DARK_GLASS);
 }
 
