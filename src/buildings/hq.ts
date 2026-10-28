@@ -5,7 +5,7 @@ import { DAY, HOUR, MIN, type BuildingDef, type LevelStats } from './types';
 /*
  * HQ — the heart of the outpost. Its level caps every other building's level,
  * unlocks new buildings and gates land clearance. 15 designed levels in four bands:
- *   Field (1–3) → Camp (4–6) → Base (7–10, release cap) → Command (11–15)
+ *   Field (1–3) → Camp (4–6) → Base (7–10, release cap) → Command (11–15) → Strategic (16–20, reserve)
  */
 
 const L = (
@@ -29,6 +29,12 @@ export const HQ_LEVELS: LevelStats[] = [
   L(13, 'Helipad Tower', 2_200_000, 6_600, 5 * DAY, 13400, 450_000, 5, ['Air Defence', '5th construction crew', 'Buildings to Lv 13']),
   L(14, 'Command Centre · Twin Towers', 3_000_000, 8_200, 6 * DAY, 15400, 575_000, 5, ['Buildings to Lv 14']),
   L(15, 'Command Centre · Landmark', 4_000_000, 10_000, 7 * DAY, 17500, 700_000, 5, ['Buildings to Lv 15', 'Landmark status']),
+  // Reserve levels (designed in advance; not yet scheduled for release).
+  L(16, 'Strategic HQ · Rotunda', 5_200_000, 12_000, 8 * DAY, 19800, 850_000, 5, ['Buildings to Lv 16']),
+  L(17, 'Strategic HQ · Skybridge', 6_600_000, 14_500, 9 * DAY, 22300, 1_000_000, 6, ['Buildings to Lv 17', '6th construction crew']),
+  L(18, 'Strategic HQ · Control Tower', 8_200_000, 17_000, 10 * DAY, 25000, 1_200_000, 6, ['Buildings to Lv 18']),
+  L(19, 'Strategic HQ · Satellite Uplink', 10_000_000, 20_000, 11 * DAY, 28000, 1_400_000, 6, ['Buildings to Lv 19']),
+  L(20, 'Citadel · Gardens', 12_000_000, 23_000, 12 * DAY, 31000, 1_600_000, 7, ['Buildings to Lv 20', '7th construction crew', 'Citadel status']),
 ];
 
 // ------------------------------------------------------------------ visuals
@@ -471,13 +477,216 @@ function landmark(k: Kit, y: number) {
   for (const s of [-2.4, 2.4]) k.cyl(0.05, 0.06, '#d9b24a', s, y + 2.9, 2.3, 8);
 }
 
+
+// ------------------------------------------------------------------ Strategic band (16–20, reserve)
+
+const GOLD = '#d9b24a';
+
+/** Gold belvedere crown with a pyramid and spire, sized by s. */
+function crown(k: Kit, x: number, y: number, z: number, s = 1) {
+  k.box(1.56 * s, 0.12, 1.56 * s, GOLD, x, y, z);
+  const cy = y + 0.12;
+  for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.16, 0.85 * s, 0.16, C.white, x + cx * 0.45 * s, cy, z + cz * 0.45 * s);
+  k.box(0.7 * s, 0.85 * s, 0.7 * s, '#5d8aa3', x, cy, z);
+  k.box(1.2 * s, 0.1, 1.2 * s, GOLD, x, cy + 0.85 * s, z);
+  k.hipRoof(1.1 * s, 1.1 * s, 0.6 * s, x, cy + 0.85 * s + 0.1, z, GOLD, 0.05);
+  k.cyl(0.035, 0.7 * s, GOLD, x, cy + 0.85 * s + 0.6 * s, z, 6, 0.005);
+}
+
+/** Plain tower shaft with windows on the two camera-facing sides; returns its top y. */
+function shaft(k: Kit, x: number, z: number, w: number, d: number, floors: number, y: number, wall: string = C.wallAlt) {
+  const h = k.block(w, d, floors, x, y, z, wall);
+  for (let f = 1; f < floors; f++) {
+    k.window('front', x, z, w, d, -w * 0.22, y + f * STOREY + 0.36, 0.28, 0.42);
+    k.window('front', x, z, w, d, w * 0.22, y + f * STOREY + 0.36, 0.28, 0.42);
+    k.window('right', x, z, w, d, 0, y + f * STOREY + 0.36, 0.4, 0.42);
+  }
+  return y + h;
+}
+
+function bigDish(k: Kit, x: number, y: number, z: number, r: number, rotY = 0.7) {
+  k.cyl(0.18, 0.5, C.metal, x, y, z, 8);
+  k.box(0.6, 0.12, 0.6, C.metal, x, y, z);
+  const dish = new THREE.Mesh(
+    new THREE.SphereGeometry(r, 18, 6, 0, Math.PI * 2, 0, Math.PI / 3.3),
+    new THREE.MeshStandardMaterial({ color: '#f4f4f0', flatShading: true, side: THREE.DoubleSide, roughness: 0.6 }),
+  );
+  dish.position.set(x, y + 0.55 + r, z);
+  dish.rotation.set(-2.2, rotY, 0);
+  k.add(dish);
+  // Feed horn on a tripod
+  const fy = y + 0.55 + r * 0.55;
+  k.cyl(0.02, r * 0.9, C.metal, x + Math.sin(rotY) * r * 0.35, fy, z + Math.cos(rotY) * r * 0.35, 4);
+  k.box(0.12, 0.12, 0.12, C.dark, x + Math.sin(rotY) * r * 0.45, fy + r * 0.9, z + Math.cos(rotY) * r * 0.45);
+}
+
+/** Gardens-by-the-Bay-style "supertree": steel trunk, flared planted canopy. */
+function supertree(k: Kit, x: number, z: number, h: number, y: number, color = '#8a5cb8') {
+  k.cyl(0.16, h, '#6e6a78', x, y, z, 8, 0.07);
+  for (let i = 0; i < 4; i++) k.box(0.06, h * 0.6, 0.02, '#4fae3a', x + Math.cos(i * 1.6) * 0.12, y + 0.2, z + Math.sin(i * 1.6) * 0.12);
+  k.cyl(0.12, 0.35, color, x, y + h, z, 10, 0.6);
+  k.cyl(0.62, 0.05, '#4fae3a', x, y + h + 0.35, z, 10);
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    k.box(0.06, 0.06, 0.06, '#ffe48a', x + Math.cos(a) * 0.5, y + h + 0.36, z + Math.sin(a) * 0.5);
+  }
+}
+
+function strategic(k: Kit, level: number, y: number) {
+  k.path(1.2, 1.2, 0, 2.3, y);
+  if (level === 16) rotunda(k, y);
+  else if (level === 17) skybridge(k, y);
+  else if (level === 18) controlTower(k, y);
+  else if (level === 19) uplink(k, y);
+  else citadel(k, y);
+}
+
+/** 16 — Rotunda: a round colonnaded hall with a green dome; the crowned tower rises through it. */
+function rotunda(k: Kit, y: number) {
+  const cz = -0.7, r = 2.0;
+  k.cyl(r, 3 * STOREY, C.wall, 0, y, cz, 20);
+  for (let f = 0; f <= 3; f++) k.cyl(r + 0.03, f === 3 ? 0.08 : 0.06, f === 3 ? C.white : C.trim, 0, y + f * STOREY - (f === 3 ? 0.08 : 0.03), cz, 20);
+  // Windows around the upper floors
+  for (let f = 1; f < 3; f++) {
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      const w = k.box(0.3, 0.38, 0.05, C.glass, Math.sin(a) * (r + 0.02), y + f * STOREY + 0.28, cz + Math.cos(a) * (r + 0.02));
+      w.rotation.y = a;
+    }
+  }
+  // Ground-floor colonnade with a green ring canopy
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 2;
+    k.cyl(0.06, 0.85, C.white, Math.sin(a) * (r + 0.35), y, cz + Math.cos(a) * (r + 0.35), 6);
+  }
+  k.cyl(r + 0.48, 0.08, C.roofGreen, 0, y + 0.85, cz, 20);
+  // Dome around the tower base
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#5e9e8a', flatShading: true }));
+  dome.position.set(0, y + 3 * STOREY, cz);
+  dome.scale.y = 0.7;
+  k.add(dome);
+  const top = shaft(k, 0, cz, 1.2, 1.2, 9, y);
+  clock(k, top - 0.45, cz + 0.6);
+  crown(k, 0, top, cz, 0.9);
+  k.fountain(0, 2.35, 0.32, y);
+  forecourt(k, y, '', false);
+}
+
+/** 17 — Skybridge: two crowned towers joined by a glass bridge high above a podium. */
+function skybridge(k: Kit, y: number) {
+  const pz = -1.1;
+  const ph = k.block(4.8, 2.4, 2, 0, y, pz);
+  k.flatRoof(4.8, 2.4, 0, y + ph, pz);
+  frontWindows(k, 0, pz, 4.8, 2.4, 2, y, 8, [3, 4]);
+  for (const s of [-1, 1]) {
+    const top = shaft(k, s * 1.45, pz - 0.1, 1.3, 1.5, 9, y);
+    crown(k, s * 1.45, top, pz - 0.1, 0.85);
+  }
+  k.glassBox(1.6, STOREY - 0.1, 0.8, 0, y + 6 * STOREY, pz - 0.1);
+  k.glassBox(1.6, STOREY - 0.1, 0.8, 0, y + 3 * STOREY, pz - 0.1);
+  clock(k, y + 7.5 * STOREY, pz + 0.65);
+  k.glassBox(1.6, STOREY * 1.6, 0.7, 0, y, pz + 1.55);
+  k.door('front', 0, pz + 1.55, 1.6, 0.7, 0, y, 0.5, 0.66, '#3d5a6c');
+  for (const s of [-1, 1]) pavilion(k, s * 2.35, 1.05, 1.0, 0.9, y);
+  forecourt(k, y, 'STRATEGIC HQ');
+}
+
+/** 18 — Control Tower: slender shaft carrying a wide glass observation deck. */
+function controlTower(k: Kit, y: number) {
+  const tz = -1.0;
+  // Red-roofed two-storey wings and a glass lobby
+  for (const s of [-1, 1]) {
+    const wx = s * 1.75;
+    const wh = k.block(1.6, 2.2, 2, wx, y, tz);
+    k.hipRoof(1.6, 2.2, 0.5, wx, y + wh, tz);
+    for (let f = 0; f < 2; f++) k.windowRow('front', wx, tz, 1.6, 2.2, 2, y + f * STOREY + 0.42, { louvre: f > 0 });
+    aircons(k, wx + s * 0.8, tz, 2, y, s as 1 | -1);
+  }
+  k.glassBox(1.9, 2 * STOREY - 0.1, 1.4, 0, y, tz + 0.6);
+  k.door('front', 0, tz + 0.6, 1.9, 1.4, 0, y, 0.5, 0.66, '#3d5a6c');
+  // Shaft
+  const sh = 10 * STOREY;
+  k.box(1.0, sh, 1.0, C.wallAlt, 0, y, tz - 0.3);
+  for (let f = 2; f < 10; f++) k.window('front', 0, tz - 0.3, 1.0, 1.0, 0, y + f * STOREY + 0.36, 0.22, 0.4);
+  for (let f = 1; f < 10; f++) k.box(1.03, 0.05, 1.03, C.trim, 0, y + f * STOREY, tz - 0.3);
+  // Flared support, glass cab, roof, radar
+  const cy = y + sh;
+  k.cyl(0.6, 0.5, C.white, 0, cy, tz - 0.3, 8, 1.2);
+  k.cyl(1.2, 0.85, '#86b7cc', 0, cy + 0.5, tz - 0.3, 8);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    k.box(0.05, 0.85, 0.05, C.trim, Math.sin(a) * 1.13, cy + 0.5, tz - 0.3 + Math.cos(a) * 1.13);
+  }
+  k.cyl(1.4, 0.1, C.roofGreen, 0, cy + 1.35, tz - 0.3, 8);
+  k.radarDome(0, cy + 1.45, tz - 0.3, 0.4);
+  k.antenna(0.8, cy + 1.45, tz - 0.6, 0.9);
+  forecourt(k, y, 'STRATEGIC HQ');
+}
+
+/** 19 — Satellite Uplink: crowned tower beside a huge dish on its own block. */
+function uplink(k: Kit, y: number) {
+  const top = shaft(k, -1.35, -1.2, 1.4, 1.5, 9, y);
+  crown(k, -1.35, top, -1.2, 0.9);
+  clock(k, top - 0.45, -1.2 + 0.75 + 0.0);
+  k.latticeMast(-2.45, y, -2.4, 3.6, 0.55);
+  // Dish block
+  const bx = 1.25, bz = -0.9;
+  const bh = k.block(2.6, 2.8, 3, bx, y, bz);
+  k.flatRoof(2.6, 2.8, bx, y + bh, bz);
+  for (let f = 0; f < 3; f++) k.windowRow('front', bx, bz, 2.6, 2.8, 3, y + f * STOREY + 0.42, { louvre: f > 0 });
+  aircons(k, bx + 1.3, bz, 3, y, 1);
+  bigDish(k, bx, y + bh + 0.06, bz, 1.05, 0.7);
+  k.dish(bx + 1.0, y + bh + 0.06, bz - 1.1, 0.4);
+  k.dish(bx - 1.0, y + bh + 0.06, bz - 1.1, 2.4);
+  // Glass link and entrance
+  k.glassBox(1.2, 2 * STOREY - 0.1, 1.1, -0.2, y, 0.65);
+  k.door('front', -0.2, 0.65, 1.2, 1.1, 0, y, 0.5, 0.66, '#3d5a6c');
+  k.box(1.4, 0.07, 0.5, C.roofGreen, -0.2, y + 0.9, 1.4);
+  pavilion(k, -2.3, 0.9, 1.0, 1.0, y);
+  forecourt(k, y, 'UPLINK HQ');
+}
+
+/** 20 — Citadel Gardens: stepped tower with planted terraces; supertrees on the plaza. */
+function citadel(k: Kit, y: number) {
+  const tz = -1.0;
+  const tiers: [number, number, number][] = [[4.6, 3.2, 3], [3.6, 2.5, 3], [2.6, 1.9, 3], [1.6, 1.4, 3]];
+  let ty = y;
+  tiers.forEach(([w, d, floors], i) => {
+    const h = k.block(w, d, floors, 0, ty, tz, i % 2 ? C.wallAlt : C.wall);
+    for (let f = 0; f < floors; f++) k.windowRow('front', 0, tz, w, d, Math.max(2, Math.round(w / 0.6)), ty + f * STOREY + 0.42, { louvre: f > 0, skip: i === 0 && f === 0 ? [3, 4] : [] });
+    for (let f = 0; f < floors; f++) k.windowRow('right', 0, tz, w, d, Math.max(2, Math.round(d / 0.6)), ty + f * STOREY + 0.42);
+    ty += h;
+    if (i < tiers.length - 1) {
+      // Planted terrace on the setback
+      const [nw, nd] = tiers[i + 1];
+      k.box(w, 0.08, d, '#cfc9bc', 0, ty, tz);
+      k.hedge(0, tz + nd / 2 + (d - nd) / 4, w - 0.2, (d - nd) / 2 - 0.1, ty + 0.08);
+      for (const s of [-1, 1]) k.hedge(s * (nw / 2 + (w - nw) / 4), tz, (w - nw) / 2 - 0.1, d - 0.2, ty + 0.08);
+      ty += 0.08;
+    }
+  });
+  k.flatRoof(1.6, 1.4, 0, ty, tz);
+  crown(k, 0, ty + 0.06, tz, 1.0);
+  clock(k, y + 7.5 * STOREY + 0.2, tz + 1.25);
+  k.door('front', 0, tz, 4.6, 3.2, 0, y, 0.6, 0.7, '#3d5a6c');
+  k.box(1.8, 0.08, 0.6, C.roofGreen, 0, y + 0.9, tz + 1.9);
+  // Plaza with supertrees and arch
+  k.box(5.4, 0.015, 1.4, '#e3dccb', 0, y, 2.15);
+  supertree(k, -2.3, 2.0, 1.7, y);
+  supertree(k, 2.3, 2.0, 1.7, y, '#c0567e');
+  supertree(k, -1.5, 2.45, 1.2, y, '#d98a3c');
+  supertree(k, 1.5, 2.45, 1.2, y);
+  k.arch(0, 2.72, 1.9, 'CITADEL', y);
+}
+
 export function buildHq(level: number): Kit {
   const k = new Kit();
   const y = k.pad(6, 6);
   if (level <= 3) field(k, level, y);
   else if (level <= 6) camp(k, level, y);
   else if (level <= 10) base(k, level, y);
-  else command(k, level, y);
+  else if (level <= 15) command(k, level, y);
+  else strategic(k, level, y);
   return k;
 }
 
@@ -488,6 +697,6 @@ export const HQ: BuildingDef = {
   footprint: [6, 6],
   unlockHq: 1,
   levels: HQ_LEVELS,
-  designedLevels: 15,
+  designedLevels: 20,
   build: buildHq,
 };

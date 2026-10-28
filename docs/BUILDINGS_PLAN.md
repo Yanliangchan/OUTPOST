@@ -1,10 +1,11 @@
-# Building plan: 15 levels each, 10 at release
+# Building plan: 20 levels each (15 planned + 5 reserve), 10 at release
 
-Every building is **designed and balanced to level 15**. Players can reach **level 10 at release**. Levels 11–15 ship in later content updates by raising one setting:
+Every building is **designed and balanced to level 20**. Players can reach **level 10 at release**. Levels 11–15 are the planned post-release updates, and **16–20 are held in reserve** for later. Each step ships by raising one setting:
 
 ```ts
 // src/config/release.ts
-export const MAX_DESIGNED_LEVEL = 15;
+export const MAX_DESIGNED_LEVEL = 20;
+export const PLANNED_MAX_LEVEL = 15;
 export const RELEASE_MAX_LEVEL = 10;
 ```
 
@@ -12,7 +13,7 @@ export const RELEASE_MAX_LEVEL = 10;
 - **The HQ caps everything.** No building can be upgraded above the current HQ level.
 - **Footprints never change.** An upgrade replaces the model on the same tiles, so it never needs re-placing (as in Clash of Clans).
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
-- **Four art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release).
+- **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Strategic (16–20, reserve).
 - **Stats live in data:** cost, Reputation, build time, HP and building-specific stats, defined per level in each building's file.
 
 ## Roster and build order
@@ -21,7 +22,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 
 | # | Building | Footprint | Unlock (HQ) | Role | Status |
 |---|---|---|---|---|---|
-| 1 | **HQ** | 6×6 | — | Caps levels; unlocks buildings; gates land clearance | ✅ 15/15 designed |
+| 1 | **HQ** | 6×6 | — | Caps levels; unlocks buildings; gates land clearance | ✅ 20/20 designed |
 | 2 | Bunk | 6×4 | 1 | Houses Recruits | concept Lv 1–3 |
 | 3 | Cookhouse | 5×4 | 1 | Food → Morale and work speed | concept Lv 1–3 |
 | 4 | QM Store | 4×4 | 1 | Stores Supplies; delivery trucks unload here | planned |
@@ -61,7 +62,12 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 14 | Command Centre · Twin Towers | 3,000,000 | 8,200 | 6 d | 15,400 | 575,000 | 5 | Buildings to Lv 14 |
 | 15 | Command Centre · Landmark | 4,000,000 | 10,000 | 7 d | 17,500 | 700,000 | 5 | Buildings to Lv 15, Landmark status |
 
-*Levels 11–15 are post-release.* "Crews" means construction crews (simultaneous builds). All numbers are first-pass balance and will be tuned against the economy in Phase 6.
+| 16 | Strategic HQ · Rotunda | 5,200,000 | 12,000 | 8 d | 19,800 | 850,000 | 5 | Buildings to Lv 16 |
+| 17 | Strategic HQ · Skybridge | 6,600,000 | 14,500 | 9 d | 22,300 | 1,000,000 | 6 | Buildings to Lv 17, 6th construction crew |
+| 18 | Strategic HQ · Control Tower | 8,200,000 | 17,000 | 10 d | 25,000 | 1,200,000 | 6 | Buildings to Lv 18 |
+| 19 | Strategic HQ · Satellite Uplink | 10,000,000 | 20,000 | 11 d | 28,000 | 1,400,000 | 6 | Buildings to Lv 19 |
+| 20 | Citadel · Gardens | 12,000,000 | 23,000 | 12 d | 31,000 | 1,600,000 | 7 | Buildings to Lv 20, 7th construction crew, Citadel status |
+*Levels 11–15 are post-release; 16–20 are reserve.* "Crews" means construction crews (simultaneous builds). All numbers are first-pass balance and will be tuned against the economy in Phase 6.
 
 ## Visual progression
 
@@ -82,5 +88,11 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 13 | **Helipad Tower:** **asymmetric**: four-storey red-roofed block and a **tall six-storey slab with a rooftop helipad** |
 | 14 | **Command Centre · Twin Towers:** **twin six-storey towers** bridged by a glass block, with a **giant red-and-white lattice comms mast** between them |
 | 15 | **Command Centre · Landmark:** **single eight-storey tower with a gold belvedere crown and spire** on a podium; red-roofed wings; fountain plaza and ceremonial arch |
+
+| 16 | **Strategic HQ · Rotunda:** round colonnaded three-storey hall with a green dome; the crowned tower rises through it |
+| 17 | **Skybridge:** two crowned nine-storey towers joined by glass sky-bridges above a podium |
+| 18 | **Control Tower:** slender ten-storey shaft with a wide glass observation deck and radar, like an airport tower |
+| 19 | **Satellite Uplink:** crowned tower beside a block carrying a huge satellite dish; lattice mast |
+| 20 | **Citadel · Gardens:** stepped twelve-storey tower with green terraces at every setback, gold crown; "Supertree" sculptures on the plaza |
 
 Review scene: open the game with `?showcase=hq`.

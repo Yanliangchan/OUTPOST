@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { BUILDINGS } from './catalogue';
-import { RELEASE_MAX_LEVEL } from '../config/release';
+import { PLANNED_MAX_LEVEL, RELEASE_MAX_LEVEL } from '../config/release';
 import type { Particles } from '../fx/particles';
 
 function label(text: string, sub = '', subColor = '#5d6b60') {
@@ -54,7 +54,9 @@ export function createShowcase(groundY: number, fx: Particles, only: string | nu
     kit.group.position.set(x, groundY, z);
     group.add(kit.group);
     const stats = def.levels[level - 1];
-    const tag = label(`${def.name} · Lv ${level}`, stats ? `${stats.title}${level > RELEASE_MAX_LEVEL ? ' · post-release' : ''}` : '', level > RELEASE_MAX_LEVEL ? '#8a5cd6' : '#5d6b60');
+    const tier = level > PLANNED_MAX_LEVEL ? ' · reserve' : level > RELEASE_MAX_LEVEL ? ' · post-release' : '';
+    const color = level > PLANNED_MAX_LEVEL ? '#d9822b' : level > RELEASE_MAX_LEVEL ? '#8a5cd6' : '#5d6b60';
+    const tag = label(`${def.name} · Lv ${level}`, stats ? `${stats.title}${tier}` : '', color);
     const top = new THREE.Box3().setFromObject(kit.group).max.y;
     tag.position.set(x, top + 0.9, z);
     group.add(tag);
@@ -68,7 +70,7 @@ export function createShowcase(groundY: number, fx: Particles, only: string | nu
     for (let lv = 1; lv <= def.designedLevels; lv++) {
       const col = (lv - 1) % 5;
       const row = Math.floor((lv - 1) / 5);
-      place(idx, lv, (col - 2) * step, (row - 1) * step);
+      place(idx, lv, (col - 2) * step, (row - 1.5) * step);
     }
   } else {
     const rowZ = [-7, 0.5, 7.5];
