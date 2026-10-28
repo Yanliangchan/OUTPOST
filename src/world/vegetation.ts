@@ -322,7 +322,8 @@ export interface Vegetation {
 export function createVegetation(terrain: Terrain): Vegetation {
   const rand = mulberry32(WORLD.seed + 42);
   const main = emptyLayer();
-  const zoneLayers: Record<string, Layer> = Object.fromEntries(ZONES.filter((z) => z.kind !== 'starter').map((z) => [z.id, emptyLayer()]));
+  // Every zone gets its own layer; the start clearing's scattered trees/rocks become clearable obstacles later.
+  const zoneLayers: Record<string, Layer> = Object.fromEntries(ZONES.map((z) => [z.id, emptyLayer()]));
   let layer = main;
   const add = (k: Kind, x: number, y: number, z: number, sMin = 0.85, sMax = 1.25) =>
     layer[k].push({ x, y, z, s: sMin + rand() * (sMax - sMin), r: rand() * Math.PI * 2, tint: rand() });
@@ -355,7 +356,7 @@ export function createVegetation(terrain: Terrain): Vegetation {
       const site = Terrain.siteAt(cx, cz, 1.5);
       const pz = sq <= WORLD.buildHalf ? plateauZoneAt(cx, cz) : undefined;
       const jungleZone = pz?.kind === 'jungle' ? pz : undefined;
-      layer = site ? zoneLayers[site.id] : jungleZone ? zoneLayers[jungleZone.id] : main;
+      layer = site ? zoneLayers[site.id] : pz ? zoneLayers[pz.id] : main;
 
       // ---- Sloped cells: cliff faces and banks ----
       if (lvl === null) {
