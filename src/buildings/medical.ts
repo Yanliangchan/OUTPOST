@@ -506,13 +506,16 @@ function command(k: Kit, level: number, y: number) {
     const h = clinic(k, 2.0, 1.5, 3, -0.95, -0.6, y);
     k.flatRoof(2.0, 1.5, -0.95, y + h, -0.6);
     for (let f = 0; f < 3; f++) k.windowRow('front', -0.95, -0.6, 2.0, 1.5, 3, y + f * STOREY + 0.42);
-    k.cyl(0.85, 2.2, '#bfe0ec', 1.0, y, -0.45, 16);
+    const rot = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 2.2, 16), M('#bfe0ec', { transparent: true, opacity: 0.45 }));
+    rot.position.set(1.0, y + 1.1, -0.45);
+    k.add(rot);
+    k.cyl(0.85, 0.35, CONCRETE, 1.0, y, -0.45, 16);
     k.cyl(0.88, 0.08, MED_GREEN, 1.0, y + 2.2, -0.45, 16);
     k.cyl(0.88, 0.08, MED_GREEN, 1.0, y, -0.45, 16);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.13, 8, 20), M(MED_WHITE));
-    ring.position.set(1.0, y + 0.75, -0.45);
+    ring.position.set(1.0, y + 0.85, -0.45);
     k.add(ring);
-    const bedTop = k.box(0.9, 0.05, 0.22, '#9fd8b7', 1.0, y + 0.6, -0.45);
+    const bedTop = k.box(0.9, 0.05, 0.22, '#9fd8b7', 1.0, y + 0.7, -0.45);
     k.anims.push((t) => {
       ring.rotation.y = Math.PI / 2;
       ring.rotation.x = t * 1.5;
@@ -672,32 +675,28 @@ function secure(k: Kit, level: number, y: number) {
     ambulance(k, 1.05, 0.75, y, Math.PI, 0);
     return;
   }
-  // 20: medical citadel: curved green-glass wing hugging a white tower, gold-ringed cross beacon
-  const h = clinic(k, 1.4, 1.4, 3, -1.15, -0.55, y);
-  k.flatRoof(1.4, 1.4, -1.15, y + h, -0.55);
-  const curve = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 3 * STOREY, 18, 1, true, -Math.PI / 2, Math.PI * 0.75), M('#5fae8a', { side: THREE.DoubleSide }));
-  curve.position.set(-0.4, y + 1.425, -0.55);
-  k.add(curve);
-  for (let f = 1; f < 3; f++) {
-    const band = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.03, 4, 18, Math.PI * 0.75), M(MED_WHITE));
-    band.rotation.x = Math.PI / 2;
-    band.rotation.z = -Math.PI / 2 + 0;
-    band.position.set(-0.4, y + f * STOREY, -0.55);
-    k.add(band);
-  }
-  const roof = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.55, 0.1, 18, 1, false, -Math.PI / 2, Math.PI * 0.75), M('#d9b24a'));
-  roof.position.set(-0.4, y + 3 * STOREY + 0.05, -0.55);
-  k.add(roof);
+  // 20: medical citadel: white tower beside a green-glass drum ward, gold roof, gold-ringed cross beacon
+  const h = clinic(k, 1.3, 1.6, 3, -1.15, -0.45, y);
+  k.flatRoof(1.3, 1.6, -1.15, y + h, -0.45);
+  for (let f = 0; f < 3; f++) k.window('front', -1.15, -0.45, 1.3, 1.6, 0, y + f * STOREY + 0.42, 0.5, 0.4);
+  const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 3 * STOREY, 18), M('#5fae8a', { transparent: true, opacity: 0.85 }));
+  drum.position.set(0.55, y + 1.425, -0.45);
+  drum.castShadow = true;
+  k.add(drum);
+  for (let f = 0; f <= 3; f++) k.cyl(0.97, 0.06, f === 3 ? '#d9b24a' : MED_WHITE, 0.55, y + f * STOREY - 0.03, -0.45, 18);
+  for (let f = 0; f < 3; f++) for (let i = 0; i < 3; i++) bed(k, 0.1 + i * 0.45, -0.45, y + f * STOREY + 0.05, Math.PI / 2);
+  k.cyl(0.75, 0.25, MED_WHITE, 0.55, y + 3 * STOREY + 0.03, -0.45, 18, 0.55);
+  k.box(0.1, 0.1, 1.0, '#d9b24a', -0.3, y + 3 * STOREY - 0.6, -0.45); // gold link bridge
   const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.04, 6, 20), M('#d9b24a'));
-  ring.position.set(-1.15, y + h + 0.55, -0.55);
+  ring.position.set(-1.15, y + h + 0.55, -0.45);
   k.add(ring);
-  crossCube(k, -1.15, y + h + 0.3, -0.55, 0.45);
+  crossCube(k, -1.15, y + h + 0.3, -0.45, 0.45);
   k.anims.push((t) => {
     ring.rotation.x = Math.PI / 2 + Math.sin(t * 0.7) * 0.4;
     ring.rotation.y = t * 0.9;
   });
   ambulance(k, 0.9, 0.85, y, 0, 0);
-  stretcher(k, -0.4, 0.95, y, 0);
+  stretcher(k, -0.9, 0.85, y, 0);
 }
 
 export function buildMedical(level: number): Kit {
