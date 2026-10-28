@@ -50,7 +50,7 @@ export const PALETTE = {
   // red-brown / dark green roofs, yellow-black kerbs, olive vehicles.
   concrete: '#cfcac0',
   concreteWarm: '#d9d2c3',
-  cream: '#efe4c8',
+  cream: '#f3e3bb',
   offWhite: '#f4efe2',
   trimGreen: '#2f5a3a',
   roofRedBrown: '#9a4b33',

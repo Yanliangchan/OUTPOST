@@ -14,6 +14,7 @@ import { ClearanceSystem } from './clearance/clearanceSystem';
 import { ClearanceUi } from './ui/clearanceUi';
 import { gameClock } from './core/gameClock';
 import { plateauZoneAt, ZONES } from './world/zones';
+import { createShowcase } from './buildings/showcase';
 
 const app = document.getElementById('app')!;
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -42,6 +43,14 @@ clearance.onChange(() => plan.refresh());
 scene.add(terrain.mesh, createWater(terrain), vegetation.group, createLighting(), ambient.group, grid, scaleRef, clearance.group, particles.group, plan.group);
 
 const rig = new CameraRig(renderer.domElement, groundY);
+
+// Phase 2 review: ?showcase lays every building/level out in the start clearing.
+const showcase = new URLSearchParams(location.search).has('showcase') ? createShowcase(groundY, particles) : null;
+if (showcase) {
+  // Clear the whole plateau so every building is unobstructed.
+  for (const z of ZONES) if (z.kind !== 'hidden') vegetation.clearables[z.id].group.visible = false;
+  scene.add(showcase.group);
+}
 
 const hud = createHud({
   toggleGrid: () => (grid.visible = !grid.visible),
@@ -82,6 +91,7 @@ renderer.setAnimationLoop(() => {
   rig.update(dt);
   ambient.update(dt, timeUniform.value);
   clearance.update(dt);
+  showcase?.update(dt);
   particles.update(dt);
   clearanceUi.tick(dt);
   planTimer += dt;
