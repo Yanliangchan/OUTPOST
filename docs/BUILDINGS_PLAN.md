@@ -44,7 +44,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 3 | **Cookhouse** | 5×4 | 1 | Food → Morale and work speed | ✅ 20/20 designed |
 | 4 | **QM Store** | 4×4 | 1 | Stores Supplies; delivery trucks unload here | ✅ 20/20 designed |
 | 5 | **Workshop** | 4×4 | 2 | Produces Supplies; repairs | ✅ 20/20 designed |
-| 6 | Utilities | 3×3 | 2 | Power and water; buildings run better when supplied | planned |
+| 6 | **Utilities** | 3×3 | 2 | Power and water; nearby buildings run faster | ✅ 20/20 designed |
 | 7 | Mama Shop | 2×2 | 2 | Small Morale boost and a trickle of income | planned |
 | 8 | Admin Office | 4×3 | 3 | Objectives and Reputation boosts | planned |
 | 9 | Rec Centre | 4×4 | 3 | Morale | planned |
