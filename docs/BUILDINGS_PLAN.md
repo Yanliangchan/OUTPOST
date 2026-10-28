@@ -87,7 +87,6 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 13 | **Helipad Tower:** **asymmetric**: four-storey red-roofed block and a **tall six-storey slab with a rooftop helipad** |
 | 14 | **Command Centre · Twin Towers:** **twin six-storey towers** bridged by a glass block, with a **giant red-and-white lattice comms mast** between them |
 | 15 | **Command Centre · Landmark:** **single eight-storey tower with a gold belvedere crown and spire** on a podium; red-roofed wings; fountain plaza and ceremonial arch |
-
 | 16 | **Strategic HQ · Rotunda:** round colonnaded three-storey hall with a green dome; the crowned tower rises through it |
 | 17 | **Skybridge:** two crowned nine-storey towers joined by glass sky-bridges above a podium |
 | 18 | **Control Tower:** slender ten-storey shaft with a wide glass observation deck and radar, like an airport tower |
