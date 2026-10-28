@@ -20,9 +20,11 @@ export function createScaleReference(groundY: number): THREE.Group {
 
   // HQ greybox: concrete pad, two-storey block, flat roof with a teal parapet, covered walkway.
   box(5.4, 0.12, 5.4, PALETTE.concrete, 0, 0, 0);
-  box(4.2, 1.9, 3.0, PALETTE.concreteWarm, 0, 0.12, -0.6);
-  box(4.4, 0.2, 3.2, PALETTE.roofTeal, 0, 2.02, -0.6);
-  box(3.0, 0.08, 1.2, PALETTE.offWhite, 0, 1.2, 1.5);
+  box(4.2, 1.9, 3.0, PALETTE.cream, 0, 0.12, -0.6);
+  box(4.26, 0.12, 3.06, PALETTE.trimGreen, 0, 0.12, -0.6);
+  box(4.4, 0.2, 3.2, PALETTE.roofRedBrown, 0, 2.02, -0.6);
+  box(0.8, 0.9, 0.06, PALETTE.trimGreen, 0, 0.24, 0.92);
+  box(3.0, 0.08, 1.2, PALETTE.roofGreen, 0, 1.2, 1.5);
   for (const x of [-1.3, 1.3]) box(0.1, 1.1, 0.1, PALETTE.offWhite, x, 0.12, 2.0);
 
   // Utility truck greybox (2×1 tiles)

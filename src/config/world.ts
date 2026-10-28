@@ -7,13 +7,16 @@ export const WORLD = {
   buildHalf: 22,
   /** Half-size of the starter plot unlocked at the beginning. */
   starterHalf: 12,
-  /** Radius (superellipse) of the landmass before it falls to the sea. */
-  landRadius: 70,
+  /** Island radius (superellipse) to the start of the beach. */
+  landRadius: 54,
+  /** Superellipse exponent: 2 = circle, higher = squarer. */
+  islandShapePower: 2.6,
+  /** Normalised distance at which the beach gives way to the sea. */
+  beachEnd: 1.08,
   /** Lakes carved into the surrounding terrain (outside the build plateau). */
   lakes: [
-    { x: 8, z: 34, r: 9, depth: 6 },
-    { x: 36, z: -14, r: 6, depth: 6 },
-    { x: -42, z: 16, r: 7, depth: 6 },
+    { x: 10, z: 33, r: 7, depth: 6 },
+    { x: -34, z: 14, r: 6, depth: 6 },
   ],
   /** Height for each terrace level. Index = level + 1 (level -1 = seabed). */
   levelHeights: [-0.9, 0.5, 1.7, 3.3, 4.9, 6.5, 8.1],

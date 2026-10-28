@@ -3,6 +3,7 @@ import { Terrain } from './world/terrain';
 import { createWater } from './world/water';
 import { createVegetation } from './world/vegetation';
 import { createLighting } from './world/lighting';
+import { createAmbient } from './world/ambient';
 import { createBuildGrid, createScaleReference } from './world/scaleReference';
 import { CameraRig } from './core/cameraRig';
 import { timeUniform } from './core/wind';
@@ -26,7 +27,8 @@ const groundY = terrain.plateauHeight;
 const vegetation = createVegetation(terrain);
 const grid = createBuildGrid(groundY);
 const scaleRef = createScaleReference(groundY);
-scene.add(terrain.mesh, createWater(), vegetation, createLighting(), grid, scaleRef);
+const ambient = createAmbient();
+scene.add(terrain.mesh, createWater(terrain), vegetation, createLighting(), ambient.group, grid, scaleRef);
 
 const rig = new CameraRig(renderer.domElement, groundY);
 
@@ -47,6 +49,7 @@ renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.1);
   timeUniform.value += dt;
   rig.update(dt);
+  ambient.update(dt, timeUniform.value);
   renderer.render(scene, rig.camera);
   hud.tick(dt);
   frames++;

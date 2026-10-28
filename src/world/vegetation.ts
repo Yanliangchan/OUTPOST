@@ -153,6 +153,31 @@ function palmCrown(top: THREE.Vector3, rand: () => number) {
   return mergeGeometries(parts)!;
 }
 
+/** Banana plant: short stem with a few broad, upright leaves. */
+function bananaLeaves(rand: () => number) {
+  const parts: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 5; i++) {
+    const f = frond(0.85 + rand() * 0.2, 0.32, 0.35);
+    f.rotateZ(0.55);
+    f.rotateY((i / 5) * Math.PI * 2 + rand() * 0.4);
+    f.translate(0, 0.55, 0);
+    parts.push(f);
+  }
+  return mergeGeometries(parts)!;
+}
+
+/** Low fern clump for jungle undergrowth. */
+function fernGeo(rand: () => number) {
+  const parts: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < 7; i++) {
+    const f = frond(0.5 + rand() * 0.15, 0.1, 0.45);
+    f.rotateZ(0.35);
+    f.rotateY((i / 7) * Math.PI * 2 + rand() * 0.3);
+    parts.push(f);
+  }
+  return mergeGeometries(parts)!;
+}
+
 function rockGeo(rand: () => number) {
   const g = new THREE.DodecahedronGeometry(0.4, 0);
   jitterGeo(g, 0.18, rand);
@@ -187,7 +212,7 @@ function flowerGeo() {
 
 // ---------- Instanced placement ----------
 
-type Kind = 'pine' | 'rain' | 'tall' | 'palm' | 'bush' | 'rock' | 'tuft' | 'flower';
+type Kind = 'pine' | 'rain' | 'tall' | 'palm' | 'banana' | 'fern' | 'bush' | 'bougain' | 'rock' | 'tuft' | 'flower';
 interface Spot { x: number; y: number; z: number; s: number; r: number; tint: number }
 
 const std = (opts: THREE.MeshStandardMaterialParameters) =>
@@ -195,9 +220,12 @@ const std = (opts: THREE.MeshStandardMaterialParameters) =>
 
 export function createVegetation(terrain: Terrain): THREE.Group {
   const rand = mulberry32(WORLD.seed + 42);
-  const spots: Record<Kind, Spot[]> = { pine: [], rain: [], tall: [], palm: [], bush: [], rock: [], tuft: [], flower: [] };
+  const spots: Record<Kind, Spot[]> = { pine: [], rain: [], tall: [], palm: [], banana: [], fern: [], bush: [], bougain: [], rock: [], tuft: [], flower: [] };
   const add = (k: Kind, x: number, y: number, z: number, sMin = 0.85, sMax = 1.25) =>
     spots[k].push({ x, y, z, s: sMin + rand() * (sMax - sMin), r: rand() * Math.PI * 2, tint: rand() });
+
+  // Palms prefer the outer ring of the island.
+  const coastal_ = (x: number, z: number) => Math.hypot(x, z) > WORLD.landRadius * 0.72;
 
   for (let j = 0; j < terrain.n; j++) {
     for (let i = 0; i < terrain.n; i++) {
@@ -218,34 +246,41 @@ export function createVegetation(terrain: Terrain): THREE.Group {
         continue;
       }
 
-      if (lvl === 0 && terrain.isShore(cx, cz)) {
-        if (r < 0.05) add('palm', x, y, z, 0.9, 1.3);
-        else if (r < 0.08) add('rock', x, y, z, 0.6, 1.4);
-        else if (r < 0.14) add('tuft', x, y, z);
+      const shore = terrain.isShore(cx, cz);
+      const high = lvl >= WORLD.plateauLevel + 2;
+      if (lvl === 0 && shore) {
+        // Beaches: palms, a few rocks.
+        if (r < 0.07) add('palm', x, y, z, 0.9, 1.35);
+        else if (r < 0.1) add('rock', x, y, z, 0.6, 1.4);
+        else if (r < 0.13) add('tuft', x, y, z);
       } else if (sq <= WORLD.buildHalf) {
         // The open plateau: a clearing with a few groves and scattered clutter.
         const starter = sq <= WORLD.starterHalf;
         const grove = forest > 0.3 && !starter;
-        const tree = () => (rand() < 0.55 ? 'pine' : rand() < 0.7 ? 'rain' : 'tall');
-        if (grove && r < 0.16) add(tree(), x, y, z);
-        else if (grove && r < 0.24) add('bush', x, y, z);
-        else if (r < (starter ? 0.004 : 0.012)) add(tree(), x, y, z);
-        else if (r < 0.02) add('rock', x, y, z, 0.6, 1.3);
-        else if (r < 0.028) add('bush', x, y, z, 0.7, 1.1);
+        const tree = (): Kind => (rand() < 0.5 ? 'rain' : rand() < 0.5 ? 'palm' : 'tall');
+        if (grove && r < 0.14) add(tree(), x, y, z);
+        else if (grove && r < 0.22) add(rand() < 0.5 ? 'banana' : 'fern', x, y, z);
+        else if (r < (starter ? 0.004 : 0.01)) add(tree(), x, y, z);
+        else if (r < 0.018) add('rock', x, y, z, 0.6, 1.3);
+        else if (r < 0.026) add('bush', x, y, z, 0.7, 1.1);
+        else if (r < 0.029) add('bougain', x, y, z, 0.7, 1.0);
         else if (r < 0.05) add('flower', x, y, z);
         else if (r < 0.1) add('tuft', x, y, z, 1.0, 1.5);
       } else {
-        // Wild country: groves of conifers and tropical trees with open meadows between.
-        const dense = forest > 0.1;
-        if (dense && r < 0.16) add('pine', x, y, z, 0.9, 1.45);
-        else if (dense && r < 0.21) add(rand() < 0.5 ? 'rain' : 'tall', x, y, z, 0.9, 1.3);
-        else if (dense && r < 0.27) add('bush', x, y, z, 0.8, 1.3);
-        else if (r < 0.018) add('pine', x, y, z, 0.8, 1.3);
-        else if (r < 0.05) add('bush', x, y, z);
-        else if (r < 0.06) add('palm', x, y, z);
-        else if (r < 0.075) add('rock', x, y, z, 0.6, 1.4);
-        else if (r < 0.12) add('tuft', x, y, z);
-        else if (r < 0.14) add('flower', x, y, z);
+        // Tropical jungle with open meadows; a few conifers on the high ground.
+        const dense = forest > 0.05;
+        const coastal = coastal_(cx, cz);
+        if (high && r < 0.05) add('pine', x, y, z, 0.9, 1.4);
+        else if (dense && r < 0.17) add(rand() < 0.6 ? 'rain' : 'tall', x, y, z, 0.9, 1.35);
+        else if (dense && r < 0.22) add(coastal ? 'palm' : 'banana', x, y, z, 0.9, 1.3);
+        else if (dense && r < 0.33) add('fern', x, y, z, 0.9, 1.5);
+        else if (dense && r < 0.39) add('bush', x, y, z, 0.8, 1.3);
+        else if (r < 0.025) add(coastal ? 'palm' : 'rain', x, y, z, 0.8, 1.2);
+        else if (r < 0.04) add('bush', x, y, z);
+        else if (r < 0.048) add('bougain', x, y, z, 0.8, 1.2);
+        else if (r < 0.06) add('rock', x, y, z, 0.6, 1.4);
+        else if (r < 0.1) add('tuft', x, y, z);
+        else if (r < 0.12) add('flower', x, y, z);
       }
     }
   }
@@ -305,10 +340,16 @@ export function createVegetation(terrain: Terrain): THREE.Group {
   const frondMat = std({ color: '#ffffff', side: THREE.DoubleSide });
   addWindSway(frondMat, 0.05, 1.6);
   instanced(palmCrown(pt.top, rand), frondMat, spots.palm, [PALETTE.leafPalm, PALETTE.leafC, PALETTE.leafA]);
+  // Banana plants and ferns
+  instanced(trunk(0.06, 0.09, 0.6, 5), palmTrunkMat, spots.banana);
+  instanced(bananaLeaves(rand), frondMat, spots.banana, [PALETTE.banana, PALETTE.leafC]);
+  instanced(fernGeo(rand), frondMat, spots.fern, [PALETTE.fern, PALETTE.leafB, PALETTE.leafC], { cast: false });
   // Bushes
   const bushMat = std({ color: '#ffffff' });
   addWindSway(bushMat, 0.03, 0.15);
   instanced(bushGeo(rand), bushMat, spots.bush, [PALETTE.bush, PALETTE.leafB, PALETTE.leafC, PALETTE.olive]);
+  // Bougainvillea: flowering bushes for a splash of tropical colour
+  instanced(bushGeo(rand), bushMat, spots.bougain, [PALETTE.bougainvillea, PALETTE.bougainvilleaB, PALETTE.flowerOrange]);
   // Rocks
   instanced(rockGeo(rand), std({ color: '#ffffff' }), spots.rock, [PALETTE.rock, PALETTE.rockDark, PALETTE.cliffLight]);
   // Grass tufts and flowers (no shadow casting — too small to matter)

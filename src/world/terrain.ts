@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WORLD } from '../config/world';
 import { PALETTE } from '../config/palette';
 import { clamp, fbm, mulberry32, smoothstep } from '../core/rng';
+import { applyCloudShadow } from '../core/cloudShadow';
 
 const C = (hex: string) => new THREE.Color(hex);
 
@@ -52,7 +53,12 @@ export class Terrain {
         // 1 at the back diagonal (away from the default camera), 0 at the front.
         const back = clamp(-(x + z) / (Math.SQRT2 * len), 0, 1);
         const R = WORLD.landRadius;
-        const d = Math.pow(Math.pow(ax / R, 4) + Math.pow(az / R, 4), 0.25) + fbm(x * 0.03, z * 0.03, seed, 4) * 0.08;
+        const P = WORLD.islandShapePower;
+        // Rounded island with coves and headlands from low-frequency noise.
+        const d =
+          Math.pow(Math.pow(ax / R, P) + Math.pow(az / R, P), 1 / P) +
+          fbm(x * 0.022, z * 0.022, seed, 4) * 0.16 +
+          fbm(x * 0.07, z * 0.07, seed + 4, 2) * 0.03;
 
         // Rolling terraced relief around the flat build plateau.
         const sq = Math.max(ax, az);
@@ -66,8 +72,10 @@ export class Terrain {
         if (level < 0) level = -1;
 
         // The landmass eventually falls away to the sea at the map edge.
-        if (d > 1.16) level = -1;
-        else if (d > 1.08) level = Math.min(level, 0);
+        // Terraces step down toward the coast, then a beach ring, then the sea.
+        level = Math.min(level, WORLD.plateauLevel + Math.floor((1 - d) * 28));
+        if (d > WORLD.beachEnd) level = -1;
+        else if (d > 1) level = Math.min(level, 0);
 
         if (sq <= WORLD.buildHalf + 1.5) level = WORLD.plateauLevel;
 
@@ -124,7 +132,9 @@ export class Terrain {
         const level = this.levels[idx];
         let y: number;
         if (level < 0) {
-          y = this.dist[idx] > 1.16 ? clamp(-0.4 - (this.dist[idx] - 1.16) * 16, -5, -0.4) : Terrain.levelHeight(-1);
+          y = this.dist[idx] > WORLD.beachEnd
+            ? clamp(-0.25 - (this.dist[idx] - WORLD.beachEnd) * 11, -5, -0.25)
+            : Terrain.levelHeight(-1);
         } else {
           y = Terrain.levelHeight(level) + (rand() * 2 - 1) * yJit;
         }
@@ -190,6 +200,7 @@ export class Terrain {
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
     geo.computeVertexNormals();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 });
+    mat.onBeforeCompile = (shader) => applyCloudShadow(shader);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.receiveShadow = true;
     mesh.castShadow = true;
@@ -220,7 +231,7 @@ export class Terrain {
       const band = Math.floor(y * 1.3 + fbm(x * 0.3, z * 0.3, this.seed + 11, 2) * 0.8);
       const bands = [PALETTE.cliffLight, PALETTE.cliffMid, PALETTE.cliffLight, PALETTE.cliffLight];
       out.copy(C(bands[((band % 4) + 4) % 4]));
-      if (ny > 0.62) out.copy(C(PALETTE.grassDeep));
+      if (ny > 0.68) out.copy(C(PALETTE.grassDeep));
     }
     out.multiplyScalar(jitter);
   }

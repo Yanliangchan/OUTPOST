@@ -1,6 +1,6 @@
 # OUTPOST — Phase 0: Audit & Design Specification
 
-Status: **awaiting approval.** Items marked ❓ need your decision.
+Status: **direction approved.** Decisions are recorded in §12.
 
 ---
 
@@ -151,3 +151,14 @@ Vehicles: utility truck (green), supply lorry, jeep-style runabout, forklift.
 3. **Trees.** A mix of conifers (reference) and tropical trees (current), *or* all tropical (rain trees and palms, more Singaporean)?
 4. **Building accent colours.** Teal/orange/yellow by function (proposed), *or* a single camp colour?
 5. **Timers.** CoC-style build timers (short ones, no premium currency), *or* instant building with an animation?
+
+## 12. Decisions (from review)
+
+| Question | Decision |
+|---|---|
+| Residents | **Recruits** |
+| World shape | **Boom Beach-style island** ringed by sea, **base in the island centre** |
+| Trees | **Mostly tropical** (rain trees, Tembusu-style tall trees, palms, banana, ferns, bougainvillea), with a few conifers on high ground |
+| Building colours | **SAF camp look:** cream walls, dark green trim and doors, red-brown or dark green roofs, yellow/black kerb and hazard markings, olive vehicles |
+| Timers | **Clash of Clans-style build timers** (no premium currency), with **construction animations** (scaffold, rising structure, dust puffs, completion pop) |
+| Naming | Accepted as proposed in §8 |

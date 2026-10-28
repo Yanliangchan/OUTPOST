@@ -16,11 +16,11 @@ export const PALETTE = {
   rockDark: '#bfb091',
 
   // Water
-  waterShallow: '#55d6d0',
-  water: '#2fb5c8',
-  waterDeep: '#1d7f9e',
+  waterShallow: '#6ee8d8',
+  water: '#2fbfd0',
+  waterDeep: '#1f7cb8',
   seabedShallow: '#e6d7a2',
-  seabedDeep: '#2a8a9a',
+  seabedDeep: '#1d6f9e',
 
   // Vegetation
   trunk: '#8a5a3b',
@@ -36,16 +36,25 @@ export const PALETTE = {
   flowerOrange: '#ff9a3c',
   flowerYellow: '#ffd23f',
   flowerPink: '#ff6f91',
+  bougainvillea: '#e8418f',
+  bougainvilleaB: '#ff7ab8',
+  banana: '#7fcf45',
+  fern: '#4fa83a',
 
-  // Architecture (for Phase 2 — listed now so the spec is complete)
+  // Architecture — SAF camp look (approved): cream walls, dark green trim,
+  // red-brown / dark green roofs, yellow-black kerbs, olive vehicles.
   concrete: '#cfcac0',
   concreteWarm: '#d9d2c3',
-  offWhite: '#f2efe6',
-  roofTeal: '#3e9c94',
-  roofOrange: '#e98a3c',
+  cream: '#efe4c8',
+  offWhite: '#f4efe2',
+  trimGreen: '#2f5a3a',
+  roofRedBrown: '#9a4b33',
+  roofGreen: '#3f6142',
+  kerbYellow: '#f2c230',
+  kerbBlack: '#2a2a28',
   khaki: '#c2b280',
   wood: '#b07a4a',
-  utilityGreen: '#5b7a3a',
+  utilityGreen: '#5d6b35',
   accentYellow: '#ffc93c',
   accentTeal: '#2bb3a3',
   accentOrange: '#ff8a3d',

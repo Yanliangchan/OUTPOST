@@ -9,7 +9,7 @@ export function createHud(actions: HudActions) {
   const root = document.createElement('div');
   root.className = 'hud';
   root.innerHTML = `
-    <div class="chip brand"><span class="logo">▲</span><div><b>OUTPOST</b><small>Phase 0 · World prototype</small></div></div>
+    <div class="chip brand"><span class="logo">▲</span><div><b>OUTPOST</b><small>Phase 1 · The World</small></div></div>
     <div class="toggles">
       <button data-a="grid" title="Show build grid (G)">Grid <kbd>G</kbd></button>
       <button data-a="scale" title="Show greybox scale markers (B)">Scale <kbd>B</kbd></button>
