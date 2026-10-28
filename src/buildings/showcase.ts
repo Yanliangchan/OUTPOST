@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { BUILDINGS } from './catalogue';
+import type { EmitterKind } from './kit';
 import { PLANNED_MAX_LEVEL, RELEASE_MAX_LEVEL } from '../config/release';
 import type { Particles } from '../fx/particles';
 
@@ -37,7 +38,7 @@ function label(text: string, sub = '', subColor = '#5d6b60') {
   return s;
 }
 
-type Emitter = { pos: THREE.Vector3; kind: 'steam' | 'smoke' | 'spray' };
+type Emitter = { pos: THREE.Vector3; kind: EmitterKind };
 
 /**
  * Review scene laid out on the cleared plateau.
@@ -100,6 +101,7 @@ export function createShowcase(groundY: number, fx: Particles, only: string | nu
       for (const e of emitters) {
         if (e.kind === 'steam') fx.emit(e.pos, { color: '#f4f4f0', size: 0.14, life: 2.2, spread: 0.05, vel: new THREE.Vector3(0.1, 0.7, 0), opacity: 0.55, grow: 3 });
         else if (e.kind === 'smoke' && Math.random() < 0.5) fx.emit(e.pos, { color: '#8d8f91', size: 0.12, life: 2.0, spread: 0.05, vel: new THREE.Vector3(0.1, 0.6, 0), opacity: 0.45, grow: 3 });
+        else if (e.kind === 'sparks' && Math.random() < 0.6) fx.emit(e.pos, { color: Math.random() < 0.5 ? '#ffd23f' : '#ff8a1f', size: 0.035, life: 0.45, spread: 0.35, chip: true, gravity: 4, vel: new THREE.Vector3(0, 1.0, 0), opacity: 1, grow: 1 }, 3);
         else if (e.kind === 'spray') fx.emit(e.pos, { color: '#d9f6fa', size: 0.05, life: 0.7, spread: 0.25, chip: true, gravity: 3, vel: new THREE.Vector3(0, 1.4, 0), opacity: 0.8, grow: 1 });
       }
     },

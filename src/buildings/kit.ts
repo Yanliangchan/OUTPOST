@@ -62,13 +62,15 @@ export function mat(color: string, opts: THREE.MeshStandardMaterialParameters = 
   return m;
 }
 
+export type EmitterKind = 'steam' | 'smoke' | 'spray' | 'sparks';
+
 export type Face = 'front' | 'back' | 'left' | 'right';
 
 /** Wraps a group with helpers for placing kit parts. */
 export class Kit {
   readonly group = new THREE.Group();
   /** World-space-relative points where smoke/steam can be emitted. */
-  readonly emitters: { pos: THREE.Vector3; kind: 'steam' | 'smoke' | 'spray' }[] = [];
+  readonly emitters: { pos: THREE.Vector3; kind: EmitterKind }[] = [];
   /** Animated sub-objects (flags etc.). */
   readonly flags: THREE.Mesh[] = [];
 

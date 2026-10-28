@@ -13,7 +13,7 @@ export const RELEASE_MAX_LEVEL = 10;
 - **The HQ caps everything.** No building can be upgraded above the current HQ level.
 - **Footprints never change.** An upgrade replaces the model on the same tiles, so it never needs re-placing (as in Clash of Clans).
 - **Height budget:** a building's bulk stays within about **4 storeys** so it never hides what's behind it; only thin elements (masts, flags, spires) go higher.
-- **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter.
+- **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter; **Workshop** has workbenches, a vehicle on a lift or hoist, oil drums and welding sparks.
 - **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level).
 - **Every step is an upgrade:** height rises level by level until it reaches the building's cap (**HQ 5 storeys, Bunk 4.5, Cookhouse 3.5, QM Store 3.5**), then holds while coverage and detail keep growing. Checked by measurement: open the browser console and run `__outpost.metrics()` to get the height, peak, coverage and detail of every level. A level fails if height drops by more than half a storey or presence (height × coverage) drops by more than 15%.
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
@@ -30,7 +30,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 2 | **Bunk** | 6×4 | 1 | Houses Recruits | ✅ 20/20 designed |
 | 3 | **Cookhouse** | 5×4 | 1 | Food → Morale and work speed | ✅ 20/20 designed |
 | 4 | **QM Store** | 4×4 | 1 | Stores Supplies; delivery trucks unload here | ✅ 20/20 designed |
-| 5 | Workshop | 4×4 | 2 | Produces Supplies; repairs | planned |
+| 5 | **Workshop** | 4×4 | 2 | Produces Supplies; repairs | ✅ 20/20 designed |
 | 6 | Utilities | 3×3 | 2 | Power and water; buildings run better when supplied | planned |
 | 7 | Mama Shop | 2×2 | 2 | Small Morale boost and a trickle of income | planned |
 | 8 | Admin Office | 4×3 | 3 | Objectives and Reputation boosts | planned |
@@ -272,3 +272,61 @@ Stores Supplies; delivery trucks unload here. **Signature at every level:** crat
 | 20 | **Dome Depot:** geodesic storage dome with a gold ring and a glazed dock entrance |
 
 Review scene: open the game with `?showcase=qmstore`.
+
+---
+
+# Workshop: full specification
+
+Produces Supplies and repairs vehicles and equipment. **Signature at every level:** workbenches and tool racks, a vehicle on a lift or hoist, oil drums, welding sparks. Footprint **4×4**; unlocked at HQ 2.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Output | Repair |
+|---|---|---|---|---|---|---|---|
+| 1 | Field Repair Point | 300 | 0 | 2 min | 300 | 60/h | +14% |
+| 2 | Tool Shed | 900 | 0 | 8 min | 360 | 80/h | +18% |
+| 3 | Lean-to Workshop | 2,000 | 30 | 25 min | 430 | 100/h | +22% |
+| 4 | Twin-Bay Workshop | 4,500 | 100 | 1 h | 520 | 140/h | +26% |
+| 5 | Workshop · Spray Booth | 9,500 | 250 | 2 h | 620 | 180/h | +30% |
+| 6 | Sawtooth Workshop | 18,000 | 450 | 4 h | 750 | 240/h | +34% |
+| 7 | Vehicle Bays | 32,000 | 800 | 6 h | 900 | 320/h | +38% |
+| 8 | Machine Shop | 55,000 | 1,200 | 10 h | 1,070 | 420/h | +42% |
+| 9 | Engineering Block | 90,000 | 1,800 | 16 h | 1,290 | 550/h | +46% |
+| 10 | Workshop Complex *(release cap)* | 145,000 | 2,500 | 1 d | 1,550 | 730/h | +50% |
+| 11 | CNC Workshop | 225,000 | 3,400 | 1.5 d | 1,860 | 960/h | +54% |
+| 12 | Folded-Roof Fab Lab | 340,000 | 4,500 | 2 d | 2,230 | 1,270/h | +58% |
+| 13 | Test Rig Yard | 480,000 | 5,800 | 2.5 d | 2,670 | 1,680/h | +62% |
+| 14 | Cantilever Service Apron | 650,000 | 7,300 | 3 d | 3,210 | 2,220/h | +66% |
+| 15 | Grand Engineering Hall | 860,000 | 9,000 | 3.5 d | 3,850 | 2,930/h | +70% |
+| 16 | Blast-Door Workshop | 1,120,000 | 10,800 | 4 d | 4,620 | 3,860/h | +74% |
+| 17 | Robot Assembly Hall | 1,420,000 | 13,000 | 4.5 d | 5,550 | 5,100/h | +78% |
+| 18 | Energy Workshop | 1,750,000 | 15,500 | 5 d | 6,660 | 6,730/h | +82% |
+| 19 | Ramp Test Workshop | 2,120,000 | 18,300 | 5.5 d | 7,990 | 8,880/h | +86% |
+| 20 | Forge Citadel | 2,550,000 | 21,300 | 6 d | 9,580 | 11,720/h | +90% |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Workshop level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Field Repair Point:** A-frame chain hoist over an engine, workbench, drums, olive jeep; welding sparks |
+| 2 | **Tool Shed:** timber shed with a zinc roof, outdoor anvil and welding station, gas bottles |
+| 3 | **Lean-to Workshop:** single-slope zinc roof with a high open front over benches and a hoist |
+| 4 | **Twin-Bay Workshop:** red-roofed building with two open bays; jeep on a two-post lift |
+| 5 | **Spray Booth:** gabled workshop plus a tall white spray booth with an exhaust stack |
+| 6 | **Sawtooth Workshop:** classic north-light **sawtooth factory roof** |
+| 7 | **Vehicle Bays:** long three-bay shed with a tall red hip roof and an outdoor inspection ramp |
+| 8 | **Machine Shop:** tall open-sided bay with a **yellow overhead travelling crane** and lathes |
+| 9 | **Engineering Block:** two-storey office plus a tall workshop with spinning turbine vents |
+| 10 | **Workshop Complex:** sawtooth bay, spray booth, parts store, jeep on a lift |
+| 11 | **CNC Workshop:** solid hall with a long window strip onto CNC machines with green status lights, teal stripe |
+| 12 | **Folded-Roof Fab Lab:** zig-zag **pleated teal and white roof** over a glazed fab lab |
+| 13 | **Test Rig Yard:** workshop plus a red open-steel test tower and an engine test cell |
+| 14 | **Cantilever Service Apron:** deep cantilevered roof over an outdoor apron with two lifts |
+| 15 | **Grand Engineering Hall:** brick industrial hall with arched windows, gold band and a tall brick chimney |
+| 16 | **Blast-Door Workshop:** concrete hall with three heavy doors in hazard-striped frames, roof vents |
+| 17 | **Robot Assembly Hall:** full glass hall with two big yellow robot arms over an assembly line |
+| 18 | **Energy Workshop:** battery packs, a small wind turbine and a solar canopy over the bays |
+| 19 | **Ramp Test Workshop:** jeep cresting a raised yellow test ramp beside a three-storey workshop |
+| 20 | **Forge Citadel:** hall with a glowing forge tower, glass gallery and gold accents |
+
+Review scene: open the game with `?showcase=workshop`.
