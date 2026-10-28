@@ -16,6 +16,7 @@ import { gameClock } from './core/gameClock';
 import { plateauZoneAt, ZONES } from './world/zones';
 import { createShowcase } from './buildings/showcase';
 import { buildingMetrics } from './buildings/metrics';
+import { BUILDINGS } from './buildings/catalogue';
 
 const app = document.getElementById('app')!;
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -126,6 +127,30 @@ renderer.setAnimationLoop(() => {
   },
   zones: () => Object.keys(vegetation.clearables),
   metrics: buildingMetrics,
+  showcase,
+  /** QA: for every building level, count meshes that move between two animation times. */
+  animCheck: () => {
+    const out: Record<string, number[]> = {};
+    for (const def of BUILDINGS) {
+      out[def.id] = [];
+      for (let lv = 1; lv <= def.designedLevels; lv++) {
+        const kit = def.build(lv);
+        const snap = () => {
+          kit.group.updateMatrixWorld(true);
+          const a: number[] = [];
+          kit.group.traverse((o) => { if (o instanceof THREE.Mesh) a.push(...o.matrixWorld.elements); });
+          return a;
+        };
+        const snaps = [1, 3.7, 6.4, 9.1].map((t) => (kit.animate(t), snap()));
+        let moved = 0;
+        for (let i = 0; i < snaps[0].length; i += 16) {
+          if (snaps.some((sn) => sn.slice(i, i + 16).some((v, j) => Math.abs(v - snaps[0][i + j]) > 1e-4))) moved++;
+        }
+        out[def.id].push(moved);
+      }
+    }
+    return out;
+  },
   get frames() {
     return frames;
   },

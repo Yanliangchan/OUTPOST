@@ -54,27 +54,49 @@ function pallet(k: Kit, x: number, z: number, y: number, load: 'crates' | 'drums
   }
 }
 
-/** Little yellow forklift, facing +x by default. */
+/**
+ * Little yellow forklift, facing +x by default. It shuttles back and forth,
+ * raising its load at one end and lowering it at the other (the store's
+ * "working" animation, like a gold-mine cart).
+ */
 function forklift(k: Kit, x: number, z: number, y: number, rot = 0, loaded = true) {
   const g = new Kit();
   g.box(0.42, 0.18, 0.3, '#ffc93c', 0, 0.08, 0);
   g.box(0.14, 0.18, 0.3, '#33383d', -0.18, 0.08, 0); // counterweight
+  const wheels: THREE.Mesh[] = [];
   for (const sx of [-0.14, 0.14]) for (const sz of [-0.16, 0.16]) {
     const w = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.05, 8).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#2a2b2d', flatShading: true }));
     w.position.set(sx, 0.07, sz);
     g.add(w);
+    wheels.push(w);
   }
   for (const sz of [-0.12, 0.12]) g.box(0.03, 0.42, 0.03, '#33383d', -0.05, 0.26, sz); // overhead guard
   g.box(0.24, 0.02, 0.3, '#33383d', -0.08, 0.68, 0);
   g.box(0.03, 0.55, 0.22, '#5c6166', 0.23, 0.04, 0); // mast
-  for (const sz of [-0.07, 0.07]) g.box(0.24, 0.02, 0.04, '#5c6166', 0.36, 0.06, sz); // forks
+  const carriage = new THREE.Group();
+  g.group.add(carriage);
+  for (const sz of [-0.07, 0.07]) g.box(0.24, 0.02, 0.04, '#5c6166', 0.36, 0.06, sz, carriage); // forks
   if (loaded) {
-    g.box(0.36, 0.05, 0.36, '#b8895a', 0.38, 0.08, 0);
-    g.box(0.3, 0.2, 0.3, BOX[0], 0.38, 0.13, 0);
+    g.box(0.36, 0.05, 0.36, '#b8895a', 0.38, 0.08, 0, carriage);
+    g.box(0.3, 0.2, 0.3, BOX[0], 0.38, 0.13, 0, carriage);
   }
   g.group.position.set(x, y, z);
   g.group.rotation.y = rot;
   k.add(g.group);
+  const dir = new THREE.Vector3(Math.cos(rot), 0, -Math.sin(rot));
+  const base = g.group.position.clone();
+  const seed = (x * 7 + z * 3) % 6;
+  k.anims.push((t) => {
+    // 8 s cycle: drive forward, lift, reverse, lower.
+    const c = ((t + seed) % 8) / 8;
+    const travel = c < 0.35 ? c / 0.35 : c < 0.5 ? 1 : c < 0.85 ? 1 - (c - 0.5) / 0.35 : 0;
+    const ease = travel * travel * (3 - 2 * travel);
+    g.group.position.copy(base).addScaledVector(dir, (ease - 0.5) * 0.5);
+    const lift = c > 0.35 && c < 0.5 ? (c - 0.35) / 0.15 : c >= 0.5 && c < 0.85 ? 1 : c >= 0.85 ? 1 - (c - 0.85) / 0.15 : 0;
+    carriage.position.y = lift * 0.3;
+    const moving = (c < 0.35 || (c > 0.5 && c < 0.85)) ? 1 : 0;
+    for (const w of wheels) w.rotation.z -= moving * 0.12 * (c < 0.5 ? 1 : -1);
+  });
 }
 
 /** Orange/blue pallet racking with boxes. */
@@ -140,6 +162,7 @@ function field(k: Kit, level: number, y: number) {
     k.sandbags(-0.2, 1.1, 2.4, 0, y);
     k.sandbags(1.45, -0.3, 1.6, Math.PI / 2, y);
     k.crates(1.4, 1.4, y, 3);
+    forklift(k, 0.9, 0.6, y, Math.PI / 2);
     return;
   }
   if (level === 2) {
@@ -155,6 +178,7 @@ function field(k: Kit, level: number, y: number) {
     pallet(k, -0.4, -0.2, y, 'drums', 1);
     pallet(k, 0.6, 0.6, y, 'sacks', 2);
     k.crates(1.4, -1.4, y, 2);
+    forklift(k, 1.1, -0.3, y, Math.PI);
     return;
   }
   // 3: Timber Godown: plank shed with big sliding barn doors and a ramp.
@@ -170,6 +194,7 @@ function field(k: Kit, level: number, y: number) {
   ramp.rotation.x = 0.15;
   pallet(k, 1.3, 1.2, y, 'sacks', 0);
   pallet(k, 0.7, 1.3, y, 'crates', 1);
+  forklift(k, -1.4, 1.2, y, 0);
 }
 
 function camp(k: Kit, level: number, y: number) {
@@ -238,8 +263,20 @@ function base(k: Kit, level: number, y: number) {
     for (const z of [-1.7, 1.5]) for (const x of [0.25, 1.85]) k.box(0.08, 1.6, 0.08, '#ffc93c', x, y, z);
     for (const z of [-1.7, 1.5]) k.box(1.7, 0.1, 0.1, '#ffc93c', 1.05, y + 1.6, z);
     for (const x of [0.25, 1.85]) k.box(0.1, 0.1, 3.3, '#ffc93c', x, y + 1.6, -0.1);
-    k.box(0.4, 0.2, 0.3, '#33383d', 1.05, y + 1.5, 0.2);
-    k.box(0.02, 0.6, 0.02, '#33383d', 1.05, y + 0.9, 0.2);
+    // Gantry hoist: travels along the yard, lowering and raising its hook
+    const hoist = new THREE.Group();
+    k.box(0.4, 0.2, 0.3, '#33383d', 0, 1.5, 0, hoist);
+    const cable = k.box(0.02, 0.6, 0.02, '#33383d', 0, 0.9, 0, hoist);
+    const hook = k.box(0.5, 0.06, 0.4, '#ffc93c', 0, 0.85, 0, hoist);
+    hoist.position.set(1.05, y, 0.2);
+    k.add(hoist);
+    k.anims.push((t) => {
+      hoist.position.z = -0.2 + Math.sin(t * 0.5) * 0.9;
+      const drop = (Math.sin(t * 1.0) * 0.5 + 0.5) * 0.4;
+      hook.position.y = 0.88 - drop;
+      cable.scale.y = 1 + drop / 0.6;
+      cable.position.y = 1.5 - (0.6 * cable.scale.y) / 2;
+    });
     return;
   }
   if (level === 8) {

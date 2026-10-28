@@ -68,6 +68,8 @@ function field(k: Kit, level: number, y: number) {
     k.sandbags(1.35, 1.3, 1.0, -0.3, y);
     k.drum(-2.2, -1.85, '#2f6fa8', y);
     k.drum(-1.95, -1.95, '#5b6b3a', y);
+    k.box(0.04, 0.9, 0.04, C.metal, 2.35, y, -2.3);
+    k.windsock(2.35, y + 0.9, -2.3);
     return;
   }
   if (level === 2) {
@@ -89,6 +91,8 @@ function field(k: Kit, level: number, y: number) {
     k.drum(-1.9, -1.75, '#5b6b3a', y);
     k.sandbags(-1.5, 1.7, 1.0, 0, y);
     k.radioTable(-1.9, 0.6, y);
+    k.box(0.04, 0.9, 0.04, C.metal, 2.35, y, -2.3);
+    k.windsock(2.35, y + 0.9, -2.3);
     return;
   }
   // Level 3: first permanent building.

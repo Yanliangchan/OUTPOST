@@ -27,8 +27,19 @@ export function clock(k: Kit, y: number, z: number) {
   face.position.set(0, y, z + 0.04);
   k.add(face);
   k.cyl(0.215, 0.03, C.trim, 0, y - 0.015, z + 0.02, 16);
-  k.box(0.02, 0.14, 0.02, C.dark, 0, y - 0.02, z + 0.07);
-  k.box(0.1, 0.02, 0.02, C.dark, 0.04, y, z + 0.07);
+  // Hands pivot at the centre of the face; the minute hand turns visibly.
+  const hand = (len: number, w: number) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, len, 0.02).translate(0, len / 2, 0), new THREE.MeshStandardMaterial({ color: C.dark }));
+    m.position.set(0, y, z + 0.07);
+    k.add(m);
+    return m;
+  };
+  const minute = hand(0.15, 0.02);
+  const hour = hand(0.1, 0.025);
+  k.anims.push((t) => {
+    minute.rotation.z = -t * 0.5;
+    hour.rotation.z = -t * 0.5 / 12;
+  });
 }
 
 /** Gold belvedere crown with a pyramid and spire, sized by s. */
@@ -98,12 +109,26 @@ export function perimeter(k: Kit, y: number, ex = 2.72, ez = 2.72, flags = true)
   k.box(0.57, 0.18, 0.04, DARK_GLASS, -gate - 0.4, y + 0.36, e - 0.19);
   k.box(0.65, 0.06, 0.6, C.trim, -gate - 0.4, y + 0.62, e - 0.45);
   k.box(0.12, 0.3, 0.12, '#f2c230', -gate + 0.02, y, e);
-  for (let i = 0; i < 5; i++) k.box(0.28, 0.035, 0.035, i % 2 ? '#ffffff' : '#d8342c', -gate + 0.15 + i * 0.28, y + 0.26, e);
+  // Boom arm pivots at the post and lifts every so often to let a vehicle through.
+  const boom = new THREE.Group();
+  boom.position.set(-gate + 0.02, y + 0.26, e);
+  for (let i = 0; i < 5; i++) k.box(0.28, 0.035, 0.035, i % 2 ? '#ffffff' : '#d8342c', 0.13 + i * 0.28, 0, 0, boom);
+  k.add(boom);
+  k.anims.push((t) => {
+    const c = (t % 14) / 14;
+    const up = c < 0.08 ? c / 0.08 : c < 0.3 ? 1 : c < 0.38 ? 1 - (c - 0.3) / 0.08 : 0;
+    boom.rotation.z = up * up * (3 - 2 * up) * 1.35;
+  });
   for (const x of [-0.45, -0.15, 0.15, 0.45]) k.cyl(0.04, 0.18, '#f2c230', x, y, e - 0.35, 6);
   // CCTV on poles at the rear corners
   for (const [x, z] of [[-ex + 0.15, -e + 0.15], [ex - 0.15, -e + 0.15], [ex - 0.15, e - 0.15]]) {
     k.cyl(0.025, 1.0, C.metal, x, y, z, 5);
-    k.box(0.16, 0.07, 0.07, '#f4f4f0', x + 0.05, y + 1.0, z + 0.05);
+    const cam = new THREE.Group();
+    cam.position.set(x, y + 1.0, z);
+    k.box(0.16, 0.07, 0.07, '#f4f4f0', 0.05, 0, 0.05, cam);
+    k.box(0.03, 0.04, 0.03, '#33383d', 0.14, 0.01, 0.05, cam);
+    k.add(cam);
+    k.anims.push((t) => (cam.rotation.y = Math.sin(t * 0.4 + x + z) * 0.9));
   }
   if (flags) {
     k.flagpole(-1.6, e - 0.47, 2.2, y);

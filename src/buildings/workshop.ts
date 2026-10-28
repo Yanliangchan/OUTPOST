@@ -72,6 +72,7 @@ function jeep(k: Kit, x: number, z: number, y: number, rot = 0, raise = 0) {
   g.group.position.set(x, y + raise, z);
   g.group.rotation.y = rot;
   k.add(g.group);
+  return g.group;
 }
 
 /** Two-post vehicle lift with a jeep raised on it. */
@@ -84,7 +85,17 @@ function lift(k: Kit, x: number, z: number, y: number, rot = 0) {
   g.group.position.set(x, y, z);
   g.group.rotation.y = rot;
   k.add(g.group);
-  jeep(k, x, z, y, rot + Math.PI / 2, 0.42);
+  const car = jeep(k, x, z, y, rot + Math.PI / 2, 0.42);
+  const arms = g.group.children.filter((_c, i) => i % 2 === 1);
+  const seed = (x * 5 + z * 2) % 9;
+  // Lift cycle: the jeep rises for work, pauses, then comes back down.
+  k.anims.push((t) => {
+    const c = ((t + seed) % 12) / 12;
+    const up = c < 0.2 ? c / 0.2 : c < 0.6 ? 1 : c < 0.8 ? 1 - (c - 0.6) / 0.2 : 0;
+    const e = up * up * (3 - 2 * up);
+    car.position.y = y + 0.05 + e * 0.42;
+    for (const a of arms) a.position.y = 0.08 + e * 0.42;
+  });
 }
 
 /** A-frame chain hoist over an engine block. */
@@ -94,9 +105,20 @@ function hoist(k: Kit, x: number, z: number, y: number, h = 1.1) {
     leg.rotation.z = s * 0.25;
   }
   k.box(0.9, 0.06, 0.06, SAFETY, x, y + h, z);
-  k.box(0.02, 0.45, 0.02, '#33383d', x, y + h - 0.45, z);
-  k.box(0.32, 0.22, 0.26, '#5c6166', x, y + 0.15, z);
-  k.box(0.12, 0.08, 0.2, '#33383d', x + 0.2, y + 0.3, z);
+  const chain = k.box(0.02, 0.45, 0.02, '#33383d', x, y + h - 0.45, z);
+  const engine = new THREE.Group();
+  k.box(0.32, 0.22, 0.26, '#5c6166', 0, 0, 0, engine);
+  k.box(0.12, 0.08, 0.2, '#33383d', 0.2, 0.15, 0, engine);
+  engine.position.set(x, y + 0.15, z);
+  k.add(engine);
+  // Engine is slowly winched up and lowered back onto its stand.
+  k.anims.push((t) => {
+    const lift = (Math.sin(t * 0.6) * 0.5 + 0.5) * 0.35;
+    engine.position.y = y + 0.15 + lift;
+    engine.rotation.y = Math.sin(t * 0.9) * 0.15;
+    chain.scale.y = Math.max(0.2, 1 - lift / 0.45);
+    chain.position.y = y + h - 0.45 * chain.scale.y + 0.225 * chain.scale.y;
+  });
 }
 
 function sparks(k: Kit, x: number, y: number, z: number) {
@@ -115,6 +137,7 @@ function turbineVent(k: Kit, x: number, y: number, z: number) {
   const v = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 4), new THREE.MeshStandardMaterial({ color: '#c9ced2', flatShading: true }));
   v.position.set(x, y + 0.18, z);
   k.add(v);
+  k.anims.push((t) => (v.rotation.y = t * 4));
 }
 
 // ------------------------------------------------------------------ levels
@@ -140,6 +163,7 @@ function field(k: Kit, level: number, y: number) {
     k.box(0.5, 0.08, 0.2, '#33383d', 0.9, y + 0.3, 0.1);
     k.gasCylinders(1.4, 0.9, 2, y);
     jeep(k, -0.7, 0.8, y, 0.3);
+    hoist(k, 0.1, -0.5, y, 0.9);
     sparks(k, 0.9, y + 0.45, 0.1);
     return;
   }
@@ -185,7 +209,8 @@ function camp(k: Kit, level: number, y: number) {
     k.box(0.9, 0.9, 0.04, '#5d8aa3', 1.35, y + 0.1, -0.19);
     k.cyl(0.1, 0.9, C.metal, 1.6, y + 1.6, -1.3, 8);
     k.emitters.push({ pos: new THREE.Vector3(1.6, y + 2.6, -1.3), kind: 'smoke' });
-    jeep(k, -0.6, 1.2, y, Math.PI / 2);
+    lift(k, -0.6, 1.2, y, 0);
+    turbineVent(k, -0.6, y + 1.55, -0.7);
     workbench(k, 1.3, 0.9, y, 0.8, Math.PI);
     sparks(k, -0.6, y + 0.4, 0.6);
     return;
@@ -220,6 +245,7 @@ function base(k: Kit, level: number, y: number) {
     for (const s of [-0.35, 0.35]) k.box(0.24, 0.3, 1.2, SAFETY, -0.6 + s, y, 0.95);
     jeep(k, -0.6, 0.95, y, Math.PI / 2, 0.3);
     workbench(k, 1.1, 1.0, y, 0.9, Math.PI);
+    for (const vx of [-1.2, 0, 1.2]) turbineVent(k, vx, y + h + 0.5, z);
     sparks(k, 0, y + 0.4, 0.0);
     return;
   }
@@ -230,10 +256,20 @@ function base(k: Kit, level: number, y: number) {
     for (const s of [-1, 1]) for (let i = 0; i < 4; i++) k.box(0.14, 2.3, 0.14, C.white, s * (w / 2 - 0.07), y, z - d / 2 + 0.1 + i * ((d - 0.2) / 3));
     k.gableRoof(w, d, 0.45, 0, y + 2.3, z, C.zinc);
     for (const s of [-1, 1]) k.box(0.08, 0.1, d, '#5c6166', s * (w / 2 - 0.25), y + 1.9, z);
-    k.box(w - 0.4, 0.14, 0.18, SAFETY, 0, y + 1.95, z + 0.3);
-    k.box(0.2, 0.2, 0.24, '#33383d', 0.4, y + 1.78, z + 0.3);
-    k.box(0.02, 0.9, 0.02, '#33383d', 0.4, y + 0.9, z + 0.3);
-    k.box(0.4, 0.3, 0.3, '#5c6166', 0.4, y + 0.6, z + 0.3);
+    const bridge = new THREE.Group();
+    k.box(w - 0.4, 0.14, 0.18, SAFETY, 0, 1.95, 0, bridge);
+    const trolley = new THREE.Group();
+    k.box(0.2, 0.2, 0.24, '#33383d', 0, 1.78, 0, trolley);
+    k.box(0.02, 0.9, 0.02, '#33383d', 0, 0.9, 0, trolley);
+    k.box(0.4, 0.3, 0.3, '#5c6166', 0, 0.6, 0, trolley);
+    bridge.add(trolley);
+    bridge.position.set(0, y, z + 0.3);
+    k.add(bridge);
+    // Overhead crane: bridge travels along the bay while the trolley crosses it.
+    k.anims.push((t) => {
+      bridge.position.z = z + 0.3 + Math.sin(t * 0.4) * 0.7;
+      trolley.position.x = Math.sin(t * 0.7 + 1) * 1.1;
+    });
     for (const x of [-1.0, 0.0]) {
       k.box(0.5, 0.5, 0.4, '#5d8aa3', x, y, z - 0.6); // lathes
       k.box(0.3, 0.1, 0.2, '#33383d', x, y + 0.5, z - 0.6);
@@ -309,7 +345,7 @@ function command(k: Kit, level: number, y: number) {
     }
     bayDoor(k, -0.8, z + d / 2 + 0.01, 1.2, 1.1, y, true);
     workbench(k, 1.0, 1.2, y, 0.9, Math.PI);
-    jeep(k, -0.8, 1.3, y, Math.PI / 2);
+    lift(k, -0.8, 1.25, y, 0);
     sparks(k, -0.8, y + 0.5, z + 0.8);
     return;
   }
@@ -355,7 +391,7 @@ function command(k: Kit, level: number, y: number) {
   k.cyl(0.24, 0.1, '#d9b24a', 1.5, y + 3.0, -1.6, 10);
   k.emitters.push({ pos: new THREE.Vector3(1.5, y + 3.7, -1.6), kind: 'smoke' });
   bayDoor(k, -0.2, z + d / 2 + 0.02, 1.2, 0.95, y, true);
-  jeep(k, -0.2, 1.3, y, Math.PI / 2);
+  lift(k, -0.2, 1.3, y, 0);
   workbench(k, 1.2, 1.3, y, 0.8, Math.PI);
   k.plaque('ENGINEERING', -1.1, 1.6, y, 1.0);
   sparks(k, -0.2, y + 0.5, z + 1.0);
@@ -383,10 +419,22 @@ function secure(k: Kit, level: number, y: number) {
     k.box(2.8, 0.3, 0.4, '#5c6166', 0, y, -0.6); // line
     for (const x of [-0.8, 0.8]) {
       k.cyl(0.16, 0.3, SAFETY, x, y, -1.2, 8);
-      const a = k.box(0.12, 1.1, 0.12, SAFETY, x, y + 0.3, -1.2);
-      a.rotation.z = x < 0 ? -0.5 : 0.5;
-      const b = k.box(0.1, 0.8, 0.1, SAFETY, x + (x < 0 ? 0.55 : -0.55), y + 1.1, -1.0);
-      b.rotation.z = x < 0 ? 1.0 : -1.0;
+      const s = x < 0 ? 1 : -1;
+      const base = new THREE.Group();
+      base.position.set(x, y + 0.3, -1.2);
+      const upper = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.0, 0.12).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: SAFETY, flatShading: true }));
+      base.add(upper);
+      const elbow = new THREE.Group();
+      elbow.position.y = 1.0;
+      upper.add(elbow);
+      const fore = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.75, 0.1).translate(0, 0.375, 0), new THREE.MeshStandardMaterial({ color: SAFETY, flatShading: true }));
+      elbow.add(fore);
+      k.add(base);
+      k.anims.push((t) => {
+        base.rotation.y = Math.sin(t * 0.8 + x) * 0.6;
+        upper.rotation.z = -s * (0.45 + Math.sin(t * 1.1 + x) * 0.15);
+        elbow.rotation.z = -s * (1.1 + Math.sin(t * 1.3 + x) * 0.3);
+      });
     }
     jeep(k, 0, -0.6, y + 0.3, 0);
     roofCanopy(k, 2.8, 2.0, 0, y + 3.02, -0.7, 0.3);
@@ -403,12 +451,15 @@ function secure(k: Kit, level: number, y: number) {
       k.box(0.82, 0.04, 0.47, C.white, 1.3, y + i * 0.57 + 0.5, -1.3);
     }
     k.cyl(0.04, 3.2, C.white, 1.4, y, 0.2, 6);
+    const rotor = new THREE.Group();
+    rotor.position.set(1.4, y + 3.2, 0.25);
     for (let b = 0; b < 3; b++) {
-      const blade = k.box(0.06, 0.55, 0.02, C.white, 1.4, y + 3.2, 0.25);
-      blade.geometry.translate(0, 0.27, 0);
-      blade.position.y = y + 3.2;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.55, 0.02).translate(0, 0.27, 0), new THREE.MeshStandardMaterial({ color: C.white, flatShading: true }));
       blade.rotation.z = (b / 3) * Math.PI * 2;
+      rotor.add(blade);
     }
+    k.add(rotor);
+    k.anims.push((t) => (rotor.rotation.z = t * 2.2));
     jeep(k, -0.6, 1.1, y, Math.PI / 2);
     sparks(k, -0.6, y + 0.5, -0.2);
     return;
@@ -425,6 +476,7 @@ function secure(k: Kit, level: number, y: number) {
     jeep(k, 1.25, -1.1, y + 1.06, Math.PI / 2);
     for (const s of [-1, 1]) k.box(0.04, 0.4, 1.6, SAFETY, 1.25 + s * 0.32, y + 0.4, 0.2).rotation.x = -0.6;
     workbench(k, -0.8, 1.2, y, 1.0, Math.PI);
+    for (const vx of [-1.3, -0.3]) turbineVent(k, vx, y + 2.96, -1.2);
     sparks(k, -0.8, y + 0.5, 1.1);
     return;
   }
@@ -441,7 +493,7 @@ function secure(k: Kit, level: number, y: number) {
   k.box(0.86, 0.1, 0.86, '#d9b24a', fx, y + 3.3, fz);
   k.emitters.push({ pos: new THREE.Vector3(fx, y + 3.5, fz), kind: 'smoke' });
   bayDoor(k, -0.6, 0.31, 1.4, 1.2, y, true);
-  jeep(k, -0.6, 1.1, y, Math.PI / 2);
+  lift(k, -0.6, 1.1, y, 0);
   sparks(k, fx, y + 0.7, fz + 0.6);
 }
 

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { BUILDINGS } from './catalogue';
-import type { EmitterKind } from './kit';
+import type { EmitterKind, Kit } from './kit';
 import { PLANNED_MAX_LEVEL, RELEASE_MAX_LEVEL } from '../config/release';
 import type { Particles } from '../fx/particles';
 
@@ -49,9 +49,13 @@ export function createShowcase(groundY: number, fx: Particles, only: string | nu
   const group = new THREE.Group();
   group.name = 'showcase';
   const emitters: Emitter[] = [];
+  const kits: Kit[] = [];
+  let time = 0;
+  let frozen: number | null = null;
   const place = (defIdx: number, level: number, x: number, z: number) => {
     const def = BUILDINGS[defIdx];
     const kit = def.build(level);
+    kits.push(kit);
     kit.group.position.set(x, groundY, z);
     group.add(kit.group);
     const stats = def.levels[level - 1];
@@ -94,7 +98,14 @@ export function createShowcase(groundY: number, fx: Particles, only: string | nu
   let acc = 0;
   return {
     group,
+    kits,
+    /** Review tooling: hold animations at a fixed time (null resumes). */
+    freeze(t: number | null) {
+      frozen = t;
+    },
     update(dt: number) {
+      time = frozen ?? time + dt;
+      for (const k of kits) k.animate(time);
       acc += dt;
       if (acc < 0.12) return;
       acc = 0;

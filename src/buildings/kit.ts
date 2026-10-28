@@ -73,6 +73,49 @@ export class Kit {
   readonly emitters: { pos: THREE.Vector3; kind: EmitterKind }[] = [];
   /** Animated sub-objects (flags etc.). */
   readonly flags: THREE.Mesh[] = [];
+  /**
+   * Micro-animations: each is called every frame with the building's local
+   * time in seconds (already offset per building so a base never moves in sync).
+   */
+  readonly anims: ((t: number) => void)[] = [];
+  /** Random phase so identical buildings don't animate in lockstep. */
+  readonly phase = Math.random() * 100;
+
+  /** Advance all micro-animations. */
+  animate(time: number) {
+    const t = time + this.phase;
+    for (const a of this.anims) a(t);
+  }
+
+  /**
+   * Make a hanging item (towel, laundry, banner) sway from its top edge.
+   * `top` is the attachment height in the item's parent space.
+   */
+  swing(item: THREE.Mesh, top: number, amp = 0.3, seed = 0) {
+    const g = item.geometry as THREE.BufferGeometry;
+    g.computeBoundingBox();
+    const h = g.boundingBox!.max.y - g.boundingBox!.min.y;
+    g.translate(0, -h / 2, 0);
+    item.position.y += h / 2;
+    void top;
+    const f = 1.6 + (seed % 3) * 0.35;
+    this.anims.push((t) => {
+      item.rotation.x = Math.sin(t * f + seed) * amp * 0.5 + 0.08;
+      item.rotation.z = Math.sin(t * f * 0.7 + seed * 1.7) * amp * 0.15;
+    });
+  }
+
+  /** Blinking light: a small emissive lamp that pulses on and off. */
+  blinker(x: number, y: number, z: number, color = '#ff3b30', r = 0.035, period = 1.4) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, r * 1.6, 8), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.2, flatShading: true }));
+    m.position.set(x, y + r * 0.8, z);
+    this.add(m);
+    const off = Math.random() * period;
+    this.anims.push((t) => {
+      (m.material as THREE.MeshStandardMaterial).emissiveIntensity = ((t + off) % period) < period * 0.35 ? 1.6 : 0.1;
+    });
+    return m;
+  }
 
   add<T extends THREE.Object3D>(o: T, parent: THREE.Object3D = this.group): T {
     o.traverse((c) => {
@@ -315,6 +358,10 @@ export class Kit {
     const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.01, 10).rotateX(Math.PI / 2), mat('#7a8085'));
     fan.position.set(-0.04, 0.12, 0.075);
     g.add(fan);
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.025, 0.012), mat('#4a4f54'));
+    blade.position.set(-0.04, 0.12, 0.083);
+    g.add(blade);
+    this.anims.push((t) => (blade.rotation.z = t * 9));
     this.box(0.36, 0.02, 0.18, C.metal, 0, -0.02, 0, g);
     return this.add(g);
   }
@@ -328,7 +375,7 @@ export class Kit {
   antenna(x: number, y: number, z: number, h = 1.1) {
     this.cyl(0.025, h, C.metal, x, y, z, 5);
     for (let i = 1; i <= 3; i++) this.box(0.26 - i * 0.05, 0.015, 0.015, C.metal, x, y + h * (i / 4), z);
-    this.cyl(0.03, 0.05, '#e04a3a', x, y + h, z, 6);
+    this.blinker(x, y + h, z, '#ff3b30', 0.03);
   }
 
   dish(x: number, y: number, z: number, rotY = 0.6) {
@@ -337,6 +384,8 @@ export class Kit {
     d.position.set(x, y + 0.32, z);
     d.rotation.set(-1.1, rotY, 0);
     this.add(d);
+    // Slow tracking sweep
+    this.anims.push((t) => (d.rotation.y = rotY + Math.sin(t * 0.35 + rotY) * 0.6));
   }
 
   /** Flagpole with a waving flag (plain camp colours, no real insignia). */
@@ -435,7 +484,9 @@ export class Kit {
     const n = Math.max(3, Math.floor(len / 0.2));
     for (let i = 0; i < n; i++) {
       const w = 0.12 + (i % 3) * 0.03;
-      this.box(w, 0.16 + (i % 2) * 0.06, 0.01, colors[i % colors.length], -len / 2 + 0.15 + i * ((len - 0.3) / (n - 1)), 0.6 - 0.2 - (i % 2) * 0.06, 0, g);
+      const hgt = 0.16 + (i % 2) * 0.06;
+      const item = this.box(w, hgt, 0.01, colors[i % colors.length], -len / 2 + 0.15 + i * ((len - 0.3) / (n - 1)), 0.6 - 0.2 - (i % 2) * 0.06, 0, g);
+      this.swing(item, 0.6, 0.35, i);
     }
     return this.add(g);
   }
@@ -444,6 +495,11 @@ export class Kit {
   chimney(x: number, y: number, z: number, h = 0.5, kind: 'steam' | 'smoke' = 'steam') {
     this.box(0.16, h, 0.16, '#bdb8ad', x, y, z);
     this.box(0.2, 0.05, 0.2, C.dark, x, y + h, z);
+    // Spinning cowl on top
+    const cowl = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.09, 0.09, 6), mat('#9aa3a6'));
+    cowl.position.set(x, y + h + 0.1, z);
+    this.add(cowl);
+    this.anims.push((t) => (cowl.rotation.y = t * 3 + x));
     this.emitters.push({ pos: new THREE.Vector3(x, y + h + 0.1, z), kind });
   }
 
@@ -629,7 +685,7 @@ export class Kit {
       this.box(0.05, 0.05, w, col, x - w / 2, y + h * t, z);
     }
     this.box(0.18, 0.12, 0.18, '#e04a3a', x, y + h, z);
-    this.cyl(0.06, 0.1, '#ff3b30', x, y + h + 0.12, z, 8);
+    this.blinker(x, y + h + 0.12, z, '#ff3b30', 0.06, 1.8);
     this.dish(x + 0.2, y + h * 0.62, z + 0.1, 0.4);
     this.dish(x - 0.2, y + h * 0.42, z - 0.1, 2.8);
   }
@@ -684,7 +740,12 @@ export class Kit {
   windsock(x: number, y: number, z: number) {
     this.cyl(0.015, 0.5, C.metal, x, y, z, 4);
     const sock = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.26, 6).rotateZ(Math.PI / 2), mat('#ff7a1a'));
-    sock.position.set(x + 0.14, y + 0.48, z);
+    sock.geometry.translate(0.14, 0, 0);
+    sock.position.set(x, y + 0.48, z);
     this.add(sock);
+    this.anims.push((t) => {
+      sock.rotation.y = Math.sin(t * 0.5) * 0.7;
+      sock.rotation.z = -0.15 + Math.sin(t * 3.1) * 0.06;
+    });
   }
 }

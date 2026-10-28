@@ -51,7 +51,7 @@ function rooms(k: Kit, bx: number, bz: number, bw: number, bd: number, fy: numbe
 function towels(k: Kit, x0: number, x1: number, fy: number, z: number, seed = 0) {
   const n = Math.max(3, Math.round((x1 - x0) / 0.7));
   for (let t = 0; t < n; t++) {
-    k.box(0.16, 0.2, 0.012, TOWELS[(t + seed) % TOWELS.length], x0 + ((x1 - x0) / n) * (t + 0.5), fy + 0.12, z);
+    k.swing(k.box(0.16, 0.2, 0.012, TOWELS[(t + seed) % TOWELS.length], x0 + ((x1 - x0) / n) * (t + 0.5), fy + 0.12, z), 0, 0.35, t + seed);
   }
 }
 
@@ -342,6 +342,7 @@ function command(k: Kit, level: number, y: number) {
     });
     k.hipRoof(5.0, 1.0, 0.45, 0, y + 4 * STOREY, -1.45);
     k.aircon(2.58, y + 0.3, 0.55, Math.PI / 2);
+    for (const [z, h] of [[0.55, 2], [-0.45, 3]] as [number, number][]) towels(k, -2.2, 2.2, y + h * STOREY - 0.05, z + 0.52, h);
     k.linkway(-2.4, 1.6, 2.4, 1.6, y, 0.75, 0.6);
     return;
   }
@@ -382,7 +383,7 @@ function secure(k: Kit, level: number, y: number) {
         k.box(0.8, 0.62, 0.06, DARK_GLASS, bx, fy + 0.12, z + d / 2 + 0.01);
         k.box(0.86, 0.06, 0.32, '#cfc9bc', bx, fy + 0.06, z + d / 2 + 0.16);
         k.box(0.86, 0.26, 0.04, ACCENTS[(i + f) % ACCENTS.length], bx, fy + 0.12, z + d / 2 + 0.31);
-        k.box(0.14, 0.18, 0.012, TOWELS[(i + f) % TOWELS.length], bx + 0.2, fy + 0.3, z + d / 2 + 0.34);
+        k.swing(k.box(0.14, 0.18, 0.012, TOWELS[(i + f) % TOWELS.length], bx + 0.2, fy + 0.3, z + d / 2 + 0.34), 0, 0.35, 1);
       }
     }
     k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 4 * STOREY, z);
@@ -456,19 +457,22 @@ function secure(k: Kit, level: number, y: number) {
       for (let i = 0; i < 6; i++) {
         const green = (i + f) % 2 === 0;
         k.box(0.68, STOREY - 0.12, 0.06, green ? '#4fae3a' : DARK_GLASS, -1.9 + i * 0.76, y + f * STOREY + 0.06, z + d / 2 + 0.01);
-        if (!green) k.box(0.14, 0.16, 0.012, TOWELS[(i + f) % TOWELS.length], -1.9 + i * 0.76 + 0.18, y + f * STOREY + 0.3, z + d / 2 + 0.05);
+        if (!green) k.swing(k.box(0.14, 0.16, 0.012, TOWELS[(i + f) % TOWELS.length], -1.9 + i * 0.76 + 0.18, y + f * STOREY + 0.3, z + d / 2 + 0.05), 0, 0.35, 2);
       }
     }
     k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 4 * STOREY, z);
     for (const x of [0.6, 1.6]) {
       const ty = y + 4 * STOREY + 0.1;
       k.cyl(0.03, 0.7, C.white, x, ty, z, 6);
+      const rotor = new THREE.Group();
+      rotor.position.set(x, ty + 0.7, z + 0.04);
       for (let b = 0; b < 3; b++) {
-        const blade = k.box(0.04, 0.32, 0.02, C.white, x, ty + 0.7, z + 0.04);
-        blade.geometry.translate(0, 0.16, 0);
-        blade.position.y = ty + 0.7;
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.32, 0.02).translate(0, 0.16, 0), new THREE.MeshStandardMaterial({ color: C.white, flatShading: true }));
         blade.rotation.z = (b / 3) * Math.PI * 2;
+        rotor.add(blade);
       }
+      k.add(rotor);
+      k.anims.push((t) => (rotor.rotation.z = t * 2.6 + x));
     }
     k.door('front', 0, z, w, d, 0, y, 0.5, 0.66, DARK_GLASS);
     return;
@@ -489,7 +493,7 @@ function secure(k: Kit, level: number, y: number) {
       if (f > 0) {
         k.box(0.8, 0.05, 0.25, '#cfc9bc', x, fy + 0.05, z + 0.88);
         k.box(0.8, 0.22, 0.03, ACCENTS[(i + f) % ACCENTS.length], x, fy + 0.1, z + 1.0);
-        k.box(0.14, 0.18, 0.012, TOWELS[(i + f) % TOWELS.length], x + 0.2, fy + 0.3, z + 1.02);
+        k.swing(k.box(0.14, 0.18, 0.012, TOWELS[(i + f) % TOWELS.length], x + 0.2, fy + 0.3, z + 1.02), 0, 0.35, 3);
       }
     }
     const top = y + floors * STOREY;

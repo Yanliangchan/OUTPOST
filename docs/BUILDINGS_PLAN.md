@@ -16,9 +16,21 @@ export const RELEASE_MAX_LEVEL = 10;
 - **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter; **Workshop** has workbenches, a vehicle on a lift or hoist, oil drums and welding sparks.
 - **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level).
 - **Every step is an upgrade:** height rises level by level until it reaches the building's cap (**HQ 5 storeys, Bunk 4.5, Cookhouse 3.5, QM Store 3.5**), then holds while coverage and detail keep growing. Checked by measurement: open the browser console and run `__outpost.metrics()` to get the height, peak, coverage and detail of every level. A level fails if height drops by more than half a storey or presence (height × coverage) drops by more than 15%.
+- **Every building is alive:** each has a signature "working" micro-animation at every level, like the Clash of Clans gold-mine cart (see the table below). Each building also gets a random timing offset so a base never moves in lockstep. Checked with `__outpost.animCheck()`, which counts moving parts per level; every level has at least one, on top of flags, blinking lights, steam and sparks.
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
 - **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
 - **Stats live in data:** cost, Reputation, build time, HP and building-specific stats, defined per level in each building's file.
+
+## Micro-animations
+
+| Building | Signature animation | Shared details |
+|---|---|---|
+| **HQ** | Flags wave; radar and satellite dishes sweep; clock hands turn; antenna and mast lights blink; windsock sways (field levels) | Aircon fans spin, chimney cowls turn |
+| **Bunk** | Laundry and towels flap on lines, corridors and balconies; rooftop wind turbines spin | |
+| **Cookhouse** | Pot lids rattle as they boil; ceiling fans spin; kitchen extractor fans whirr; steam and smoke rise | |
+| **QM Store** | Forklift shuttles stock: drives in, raises its forks, reverses and lowers them; gantry hoist travels and drops its hook | |
+| **Workshop** | Vehicle lift raises and lowers the jeep; the engine is winched on the hoist; overhead crane trolley travels; robot arms swing; turbines and roof vents spin; welding sparks | |
+| **Secure band (16–20)** | Boom gate lifts to let vehicles in; CCTV cameras pan | |
 
 ## Roster and build order
 

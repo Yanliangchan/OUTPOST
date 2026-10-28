@@ -44,6 +44,15 @@ const STALL_COLORS = ['#e94f37', '#2bb3a3', '#ffc93c', '#5d8aa3', '#ff8a3d', '#8
 function pot(k: Kit, x: number, z: number, y: number) {
   k.box(0.3, 0.26, 0.3, '#5c6166', x, y, z);
   k.cyl(0.13, 0.18, '#c9ced2', x, y + 0.26, z, 10);
+  const lid = k.cyl(0.135, 0.025, '#a7adb1', x, y + 0.44, z, 10);
+  const ly = lid.position.y;
+  const seed = x * 3.1 + z * 1.7;
+  // Lid rattles as the pot boils
+  k.anims.push((t) => {
+    const boil = Math.max(0, Math.sin(t * 2.3 + seed)) ** 6;
+    lid.position.y = ly + boil * 0.03 * Math.abs(Math.sin(t * 40));
+    lid.rotation.z = boil * 0.08 * Math.sin(t * 33);
+  });
   k.emitters.push({ pos: new THREE.Vector3(x, y + 0.5, z), kind: 'steam' });
 }
 
@@ -77,8 +86,12 @@ function stall(k: Kit, x: number, z: number, y: number, color: string, w = 0.9) 
 
 function ceilingFan(k: Kit, x: number, y: number, z: number) {
   k.cyl(0.015, 0.15, C.dark, x, y - 0.15, z, 4);
-  k.box(0.5, 0.01, 0.06, '#f4f4f0', x, y - 0.17, z);
-  k.box(0.06, 0.01, 0.5, '#f4f4f0', x, y - 0.17, z);
+  const blades = new THREE.Group();
+  blades.position.set(x, y - 0.17, z);
+  k.box(0.5, 0.01, 0.06, '#f4f4f0', 0, 0, 0, blades);
+  k.box(0.06, 0.01, 0.5, '#f4f4f0', 0, 0, 0, blades);
+  k.add(blades);
+  k.anims.push((t) => (blades.rotation.y = t * 6));
 }
 
 /** Open-sided pavilion on columns with a hip roof (hawker centre / canteen). */
@@ -110,6 +123,18 @@ function kitchen(k: Kit, w: number, d: number, x: number, z: number, y: number, 
   k.flatRoof(w, d, x, y + h, z);
   for (let i = 0; i < stacks; i++) k.chimney(x - w / 2 + 0.35 + i * 0.7, y + h, z - 0.1, 0.5, i % 2 ? 'smoke' : 'steam');
   k.shutter('right', x, z, w, d, 0, Math.min(0.6, d - 0.2), 0.62);
+  // Kitchen extractor fan on the end wall
+  const fx = x - w / 2 - 0.02, fy = y + h - 0.35;
+  k.box(0.04, 0.3, 0.3, '#8a9196', fx, fy - 0.15, z);
+  const blades = new THREE.Group();
+  blades.position.set(fx - 0.03, fy, z);
+  for (let i = 0; i < 4; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.24, 0.05), new THREE.MeshStandardMaterial({ color: '#33383d' }));
+    b.rotation.x = (i / 4) * Math.PI;
+    blades.add(b);
+  }
+  k.add(blades);
+  k.anims.push((t) => (blades.rotation.x = t * 7));
   return h;
 }
 
@@ -271,6 +296,8 @@ function command(k: Kit, level: number, y: number) {
       umbrella(k, x, -0.3, y + h + 0.06, c);
     }
     k.glassBox(0.8, 0.9, 0.8, 1.4, y + h + 0.06, -1.3);
+    k.chimney(-1.8, y + h + 0.06, -1.4, 0.45, 'steam');
+    k.chimney(-1.3, y + h + 0.06, -1.4, 0.35, 'smoke');
     k.box(4.0, 0.3, 0.05, C.white, 0, y + h, 0.73);
     k.box(4.0, 0.03, 0.03, C.metal, 0, y + h + 0.6, 0.73);
     k.porch(0, 1.15, 1.4, 0.6, 0.85, y, 2);
@@ -282,6 +309,8 @@ function command(k: Kit, level: number, y: number) {
     k.solarPanels(-0.5, y + h + 0.1, -0.5, 3.0, 1.4);
     for (const x of [1.6, 2.05]) k.cyl(0.14, h + 1.0, '#c9ced2', x, y, -1.4, 10);
     k.emitters.push({ pos: new THREE.Vector3(1.6, y + h + 1.1, -1.4), kind: 'steam' }, { pos: new THREE.Vector3(2.05, y + h + 1.1, -1.4), kind: 'steam' });
+    k.chimney(-1.5, y + h + 0.1, -1.2, 0.4, 'steam');
+    k.chimney(0.4, y + h + 0.1, -1.2, 0.4, 'smoke');
     k.box(1.1, 1.3, 1.6, '#e8e8e2', 1.8, y, 0.3);
     k.shutter('front', -0.5, -0.5, 3.6, 2.4, -0.8, 0.9, 0.7);
     k.door('front', -0.5, -0.5, 3.6, 2.4, 0.9, y, 0.5, 0.66, DARK_GLASS);
@@ -347,6 +376,7 @@ function secure(k: Kit, level: number, y: number) {
     k.box(4.32, 0.04, 2.02, C.trim, 0, y + 1.23, 0.45);
     for (const x of [-1.9, 1.9]) k.box(0.08, 1.25, 0.08, C.metal, x, y, 1.3);
     for (const x of [-1.1, 0.4]) k.diningTable(x, 0.55, 1.1, y);
+    for (const x of [-1.2, 0.6]) ceilingFan(k, x, y + 1.23, 0.45);
     return;
   }
   if (level === 17) {
