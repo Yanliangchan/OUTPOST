@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { C, Kit, STOREY } from './kit';
-import { CONCRETE, DARK_GLASS, perimeter, ribbonBlock, supertree } from './common';
+import { CONCRETE, DARK_GLASS, perimeter, supertree } from './common';
 import { DAY, HOUR, MIN, type BuildingDef, type LevelStats } from './types';
 
 /*
@@ -12,7 +12,7 @@ import { DAY, HOUR, MIN, type BuildingDef, type LevelStats } from './types';
 const TITLES = [
   'Basha Lines', 'Tent Lines', 'Kampong Barrack', 'Barrack', 'Twin Barracks', 'Bunk Block', 'Bunk Block · Stair Tower',
   'Three-Storey Bunk', 'Bunk · Void Deck', 'Bunk Complex', 'Modern Bunk', 'Bunk · Sky Garden', 'Twin Block', 'Terrace Bunk',
-  'Residences', 'Secure Quarters', 'Pod Quarters', 'Bermed Quarters', 'Solar Quarters', 'Quarters Citadel',
+  'Residences', 'Balcony Quarters', 'Pod Quarters', 'Garden Quarters', 'Green-Wall Quarters', 'Townhouse Citadel',
 ];
 const SUPPLIES = [200, 600, 1_500, 4_000, 9_000, 18_000, 35_000, 60_000, 100_000, 170_000, 270_000, 400_000, 550_000, 750_000, 1_000_000, 1_300_000, 1_650_000, 2_050_000, 2_500_000, 3_000_000];
 const REPUTATION = [0, 0, 25, 100, 250, 450, 800, 1_200, 1_800, 2_500, 3_400, 4_500, 5_800, 7_300, 9_000, 10_800, 13_000, 15_500, 18_300, 21_300];
@@ -343,31 +343,44 @@ function command(k: Kit, level: number, y: number) {
   k.arch(0, 1.75, 1.6, 'RESIDENCES', y);
 }
 
+/** Signature for the bunk at every level: laundry on the rails. */
+const ACCENTS = ['#2bb3a3', '#ff8a3d', '#ffc93c', '#5d8aa3', '#e94f37'];
+
 function secure(k: Kit, level: number, y: number) {
   perimeter(k, y, 2.72, 1.75, false);
   if (level === 16) {
-    // L-shape: three-storey range at the back, two-storey wing stepping forward on the right.
-    const h = ribbonBlock(k, -0.6, -0.9, 3.6, 1.4, 3, y);
-    ribbonBlock(k, 1.75, 0.0, 1.3, 2.4, 2, y);
-    k.glassBox(1.0, 2 * STOREY - 0.1, 0.5, -0.6, y, 0.05);
-    k.door('front', -0.6, 0.05, 1.0, 0.5, 0, y, 0.5, 0.66, DARK_GLASS);
-    k.solarPanels(-0.6, y + h + 0.1, -0.9, 3.0, 0.8);
-    k.hedge(1.75, 0.0, 1.0, 2.0, y + 2 * STOREY + 0.1);
+    // Long three-storey block with recessed, colour-panelled balconies and laundry.
+    const w = 4.8, d = 1.4, z = -0.8;
+    k.box(w, 3 * STOREY, d, CONCRETE, 0, y, z);
+    for (let f = 0; f < 3; f++) {
+      const fy = y + f * STOREY;
+      k.box(w + 0.04, 0.06, d + 0.04, C.trim, 0, fy, z);
+      for (let i = 0; i < 5; i++) {
+        const bx = -1.92 + i * 0.96;
+        k.box(0.8, 0.62, 0.06, DARK_GLASS, bx, fy + 0.12, z + d / 2 + 0.01);
+        k.box(0.86, 0.06, 0.32, '#cfc9bc', bx, fy + 0.06, z + d / 2 + 0.16);
+        k.box(0.86, 0.26, 0.04, ACCENTS[(i + f) % ACCENTS.length], bx, fy + 0.12, z + d / 2 + 0.31);
+        k.box(0.14, 0.18, 0.012, TOWELS[(i + f) % TOWELS.length], bx + 0.2, fy + 0.3, z + d / 2 + 0.34);
+      }
+    }
+    k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 3 * STOREY, z);
+    k.solarPanels(0, y + 3 * STOREY + 0.1, z, 3.6, 0.8);
+    k.door('right', 0, z, w, d, 0, y, 0.4, 0.66, DARK_GLASS);
     return;
   }
   if (level === 17) {
     // Stacked modular pods with coloured doors and steel walkways
-    const accents = ['#2bb3a3', '#ff8a3d', '#ffc93c', '#5d8aa3'];
     for (let f = 0; f < 3; f++) {
       for (let i = 0; i < 4; i++) {
         const px = -1.8 + i * 1.2 + (f % 2) * 0.3;
         k.box(1.1, STOREY - 0.05, 1.5, i % 2 ? C.wallAlt : CONCRETE, px, y + f * STOREY, -0.75);
-        k.box(0.3, 0.6, 0.04, accents[(i + f) % 4], px - 0.25, y + f * STOREY, 0.01);
+        k.box(0.3, 0.6, 0.04, ACCENTS[(i + f) % 4], px - 0.25, y + f * STOREY, 0.01);
         k.box(0.4, 0.28, 0.04, DARK_GLASS, px + 0.25, y + f * STOREY + 0.35, 0.01);
       }
       if (f > 0) {
         k.box(5.2, 0.05, 0.45, '#8a9196', 0.15, y + f * STOREY - 0.05, 0.25);
         k.box(5.2, 0.03, 0.03, C.metal, 0.15, y + f * STOREY + 0.3, 0.46);
+        towels(k, -2.2, 2.4, y + f * STOREY + 0.05, 0.47, f);
       }
     }
     k.stairs(2.6, -0.2, 0.4, 1.6, 2 * STOREY);
@@ -375,53 +388,77 @@ function secure(k: Kit, level: number, y: number) {
     return;
   }
   if (level === 18) {
-    k.box(4.4, 2 * STOREY, 2.0, CONCRETE, 0, y, -0.75);
-    for (let i = 0; i < 5; i++) k.box(0.5, 0.3, 0.04, DARK_GLASS, -1.8 + i * 0.9, y + STOREY + 0.35, 0.27);
-    k.box(1.0, 0.9, 0.06, '#6b7075', 0, y, 0.28);
-    k.box(0.03, 0.9, 0.07, C.dark, 0, y, 0.29);
-    // Earth berms on both ends and green roof
-    for (const s of [-1, 1]) {
-      const g = new THREE.BufferGeometry();
-      const pts = [
-        0, 1.9, -1, 0, 1.9, 1, 0.8 * s, 0, 1, 0, 1.9, -1, 0.8 * s, 0, 1, 0.8 * s, 0, -1,
-        0, 0, 1, 0, 1.9, 1, 0.8 * s, 0, 1, 0, 0, -1, 0.8 * s, 0, -1, 0, 1.9, -1,
-      ];
-      g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-      g.computeVertexNormals();
-      const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: '#6cbf45', flatShading: true, side: THREE.DoubleSide }));
-      m.position.set(s * 2.2, y, -0.75);
-      k.add(m);
+    // Garden Quarters: two slim two-storey slabs with a planted, pergola-covered street between.
+    for (const [z, flip] of [[-1.25, 1], [0.75, -1]] as [number, number][]) {
+      k.box(4.8, 2 * STOREY, 0.75, C.wallAlt, 0, y, z);
+      for (let f = 0; f < 2; f++) {
+        k.box(4.84, 0.06, 0.79, C.trim, 0, y + f * STOREY, z);
+        for (let i = 0; i < 6; i++) {
+          const bx = -2.0 + i * 0.8;
+          k.door(flip > 0 ? 'front' : 'back', 0, z, 4.8, 0.75, flip > 0 ? bx : -bx, y + f * STOREY, 0.26, 0.56);
+        }
+      }
+      k.box(4.88, 0.1, 0.83, '#6cbf45', 0, y + 2 * STOREY, z);
     }
-    k.box(4.4, 0.08, 2.0, '#6cbf45', 0, y + 2 * STOREY, -0.75);
-    for (const x of [-1.2, 1.2]) k.cyl(0.08, 0.35, '#8a9196', x, y + 2 * STOREY + 0.08, -1.2, 8);
-    k.hedge(0, -0.4, 2.4, 0.25, y + 2 * STOREY + 0.08);
+    // Street: paving, trees, pergola with towels on lines
+    k.box(4.6, 0.02, 1.2, '#e3dccb', 0, y, -0.25);
+    for (const x of [-1.6, 0, 1.6]) {
+      k.cyl(0.05, 0.6, '#8a5a3b', x, y, -0.25, 5);
+      const t = new THREE.Mesh(new THREE.IcosahedronGeometry(0.32, 0), new THREE.MeshStandardMaterial({ color: '#4fae3a', flatShading: true }));
+      t.position.set(x, y + 0.85, -0.25);
+      k.add(t);
+    }
+    for (let i = 0; i < 9; i++) k.box(0.05, 0.05, 1.3, C.wood, -2.2 + i * 0.55, y + 2 * STOREY + 0.12, -0.25);
+    towels(k, -2.2, 2.2, y + 1.2, -0.25, 2);
     return;
   }
   if (level === 19) {
-    const h = ribbonBlock(k, 0, -0.65, 4.8, 1.8, 3, y);
-    for (let i = 0; i < 3; i++) {
-      const p = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.04, 0.6), new THREE.MeshStandardMaterial({ color: '#284a73', flatShading: true, roughness: 0.4 }));
-      p.position.set(0, y + h + 0.3, -1.25 + i * 0.6);
-      p.rotation.x = -0.6;
-      k.add(p);
-      k.box(4.6, 0.3, 0.04, C.white, 0, y + h + 0.1, -1.0 + i * 0.6);
+    // Green-wall block: planted facade panels between windows, rooftop wind turbines.
+    const w = 4.6, d = 1.6, z = -0.7;
+    k.box(w, 3 * STOREY, d, CONCRETE, 0, y, z);
+    for (let f = 0; f < 3; f++) {
+      for (let i = 0; i < 6; i++) {
+        const green = (i + f) % 2 === 0;
+        k.box(0.68, STOREY - 0.12, 0.06, green ? '#4fae3a' : DARK_GLASS, -1.9 + i * 0.76, y + f * STOREY + 0.06, z + d / 2 + 0.01);
+        if (!green) k.box(0.14, 0.16, 0.012, TOWELS[(i + f) % TOWELS.length], -1.9 + i * 0.76 + 0.18, y + f * STOREY + 0.3, z + d / 2 + 0.05);
+      }
     }
-    k.fins(4.8, h - 0.2, 0, y + 0.1, 0.32, 14);
-    k.door('front', 0, -0.65, 4.8, 1.8, 0, y, 0.5, 0.66, DARK_GLASS);
+    k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 3 * STOREY, z);
+    for (const x of [-1.4, 0, 1.4]) {
+      const ty = y + 3 * STOREY + 0.1;
+      k.cyl(0.03, 0.7, C.white, x, ty, z, 6);
+      for (let b = 0; b < 3; b++) {
+        const blade = k.box(0.04, 0.32, 0.02, C.white, x, ty + 0.7, z + 0.04);
+        blade.geometry.translate(0, 0.16, 0);
+        blade.position.y = ty + 0.7;
+        blade.rotation.z = (b / 3) * Math.PI * 2;
+      }
+    }
+    k.door('front', 0, z, w, d, 0, y, 0.5, 0.66, DARK_GLASS);
     return;
   }
-  // 20: modern courtyard U with glass corners and a small supertree
-  ribbonBlock(k, 0, -1.2, 4.8, 0.9, 3, y);
-  for (const s of [-1, 1]) {
-    ribbonBlock(k, s * 1.95, 0.05, 0.9, 1.6, 3, y);
-    k.glassBox(0.9, 4 * STOREY - 0.1, 0.9, s * 1.95, y, -1.2);
-    k.box(0.92, 0.08, 1.62, '#d9b24a', s * 1.95, y + 3 * STOREY + 0.1, 0.05);
-  }
-  k.box(3.0, 0.08, 0.92, '#d9b24a', 0, y + 3 * STOREY + 0.1, -1.2);
-  k.box(3.0, 0.05, 1.6, '#6cbf45', 0, y, 0.05);
-  supertree(k, 0, 0.1, 1.1, y + 0.05);
-  k.hedge(-0.9, 0.6, 0.5, 0.2, y + 0.05);
-  k.hedge(0.9, 0.6, 0.5, 0.2, y + 0.05);
+  // 20: Quarters Citadel: staggered row of four townhouse units with roof terraces and gold trim.
+  const units: [number, number, number][] = [[-1.8, -0.9, 3], [-0.6, -0.55, 4], [0.6, -0.9, 3], [1.8, -0.55, 4]];
+  units.forEach(([x, z, floors], i) => {
+    const wall = i % 2 ? C.wallAlt : C.wall;
+    k.box(1.15, floors * STOREY, 1.5, wall, x, y, z);
+    for (let f = 0; f < floors; f++) {
+      const fy = y + f * STOREY;
+      k.box(1.19, 0.05, 1.54, C.trim, x, fy, z);
+      k.box(0.7, 0.5, 0.05, DARK_GLASS, x, fy + 0.2, z + 0.76);
+      if (f > 0) {
+        k.box(0.8, 0.05, 0.25, '#cfc9bc', x, fy + 0.05, z + 0.88);
+        k.box(0.8, 0.22, 0.03, ACCENTS[(i + f) % ACCENTS.length], x, fy + 0.1, z + 1.0);
+        k.box(0.14, 0.18, 0.012, TOWELS[(i + f) % TOWELS.length], x + 0.2, fy + 0.3, z + 1.02);
+      }
+    }
+    const top = y + floors * STOREY;
+    k.box(1.19, 0.08, 1.54, '#d9b24a', x, top, z);
+    k.hedge(x, z - 0.3, 0.9, 0.6, top + 0.08);
+    k.box(0.6, 0.35, 0.5, C.white, x, top + 0.08, z + 0.35);
+  });
+  k.door('front', -0.6, -0.55, 1.15, 1.5, 0, y, 0.34, 0.6, DARK_GLASS);
+  k.door('front', 1.8, -0.55, 1.15, 1.5, 0, y, 0.34, 0.6, DARK_GLASS);
 }
 
 export function buildBunk(level: number): Kit {

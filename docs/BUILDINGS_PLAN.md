@@ -13,6 +13,8 @@ export const RELEASE_MAX_LEVEL = 10;
 - **The HQ caps everything.** No building can be upgraded above the current HQ level.
 - **Footprints never change.** An upgrade replaces the model on the same tiles, so it never needs re-placing (as in Clash of Clans).
 - **Height budget:** a building's bulk stays within about **4 storeys** so it never hides what's behind it; only thin elements (masts, flags, spires) go higher.
+- **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies.
+- **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level).
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
 - **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
 - **Stats live in data:** cost, Reputation, build time, HP and building-specific stats, defined per level in each building's file.
@@ -119,11 +121,11 @@ Houses Recruits. Higher levels house more of them and help them rest faster. Foo
 | 13 | Twin Block | 550,000 | 5,800 | 2.5 d | 2,670 | 28 | 36%/h |
 | 14 | Terrace Bunk | 750,000 | 7,300 | 3 d | 3,210 | 30 | 38%/h |
 | 15 | Residences | 1,000,000 | 9,000 | 3.5 d | 3,850 | 32 | 40%/h |
-| 16 | Secure Quarters | 1,300,000 | 10,800 | 4 d | 4,620 | 34 | 42%/h |
+| 16 | Balcony Quarters | 1,300,000 | 10,800 | 4 d | 4,620 | 34 | 42%/h |
 | 17 | Pod Quarters | 1,650,000 | 13,000 | 4.5 d | 5,550 | 36 | 44%/h |
-| 18 | Bermed Quarters | 2,050,000 | 15,500 | 5 d | 6,660 | 38 | 46%/h |
-| 19 | Solar Quarters | 2,500,000 | 18,300 | 5.5 d | 7,990 | 40 | 48%/h |
-| 20 | Quarters Citadel | 3,000,000 | 21,300 | 6 d | 9,580 | 42 | 50%/h |
+| 18 | Garden Quarters | 2,050,000 | 15,500 | 5 d | 6,660 | 38 | 46%/h |
+| 19 | Green-Wall Quarters | 2,500,000 | 18,300 | 5.5 d | 7,990 | 40 | 48%/h |
+| 20 | Townhouse Citadel | 3,000,000 | 21,300 | 6 d | 9,580 | 42 | 50%/h |
 
 *Levels 11–15 are post-release; 16–20 are reserve. Bunk level is capped by HQ level.*
 
@@ -146,11 +148,11 @@ Houses Recruits. Higher levels house more of them and help them rest faster. Foo
 | 13 | **Twin Block:** two slim red-roofed blocks joined by glass sky-bridges |
 | 14 | **Terrace Bunk:** stepped tiers with planted terraces |
 | 15 | **Residences:** U-shape, red roofs, gold band, courtyard Supertree, entrance arch |
-| 16 | **Secure Quarters:** perimeter wall and gate; L-shaped concrete ribbon-window blocks, green roof |
+| 16 | **Balcony Quarters:** perimeter wall and gate; long three-storey block with recessed, colour-panelled balconies and laundry; solar roof |
 | 17 | **Pod Quarters:** stacked modular pods with coloured doors, steel walkways |
-| 18 | **Bermed Quarters:** earth berms, blast door, green roof with vents |
-| 19 | **Solar Quarters:** saw-tooth solar roof, full-height sun fins |
-| 20 | **Quarters Citadel:** modern courtyard U with glass corner towers, gold band, Supertree |
+| 18 | **Garden Quarters:** two slim two-storey slabs with a planted, tree-lined street and a pergola with laundry between them |
+| 19 | **Green-Wall Quarters:** chequerboard of planted panels and windows across the facade; rooftop wind turbines |
+| 20 | **Townhouse Citadel:** staggered row of four three- and four-storey townhouse units with coloured balconies, gold-trimmed roof terraces |
 
 Review scene: open the game with `?showcase=bunk`.
 
@@ -177,11 +179,11 @@ Feeds the outpost. Well-fed Recruits work faster and Morale rises. Footprint **5
 | 13 | Central Kitchen | 500,000 | 5,800 | 2.5 d | 2,500 | 56 | 164 | +8 |
 | 14 | Food Court Pavilion | 680,000 | 7,300 | 3 d | 3,000 | 60 | 176 | +8 |
 | 15 | Grand Dining Hall | 900,000 | 9,000 | 3.5 d | 3,590 | 64 | 188 | +9 |
-| 16 | Secure Mess | 1,200,000 | 10,800 | 4 d | 4,310 | 68 | 200 | +9 |
+| 16 | Canopy Mess | 1,200,000 | 10,800 | 4 d | 4,310 | 68 | 200 | +9 |
 | 17 | Ration Centre | 1,500,000 | 13,000 | 4.5 d | 5,180 | 72 | 212 | +10 |
-| 18 | Bermed Kitchen | 1,850,000 | 15,500 | 5 d | 6,210 | 76 | 224 | +10 |
-| 19 | Solar Kitchen | 2,250,000 | 18,300 | 5.5 d | 7,450 | 80 | 236 | +11 |
-| 20 | Mess Citadel | 2,700,000 | 21,300 | 6 d | 8,950 | 84 | 248 | +11 |
+| 18 | Hydroponic Kitchen | 1,850,000 | 15,500 | 5 d | 6,210 | 76 | 224 | +10 |
+| 19 | Silo Kitchen | 2,250,000 | 18,300 | 5.5 d | 7,450 | 80 | 236 | +11 |
+| 20 | Pavilion Citadel | 2,700,000 | 21,300 | 6 d | 8,950 | 84 | 248 | +11 |
 
 *Levels 11–15 are post-release; 16–20 are reserve. Cookhouse level is capped by HQ level.*
 
@@ -199,15 +201,15 @@ Feeds the outpost. Well-fed Recruits work faster and Morale rises. Footprint **5
 | 8 | **Food Court:** hawker-centre pavilion: **two-tier teal roof** with a ventilation lantern, colourful stalls, round tables and stools, ceiling fans |
 | 9 | **Upper Deck:** two-storey hall with a covered upper dining deck and umbrellas |
 | 10 | **Cookhouse Complex:** food-court pavilion, two-storey central kitchen, cold room |
-| 11 | **Modern Dining Hall:** glass walls under a deep white flat roof with fins |
+| 11 | **Modern Dining Hall:** glass hall under a V-shaped **butterfly roof** with a rain chain |
 | 12 | **Rooftop Dining:** two storeys with a rooftop terrace and umbrellas |
 | 13 | **Central Kitchen:** concrete ribbon block, tall stainless exhaust stacks, cold store |
 | 14 | **Food Court Pavilion:** thin white canopy on slim columns, skylights, stalls |
-| 15 | **Grand Dining Hall:** U-shape around a garden court, gold band, Supertree, arch |
-| 16 | **Secure Mess:** perimeter wall; concrete block with a loading dock and solar roof |
+| 15 | **Grand Dining Hall:** **barrel-vaulted** red roof with a gold band and white colonnade; pergola garden with string lights and tables |
+| 16 | **Canopy Mess:** perimeter wall; compact kitchen with three steel exhaust stacks; huge cantilevered canopy over the dining tables |
 | 17 | **Ration Centre:** stacked steel containers with a green canopy over tables |
-| 18 | **Bermed Kitchen:** earth-bermed concrete, blast door, exhaust vents, glass pavilion on top |
-| 19 | **Solar Kitchen:** saw-tooth solar roof, full fins, canopy |
-| 20 | **Mess Citadel:** courtyard ring with glass corners, gold band, Supertree garden with tables |
+| 18 | **Hydroponic Kitchen:** kitchen block beside three glass greenhouses growing greens |
+| 19 | **Silo Kitchen:** three food silos feeding the kitchen by a conveyor bridge; dining canopy |
+| 20 | **Pavilion Citadel:** **octagonal glass dining pavilion** with a gold ring and faceted red roof; kitchen with four stacks behind |
 
 Review scene: open the game with `?showcase=cookhouse`.

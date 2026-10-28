@@ -64,7 +64,18 @@ export function createShowcase(groundY: number, fx: Particles, only: string | nu
   };
 
   const idx = only ? BUILDINGS.findIndex((b) => b.id === only) : -1;
-  if (idx >= 0) {
+  const range = only?.match(/^(\d+)-(\d+)$/);
+  if (range) {
+    // Compare view: one column per building, one row per level.
+    const [lo, hi] = [Number(range[1]), Number(range[2])];
+    const n = hi - lo + 1;
+    BUILDINGS.forEach((def, col) => {
+      for (let lv = lo; lv <= hi; lv++) {
+        if (lv > def.designedLevels) continue;
+        place(col, lv, (col - (BUILDINGS.length - 1) / 2) * 8.5, (lv - lo - (n - 1) / 2) * 7.5);
+      }
+    });
+  } else if (idx >= 0) {
     const def = BUILDINGS[idx];
     const step = Math.max(def.footprint[0], def.footprint[1]) + 2.2;
     for (let lv = 1; lv <= def.designedLevels; lv++) {
