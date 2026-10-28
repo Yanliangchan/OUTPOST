@@ -21,6 +21,17 @@ export const WORLD = {
   /** Height for each terrace level. Index = level + 1 (level -1 = seabed). */
   levelHeights: [-0.9, 0.5, 1.7, 3.3, 4.9, 6.5, 8.1],
   plateauLevel: 1,
+  /**
+   * Hidden late-game sites: flat terraces buried under deep jungle.
+   * Nothing marks them in normal play; a late unlock clears the trees to reveal
+   * a plot for a special building. Keep their jungle indistinguishable from the
+   * other deep-jungle patches.
+   */
+  hiddenSites: [
+    { id: 'ridge', x: -32, z: -22, half: 4, level: 3 },
+    { id: 'lakeside', x: -8, z: 38, half: 4, level: 1 },
+    { id: 'cove', x: 38, z: 14, half: 4, level: 1 },
+  ],
   waterLevel: 0.25,
   vertexJitter: 0.36,
 };

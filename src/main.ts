@@ -28,7 +28,7 @@ const vegetation = createVegetation(terrain);
 const grid = createBuildGrid(groundY);
 const scaleRef = createScaleReference(groundY);
 const ambient = createAmbient();
-scene.add(terrain.mesh, createWater(terrain), vegetation, createLighting(), ambient.group, grid, scaleRef);
+scene.add(terrain.mesh, createWater(terrain), vegetation.group, createLighting(), ambient.group, grid, scaleRef);
 
 const rig = new CameraRig(renderer.domElement, groundY);
 
@@ -61,7 +61,12 @@ renderer.setAnimationLoop(() => {
   grid,
   scaleRef,
   renderer,
-  counts: vegetation.userData.counts,
+  counts: vegetation.counts,
+  // Dev-only preview of a hidden late-game site; not exposed in the UI.
+  clearSite: (id: string, cleared = true) => {
+    const g = vegetation.sites[id];
+    if (g) g.visible = !cleared;
+  },
   get frames() {
     return frames;
   },

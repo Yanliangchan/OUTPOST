@@ -78,6 +78,8 @@ export class Terrain {
         else if (d > 1) level = Math.min(level, 0);
 
         if (sq <= WORLD.buildHalf + 1.5) level = WORLD.plateauLevel;
+        const site = Terrain.siteAt(x, z, 0.5);
+        if (site) level = site.level;
 
         const idx = this.vi(i, j);
         this.levels[idx] = level;
@@ -234,6 +236,16 @@ export class Terrain {
       if (ny > 0.68) out.copy(C(PALETTE.grassDeep));
     }
     out.multiplyScalar(jitter);
+  }
+
+  /** The hidden site containing a point, if any (with optional margin in tiles). */
+  static siteAt(x: number, z: number, margin = 0) {
+    return WORLD.hiddenSites.find((s) => Math.abs(x - s.x) <= s.half + margin && Math.abs(z - s.z) <= s.half + margin);
+  }
+
+  /** True for open water inside one of the island's lakes (not the sea). */
+  static nearLake(x: number, z: number, scale = 1) {
+    return WORLD.lakes.some((l) => Math.hypot(x - l.x, z - l.z) < l.r * scale);
   }
 
   /** True when all four corners of a cell share one level (a flat tile). */

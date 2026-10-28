@@ -40,6 +40,11 @@ export const PALETTE = {
   bougainvilleaB: '#ff7ab8',
   banana: '#7fcf45',
   fern: '#4fa83a',
+  lalang: '#c9d36c',
+  lalangB: '#b4c75a',
+  reed: '#5e9a3c',
+  bamboo: '#93c24e',
+  bambooB: '#a9c95c',
 
   // Architecture — SAF camp look (approved): cream walls, dark green trim,
   // red-brown / dark green roofs, yellow-black kerbs, olive vehicles.
