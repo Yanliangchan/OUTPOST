@@ -100,11 +100,17 @@ export class CameraRig {
     this.goalTarget.z = clamp(this.goalTarget.z, -b, b);
   }
 
-  private groundPointAt(cx: number, cy: number): THREE.Vector3 | null {
+  groundPointAt(cx: number, cy: number): THREE.Vector3 | null {
     const rect = this.dom.getBoundingClientRect();
     const ndc = new THREE.Vector2(((cx - rect.left) / rect.width) * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1);
     this.ray.setFromCamera(ndc, this.camera);
     return this.ray.ray.intersectPlane(this.ground, new THREE.Vector3());
+  }
+
+  /** Smoothly pan to centre on a point. */
+  focusOn(x: number, z: number) {
+    this.goalTarget.set(x, this.target.y, z);
+    this.clampGoal();
   }
 
   reset() {

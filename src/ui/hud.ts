@@ -4,6 +4,8 @@ interface HudActions {
   resetCamera: () => void;
   togglePlan: () => void;
   planSummary: { starter: number; jungle: number; jungleZones: number; hidden: number; hiddenZones: number; total: number };
+  /** Dev mode shows the secret late-game sites in the legend. */
+  dev: boolean;
 }
 
 /** Phase 0 overlay: title chip, view toggles, control hints, FPS. */
@@ -11,7 +13,7 @@ export function createHud(actions: HudActions) {
   const root = document.createElement('div');
   root.className = 'hud';
   root.innerHTML = `
-    <div class="chip brand"><span class="logo">▲</span><div><b>OUTPOST</b><small>Phase 1 · The World</small></div></div>
+    <div class="chip brand"><span class="logo">▲</span><div><b>OUTPOST</b><small>Phase 1 · The World + Land clearing</small></div></div>
     <div class="toggles">
       <button data-a="grid" title="Show build grid (G)">Grid <kbd>G</kbd></button>
       <button data-a="scale" title="Show greybox scale markers (B)">Scale <kbd>B</kbd></button>
@@ -21,13 +23,14 @@ export function createHud(actions: HudActions) {
     <div class="chip hints">Drag to pan · Scroll to zoom · <kbd>WASD</kbd> move · <kbd>Q</kbd>/<kbd>E</kbd> rotate</div>
     <div class="chip fps">-- fps</div>
     <div class="chip legend" hidden>
-      <b>Buildable land</b>
-      <div><i style="background:#3fd16b"></i>Start clearing<span>${actions.planSummary.starter} tiles</span></div>
-      <div><i style="background:#ffc93c"></i>Jungle · tier 1<span>clear early</span></div>
-      <div><i style="background:#ff8a3d"></i>Jungle · tier 2<span>corners</span></div>
-      <div class="sub">${actions.planSummary.jungleZones} jungle zones<span>${actions.planSummary.jungle} tiles</span></div>
-      <div><i style="background:#b07bff"></i>Special sites<span>${actions.planSummary.hidden} tiles</span></div>
-      <div class="total">Total buildable<span>${actions.planSummary.total} tiles</span></div>
+      <b>Land</b>
+      <div><i style="background:#3fd16b"></i>Open / cleared</div>
+      <div><i style="background:#ffc93c"></i>Can clear next</div>
+      <div><i style="background:#2bb3a3"></i>Clearing</div>
+      <div><i style="background:#9aa0a3"></i>Locked</div>
+      ${actions.dev ? '<div><i style="background:#b07bff"></i>Secret site (dev)<span>' + actions.planSummary.hidden + ' tiles</span></div>' : ''}
+      <div class="total">Plateau<span>${actions.planSummary.starter + actions.planSummary.jungle} tiles</span></div>
+      <div class="sub">Click a jungle zone to clear it</div>
     </div>`;
   document.body.appendChild(root);
 

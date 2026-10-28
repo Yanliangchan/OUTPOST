@@ -211,7 +211,7 @@ function flowerGeo() {
   return mergeGeometries(parts)!;
 }
 
-function logGeo() {
+export function logGeo() {
   const g = new THREE.CylinderGeometry(0.11, 0.13, 1.2, 6, 1);
   g.rotateZ(Math.PI / 2);
   g.translate(0, 0.11, 0);
@@ -221,7 +221,7 @@ function logGeo() {
   return mergeGeometries([ni(g), ni(stub)])!;
 }
 
-function stumpGeo() {
+export function stumpGeo() {
   const g = new THREE.CylinderGeometry(0.15, 0.2, 0.26, 6, 1);
   g.translate(0, 0.13, 0);
   return ni(g);
@@ -292,11 +292,20 @@ function lilyGeo() {
 
 // ---------- Instanced placement ----------
 
-type Kind =
+export type Kind =
   | 'pine' | 'rain' | 'tall' | 'palm' | 'banana' | 'fern' | 'bush' | 'bougain' | 'rock' | 'tuft' | 'flower'
   | 'log' | 'stump' | 'lalang' | 'reed' | 'bamboo' | 'lily';
-interface Spot { x: number; y: number; z: number; s: number; r: number; tint: number }
-type Layer = Record<Kind, Spot[]>;
+export interface Spot { x: number; y: number; z: number; s: number; r: number; tint: number }
+export type Layer = Record<Kind, Spot[]>;
+/** Plants that are felled (tip over) during land clearing; everything else is grubbed out. */
+export const TREE_KINDS = new Set<Kind>(['pine', 'rain', 'tall', 'palm', 'banana', 'bamboo']);
+
+/** A clearable zone's vegetation: its spots and the instanced meshes that draw them (same index order). */
+export interface ClearableVegetation {
+  group: THREE.Group;
+  spots: Layer;
+  meshes: Record<Kind, THREE.InstancedMesh[]>;
+}
 const KINDS: Kind[] = ['pine', 'rain', 'tall', 'palm', 'banana', 'fern', 'bush', 'bougain', 'rock', 'tuft', 'flower', 'log', 'stump', 'lalang', 'reed', 'bamboo', 'lily'];
 const emptyLayer = (): Layer => Object.fromEntries(KINDS.map((k) => [k, []])) as unknown as Layer;
 
@@ -305,11 +314,8 @@ const std = (opts: THREE.MeshStandardMaterialParameters) =>
 
 export interface Vegetation {
   group: THREE.Group;
-  /**
-   * One group per clearable zone (jungle zones and hidden sites), keyed by zone id.
-   * Hide (later: animate) a group to clear that zone's jungle.
-   */
-  clearables: Record<string, THREE.Group>;
+  /** One entry per clearable zone (jungle zones and hidden sites), keyed by zone id. */
+  clearables: Record<string, ClearableVegetation>;
   counts: Record<string, number>;
 }
 
@@ -499,9 +505,10 @@ export function createVegetation(terrain: Terrain): Vegetation {
     { kind: 'lily', geo: lilyGeo(), mat: lilyMat, colors: [PALETTE.leafA, PALETTE.leafC, PALETTE.grassDeep], cast: false },
   ];
 
-  const build = (l: Layer, name: string) => {
+  const build = (l: Layer, name: string): ClearableVegetation => {
     const g = new THREE.Group();
     g.name = name;
+    const meshes = Object.fromEntries(KINDS.map((k) => [k, []])) as unknown as Record<Kind, THREE.InstancedMesh[]>;
     for (const p of parts) {
       const list = l[p.kind];
       if (!list.length) continue;
@@ -519,15 +526,16 @@ export function createVegetation(terrain: Terrain): Vegetation {
       mesh.castShadow = p.cast ?? true;
       mesh.receiveShadow = true;
       g.add(mesh);
+      meshes[p.kind].push(mesh);
     }
-    return g;
+    return { group: g, spots: l, meshes };
   };
 
-  const group = build(main, 'vegetation');
-  const clearables: Record<string, THREE.Group> = {};
+  const group = build(main, 'vegetation').group;
+  const clearables: Record<string, ClearableVegetation> = {};
   for (const [id, l] of Object.entries(zoneLayers)) {
     clearables[id] = build(l, `zone:${id}`);
-    group.add(clearables[id]);
+    group.add(clearables[id].group);
   }
   const counts: Record<string, number> = {};
   for (const l of [main, ...Object.values(zoneLayers)]) for (const k of KINDS) counts[k] = (counts[k] ?? 0) + l[k].length;

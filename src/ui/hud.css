@@ -55,3 +55,24 @@ kbd {
 .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
 .legend .sub { padding-left: 22px; color: var(--ink-soft); }
 .legend .total { border-top: 1px solid rgba(38, 51, 42, 0.12); padding-top: 6px; font-weight: 900; }
+.zone-panel { bottom: 64px; left: 50%; transform: translateX(-50%); width: 320px; padding: 14px 16px; font-size: 13px; display: grid; gap: 8px; }
+.zone-panel[hidden] { display: none; }
+.zone-panel .head { display: flex; align-items: center; justify-content: space-between; }
+.zone-panel .head b { font-size: 16px; font-weight: 900; }
+.zone-panel .x { font: inherit; font-size: 20px; line-height: 1; border: 0; background: none; cursor: pointer; color: var(--ink-soft); }
+.zone-panel p { margin: 0; color: var(--ink-soft); font-weight: 700; }
+.zone-panel .row { display: flex; justify-content: space-between; }
+.zone-panel .row span { color: var(--ink-soft); }
+.zone-panel .primary {
+  font: inherit; font-weight: 900; font-size: 14px; margin-top: 4px; padding: 10px; border: 0; border-radius: 12px;
+  background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 3px 0 #2c7436;
+}
+.zone-panel .primary:disabled { background: #b9c1bb; box-shadow: none; cursor: default; }
+.zone-panel small { color: var(--ink-soft); font-size: 11px; }
+.zone-panel .bar { height: 10px; border-radius: 6px; background: rgba(38, 51, 42, 0.1); overflow: hidden; }
+.zone-panel .bar i { display: block; height: 100%; background: #2bb3a3; border-radius: 6px; transition: width 0.25s; }
+.speed { bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 14px; }
+.speed span { color: var(--ink-soft); margin-right: 4px; }
+.speed button { font: inherit; font-weight: 800; border: 0; border-radius: 9px; padding: 4px 9px; background: rgba(38, 51, 42, 0.07); cursor: pointer; color: var(--ink); }
+.speed button.on { background: var(--highlight); }
+.zone-panel:not([hidden]) ~ .speed, .speed { z-index: 1; }

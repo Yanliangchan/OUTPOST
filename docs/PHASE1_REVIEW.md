@@ -24,6 +24,13 @@
 - **Data model:** zones are defined as data in `src/world/zones.ts`. Each zone's jungle is its own vegetation group (`vegetation.clearables[id]`), ready for the Phase 4/6 clearance gameplay (cost, recruits working, felling animation).
 - **Plan view:** the **Plan (P)** overlay shows every zone with labels and a legend. It's a design tool for now; it becomes the in-game Expand view later, without the hidden sites.
 
+## Land clearance with contractor crews (review feedback)
+Full design: [`CLEARANCE_DESIGN.md`](CLEARANCE_DESIGN.md).
+- Click a yellow jungle zone and choose **Start clearing**. A contractor crew sets up a site and works through the zone tile by tile over the timer: felling, then hauling, then grading, then regrowth.
+- Machines: excavator, bulldozer and log truck. Crew: 2 chainsaw operators, a flagman, a supervisor and a labourer. The site has barriers, cones, a sign, a portacabin, a toilet, a generator, a floodlight and a growing log pile.
+- Escalating pacing: 2 h for the first zone, up to 3.5 days for the last jungle zone, then 4–6 days for the hidden sites. One crew means one job at a time.
+- **Preview speed** control (1×–3600×) for reviewing long timers.
+
 ## Not in this phase
 - The waterfall and the dirt track, moved to Phase 4 alongside roads.
 - Ambient sound, planned for Phase 9.
