@@ -8,6 +8,7 @@ import { createBuildGrid, createScaleReference } from './world/scaleReference';
 import { CameraRig } from './core/cameraRig';
 import { timeUniform } from './core/wind';
 import { createHud } from './ui/hud';
+import { createPlanOverlay, planSummary } from './world/planOverlay';
 
 const app = document.getElementById('app')!;
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -28,7 +29,8 @@ const vegetation = createVegetation(terrain);
 const grid = createBuildGrid(groundY);
 const scaleRef = createScaleReference(groundY);
 const ambient = createAmbient();
-scene.add(terrain.mesh, createWater(terrain), vegetation.group, createLighting(), ambient.group, grid, scaleRef);
+const plan = createPlanOverlay();
+scene.add(terrain.mesh, createWater(terrain), vegetation.group, createLighting(), ambient.group, grid, scaleRef, plan);
 
 const rig = new CameraRig(renderer.domElement, groundY);
 
@@ -36,6 +38,8 @@ const hud = createHud({
   toggleGrid: () => (grid.visible = !grid.visible),
   toggleScale: () => (scaleRef.visible = !scaleRef.visible),
   resetCamera: () => rig.reset(),
+  togglePlan: () => (plan.visible = !plan.visible),
+  planSummary: planSummary(),
 });
 
 window.addEventListener('resize', () => {
@@ -63,10 +67,14 @@ renderer.setAnimationLoop(() => {
   renderer,
   counts: vegetation.counts,
   // Dev-only preview of a hidden late-game site; not exposed in the UI.
-  clearSite: (id: string, cleared = true) => {
-    const g = vegetation.sites[id];
+  plan,
+  hud,
+  // Dev-only: clear a jungle zone or hidden site (no UI until the expansion system).
+  clearZone: (id: string, cleared = true) => {
+    const g = vegetation.clearables[id];
     if (g) g.visible = !cleared;
   },
+  zones: () => Object.keys(vegetation.clearables),
   get frames() {
     return frames;
   },

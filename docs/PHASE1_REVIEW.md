@@ -15,6 +15,15 @@
   - Suggested late-game uses (to confirm in Phase 6): **ridge** → Signal Station / radar (wider early warning against raids), **cove** → Boat Jetty (supply boats, later sea raids), **lakeside** → Adventure Training Centre (morale and unit training).
   - Suggested reveal: a mid/late "Jungle Clearance" objective that is announced only when unlocked, with a felling and dust animation.
 
+## Jungle clearance (review feedback)
+- **Opening state:** the player starts with a **22×22 clearing** (`start`). The rest of the 44×44 plateau is deep jungle, split into **12 clearance zones of 11×11** (rows A–D, columns 1–4).
+  - **Tier 1** (8 zones, edge-adjacent to the start) can be cleared early.
+  - **Tier 2** (4 corners) needs a neighbouring zone cleared first.
+- **Hidden sites:** 3 × 9×9, tier 3 (late game, never shown before unlock).
+- **Totals:** 484 start + 1452 jungle + 243 special = **2179 buildable tiles**.
+- **Data model:** zones are defined as data in `src/world/zones.ts`. Each zone's jungle is its own vegetation group (`vegetation.clearables[id]`), ready for the Phase 4/6 clearance gameplay (cost, recruits working, felling animation).
+- **Plan view:** the **Plan (P)** overlay shows every zone with labels and a legend. It's a design tool for now; it becomes the in-game Expand view later, without the hidden sites.
+
 ## Not in this phase
 - The waterfall and the dirt track, moved to Phase 4 alongside roads.
 - Ambient sound, planned for Phase 9.

@@ -5,6 +5,7 @@ import { WORLD } from '../config/world';
 import { fbm, mulberry32 } from '../core/rng';
 import { addWindSway } from '../core/wind';
 import { Terrain } from './terrain';
+import { ZONES, plateauZoneAt } from './zones';
 
 // ---------- Low-poly geometry builders ----------
 
@@ -304,15 +305,18 @@ const std = (opts: THREE.MeshStandardMaterialParameters) =>
 
 export interface Vegetation {
   group: THREE.Group;
-  /** One group per hidden site; hide (later: animate) to clear the jungle. */
-  sites: Record<string, THREE.Group>;
+  /**
+   * One group per clearable zone (jungle zones and hidden sites), keyed by zone id.
+   * Hide (later: animate) a group to clear that zone's jungle.
+   */
+  clearables: Record<string, THREE.Group>;
   counts: Record<string, number>;
 }
 
 export function createVegetation(terrain: Terrain): Vegetation {
   const rand = mulberry32(WORLD.seed + 42);
   const main = emptyLayer();
-  const siteLayers: Record<string, Layer> = Object.fromEntries(WORLD.hiddenSites.map((s) => [s.id, emptyLayer()]));
+  const zoneLayers: Record<string, Layer> = Object.fromEntries(ZONES.filter((z) => z.kind !== 'starter').map((z) => [z.id, emptyLayer()]));
   let layer = main;
   const add = (k: Kind, x: number, y: number, z: number, sMin = 0.85, sMax = 1.25) =>
     layer[k].push({ x, y, z, s: sMin + rand() * (sMax - sMin), r: rand() * Math.PI * 2, tint: rand() });
@@ -343,7 +347,9 @@ export function createVegetation(terrain: Terrain): Vegetation {
       const sq = Math.max(Math.abs(cx), Math.abs(cz));
       const r = rand();
       const site = Terrain.siteAt(cx, cz, 1.5);
-      layer = site ? siteLayers[site.id] : main;
+      const pz = sq <= WORLD.buildHalf ? plateauZoneAt(cx, cz) : undefined;
+      const jungleZone = pz?.kind === 'jungle' ? pz : undefined;
+      layer = site ? zoneLayers[site.id] : jungleZone ? zoneLayers[jungleZone.id] : main;
 
       // ---- Sloped cells: cliff faces and banks ----
       if (lvl === null) {
@@ -397,20 +403,20 @@ export function createVegetation(terrain: Terrain): Vegetation {
           else if (r < 0.115) add('log', x, y, z, 0.45, 0.7);
           else if (r < 0.14) add('tuft', x, y, z);
         }
+      } else if (jungleZone) {
+        // Overgrown plateau zones: cleared one by one as the outpost expands.
+        deepJungle(cx, cz, y, false);
+        if (rand() < 0.03) add('rock', jit(cx), y, jit(cz), 0.8, 1.6);
       } else if (sq <= WORLD.buildHalf) {
-        // The open plateau: a clearing with a few groves and scattered clutter.
-        const starter = sq <= WORLD.starterHalf;
-        const grove = forest > 0.3 && !starter;
+        // The starting clearing: open ground with a few trees and rocks to clear.
         const tree = (): Kind => (rand() < 0.5 ? 'rain' : rand() < 0.5 ? 'palm' : 'tall');
-        if (grove && r < 0.14) add(tree(), x, y, z);
-        else if (grove && r < 0.22) add(rand() < 0.5 ? 'banana' : 'fern', x, y, z);
-        else if (r < (starter ? 0.004 : 0.01)) add(tree(), x, y, z);
-        else if (r < 0.018) add('rock', x, y, z, 0.6, 1.3);
-        else if (r < 0.026) add('bush', x, y, z, 0.7, 1.1);
-        else if (r < 0.029) add('bougain', x, y, z, 0.7, 1.0);
-        else if (r < 0.032) add('stump', x, y, z, 0.8, 1.1);
-        else if (r < 0.05) add('flower', x, y, z);
-        else if (r < 0.1) add('tuft', x, y, z, 1.0, 1.5);
+        if (r < 0.006) add(tree(), x, y, z);
+        else if (r < 0.014) add('rock', x, y, z, 0.6, 1.3);
+        else if (r < 0.022) add('bush', x, y, z, 0.7, 1.1);
+        else if (r < 0.025) add('bougain', x, y, z, 0.7, 1.0);
+        else if (r < 0.028) add('stump', x, y, z, 0.8, 1.1);
+        else if (r < 0.045) add('flower', x, y, z);
+        else if (r < 0.09) add('tuft', x, y, z, 1.0, 1.5);
       } else if (site || forest > 0.32) {
         // Deep jungle (hidden sites are buried in exactly the same mix).
         deepJungle(cx, cz, y, coastal);
@@ -518,12 +524,12 @@ export function createVegetation(terrain: Terrain): Vegetation {
   };
 
   const group = build(main, 'vegetation');
-  const sites: Record<string, THREE.Group> = {};
-  for (const [id, l] of Object.entries(siteLayers)) {
-    sites[id] = build(l, `site:${id}`);
-    group.add(sites[id]);
+  const clearables: Record<string, THREE.Group> = {};
+  for (const [id, l] of Object.entries(zoneLayers)) {
+    clearables[id] = build(l, `zone:${id}`);
+    group.add(clearables[id]);
   }
   const counts: Record<string, number> = {};
-  for (const l of [main, ...Object.values(siteLayers)]) for (const k of KINDS) counts[k] = (counts[k] ?? 0) + l[k].length;
-  return { group, sites, counts };
+  for (const l of [main, ...Object.values(zoneLayers)]) for (const k of KINDS) counts[k] = (counts[k] ?? 0) + l[k].length;
+  return { group, clearables, counts };
 }

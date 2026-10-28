@@ -5,8 +5,10 @@ export const WORLD = {
   gridCells: 168,
   /** Half-size of the flat, buildable plateau (tiles). */
   buildHalf: 22,
-  /** Half-size of the starter plot unlocked at the beginning. */
-  starterHalf: 12,
+  /** Half-size of the clearing the player starts with. */
+  starterHalf: 11,
+  /** The rest of the plateau starts as jungle, split into square clearance zones this many tiles wide. */
+  clearanceZone: 11,
   /** Island radius (superellipse) to the start of the beach. */
   landRadius: 54,
   /** Superellipse exponent: 2 = circle, higher = squarer. */
