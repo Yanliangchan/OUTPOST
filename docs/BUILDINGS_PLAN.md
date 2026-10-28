@@ -24,7 +24,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | # | Building | Footprint | Unlock (HQ) | Role | Status |
 |---|---|---|---|---|---|
 | 1 | **HQ** | 6×6 | — | Caps levels; unlocks buildings; gates land clearance | ✅ 20/20 designed |
-| 2 | Bunk | 6×4 | 1 | Houses Recruits | concept Lv 1–3 |
+| 2 | **Bunk** | 6×4 | 1 | Houses Recruits | ✅ 20/20 designed |
 | 3 | Cookhouse | 5×4 | 1 | Food → Morale and work speed | concept Lv 1–3 |
 | 4 | QM Store | 4×4 | 1 | Stores Supplies; delivery trucks unload here | planned |
 | 5 | Workshop | 4×4 | 2 | Produces Supplies; repairs | planned |
@@ -95,3 +95,61 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 20 | **Citadel:** low **courtyard ring** of three-storey ranges with **glass corner towers**, gold accent band, Supertree garden in the courtyard and a glass gate |
 
 Review scene: open the game with `?showcase=hq`.
+
+---
+
+# Bunk: full specification
+
+Houses Recruits. Higher levels house more of them and help them rest faster. Footprint **6×4**; height budget about 4 storeys.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Capacity | Rest |
+|---|---|---|---|---|---|---|---|
+| 1 | Basha Lines | 200 | 0 | 1 min | 300 | 4 | 12%/h |
+| 2 | Tent Lines | 600 | 0 | 5 min | 360 | 6 | 14%/h |
+| 3 | Kampong Barrack | 1,500 | 25 | 20 min | 430 | 8 | 16%/h |
+| 4 | Barrack | 4,000 | 100 | 1 h | 520 | 10 | 18%/h |
+| 5 | Twin Barracks | 9,000 | 250 | 2 h | 620 | 12 | 20%/h |
+| 6 | Bunk Block | 18,000 | 450 | 4 h | 750 | 14 | 22%/h |
+| 7 | Bunk Block · Stair Tower | 35,000 | 800 | 6 h | 900 | 16 | 24%/h |
+| 8 | Three-Storey Bunk | 60,000 | 1,200 | 10 h | 1,070 | 18 | 26%/h |
+| 9 | Bunk · Void Deck | 100,000 | 1,800 | 16 h | 1,290 | 20 | 28%/h |
+| 10 | Bunk Complex *(release cap)* | 170,000 | 2,500 | 1 d | 1,550 | 22 | 30%/h |
+| 11 | Modern Bunk | 270,000 | 3,400 | 1.5 d | 1,860 | 24 | 32%/h |
+| 12 | Bunk · Sky Garden | 400,000 | 4,500 | 2 d | 2,230 | 26 | 34%/h |
+| 13 | Twin Block | 550,000 | 5,800 | 2.5 d | 2,670 | 28 | 36%/h |
+| 14 | Terrace Bunk | 750,000 | 7,300 | 3 d | 3,210 | 30 | 38%/h |
+| 15 | Residences | 1,000,000 | 9,000 | 3.5 d | 3,850 | 32 | 40%/h |
+| 16 | Secure Quarters | 1,300,000 | 10,800 | 4 d | 4,620 | 34 | 42%/h |
+| 17 | Pod Quarters | 1,650,000 | 13,000 | 4.5 d | 5,550 | 36 | 44%/h |
+| 18 | Bermed Quarters | 2,050,000 | 15,500 | 5 d | 6,660 | 38 | 46%/h |
+| 19 | Solar Quarters | 2,500,000 | 18,300 | 5.5 d | 7,990 | 40 | 48%/h |
+| 20 | Quarters Citadel | 3,000,000 | 21,300 | 6 d | 9,580 | 42 | 50%/h |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Bunk level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Basha Lines:** olive tarp shelters on poles over sleeping mats, field packs, sandbags, crates |
+| 2 | **Tent Lines:** two big canvas tents, washing line, water drums and cooler |
+| 3 | **Kampong Barrack:** timber hut on stilts, zinc roof, wooden steps |
+| 4 | **Barrack:** classic cream single-storey barrack, zinc roof, louvre windows |
+| 5 | **Twin Barracks:** two parallel red-roofed barracks joined by covered link-ways |
+| 6 | **Bunk Block:** first two storeys; front corridor with towels on the parapet; end stair |
+| 7 | **Stair Tower:** two storeys plus a three-storey stair tower with a pyramid roof |
+| 8 | **Three-Storey Bunk:** corridor block, three storeys, water tank |
+| 9 | **Void Deck:** HDB-style open ground floor with benches; projecting gabled stair/lift core with a painted block number |
+| 10 | **Bunk Complex:** void deck plus three room floors; stair towers at both ends; rooftop tanks |
+| 11 | **Modern Bunk:** flat roof, white vertical fins, rooftop solar |
+| 12 | **Sky Garden:** planted roof with a timber pergola; glass stair core |
+| 13 | **Twin Block:** two slim red-roofed blocks joined by glass sky-bridges |
+| 14 | **Terrace Bunk:** stepped tiers with planted terraces |
+| 15 | **Residences:** U-shape, red roofs, gold band, courtyard Supertree, entrance arch |
+| 16 | **Secure Quarters:** perimeter wall and gate; L-shaped concrete ribbon-window blocks, green roof |
+| 17 | **Pod Quarters:** stacked modular pods with coloured doors, steel walkways |
+| 18 | **Bermed Quarters:** earth berms, blast door, green roof with vents |
+| 19 | **Solar Quarters:** saw-tooth solar roof, full-height sun fins |
+| 20 | **Quarters Citadel:** modern courtyard U with glass corner towers, gold band, Supertree |
+
+Review scene: open the game with `?showcase=bunk`.

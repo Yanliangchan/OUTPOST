@@ -3,6 +3,7 @@ import { PALETTE } from '../config/palette';
 import { C, Kit, STOREY } from './kit';
 
 import { HQ } from './hq';
+import { BUNK } from './bunk';
 import type { BuildingDef } from './types';
 
 /**
@@ -10,69 +11,6 @@ import type { BuildingDef } from './types';
  * upgrading never needs re-placement. Buildings are being brought up to the
  * full 15-level plan one at a time (see docs/BUILDINGS_PLAN.md).
  */
-
-// ------------------------------------------------------------------ Bunk
-
-function bunk(level: number): Kit {
-  const k = new Kit();
-  const y = k.pad(6, 4);
-  if (level === 1) {
-    // Old-school single-storey barrack with a zinc roof.
-    const bw = 5.2, bd = 1.7, bz = -0.55;
-    const h = k.block(bw, bd, 1, 0, y, bz);
-    k.gableRoof(bw, bd, 0.55, 0, y + h, bz, C.zinc);
-    k.windowRow('front', 0, bz, bw, bd, 7, y + 0.42, { louvre: true, skip: [1, 5] });
-    k.windowRow('back', 0, bz, bw, bd, 7, y + 0.42, { louvre: true });
-    for (const dx of [-1.43, 1.43]) {
-      k.door('front', 0, bz, bw, bd, dx, y);
-      k.box(0.6, 0.06, 0.35, '#c9c3b5', dx, y, bz + bd / 2 + 0.17);
-    }
-    k.clothesLine(-1.6, 1.35, 1.6, y);
-    k.bench(1.3, 1.05, 0.8, y);
-    k.bin(2.6, 1.5, y);
-    k.box(0.06, 0.06, 2.0, '#8a9196', 2.7, y + 0.06, bz); // drain pipe along the side
-  } else {
-    // Bunk block: two/three storeys with a common corridor along the front.
-    const storeys = level === 2 ? 2 : 3;
-    const bw = 4.8, bd = 1.35, bz = -0.95;
-    const cd = 0.55;
-    const cz = bz + bd / 2 + cd / 2;
-    const h = k.block(bw, bd, storeys, 0, y, bz);
-    k.hipRoof(bw, bd + cd, 0.65, 0, y + h, bz + cd / 2, C.roof);
-    for (let f = 0; f < storeys; f++) {
-      const fy = y + f * STOREY;
-      if (f > 0) k.corridor(0, cz, bw, cd, fy);
-      // Columns supporting the corridor
-      for (let i = 0; i < 5; i++) k.box(0.08, STOREY, 0.08, C.white, -bw / 2 + 0.06 + (i * (bw - 0.12)) / 4, fy, cz + cd / 2 - 0.06);
-      for (let i = 0; i < 4; i++) {
-        const dx = -1.8 + i * 1.2;
-        k.door('front', 0, bz, bw, bd, dx, fy, 0.3, 0.6);
-        k.window('front', 0, bz, bw, bd, dx + 0.45, fy + 0.48, 0.3, 0.22, true);
-      }
-      k.windowRow('back', 0, bz, bw, bd, 6, fy + 0.45, { louvre: true });
-      if (f > 0) {
-        // Towels and uniforms hung over the corridor parapet
-        const colours = ['#4b6b3a', '#ffffff', '#ff8a3d', '#4b6b3a', '#2f5a8a'];
-        for (let t = 0; t < 6; t++) k.box(0.16, 0.2, 0.012, colours[(t + f) % colours.length], -2.1 + t * 0.82 + (f % 2) * 0.2, fy + 0.14, cz + cd / 2 + 0.02);
-      }
-      k.aircon(bw / 2 + 0.08, fy + 0.3, bz - 0.2, Math.PI / 2);
-    }
-    k.box(bw, 0.03, cd, '#c9c3b5', 0, y, cz); // ground-floor walkway
-    // External staircase at the right end
-    k.stairs(2.68, bz + 0.2, 0.42, 1.9, (storeys - 1) * STOREY);
-    k.box(0.04, (storeys - 1) * STOREY + 0.3, 1.9, C.white, 2.9, y, bz + 0.2);
-    if (level === 3) {
-      k.waterTank(-2.7, y, -1.45, 0.17, 0.3);
-      k.waterTank(-2.7, y, -0.95, 0.17, 0.3);
-      k.lamp(-2.6, 1.6, y);
-      k.noticeboard(-1.0, 1.65, 0, y);
-    }
-    k.clothesLine(-1.9, 1.5, 1.4, y);
-    k.bicycleRack(1.6, 1.55, 3, y);
-    k.bin(2.65, 1.6, y);
-  }
-  return k;
-}
 
 // ------------------------------------------------------------------ Cookhouse
 
@@ -154,6 +92,6 @@ function cookhouse(level: number): Kit {
 export const BUILDINGS: BuildingDef[] = [
   HQ,
   // Early concepts (levels 1–3); full 15-level plans to follow building by building.
-  { id: 'bunk', name: 'Bunk', role: 'Houses Recruits.', footprint: [6, 4], unlockHq: 1, levels: [], designedLevels: 3, build: bunk },
+  BUNK,
   { id: 'cookhouse', name: 'Cookhouse', role: 'Feeds the outpost.', footprint: [5, 4], unlockHq: 1, levels: [], designedLevels: 3, build: cookhouse },
 ];
