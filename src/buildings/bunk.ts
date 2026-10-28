@@ -240,7 +240,9 @@ function base(k: Kit, level: number, y: number) {
     return;
   }
   if (level === 8) {
-    corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 3, y });
+    // Long gable roof (not hip) so it reads differently from the HQ's three-storey block.
+    const top = corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 3, y, roof: 'none' });
+    k.gableRoof(4.8, 1.9, 0.7, 0, y + top, -0.675, C.roof, 0.18, C.white);
     endStair(k, 2.68, -0.95, 3, y);
     k.waterTank(-2.7, y, -1.45, 0.17, 0.3);
     k.clothesLine(-1.9, 1.5, 1.4, y);

@@ -13,7 +13,7 @@ export const RELEASE_MAX_LEVEL = 10;
 - **The HQ caps everything.** No building can be upgraded above the current HQ level.
 - **Footprints never change.** An upgrade replaces the model on the same tiles, so it never needs re-placing (as in Clash of Clans).
 - **Height budget:** a building's bulk stays within about **4 storeys** so it never hides what's behind it; only thin elements (masts, flags, spires) go higher.
-- **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies.
+- **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter.
 - **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level).
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
 - **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
@@ -28,7 +28,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 1 | **HQ** | 6×6 | — | Caps levels; unlocks buildings; gates land clearance | ✅ 20/20 designed |
 | 2 | **Bunk** | 6×4 | 1 | Houses Recruits | ✅ 20/20 designed |
 | 3 | **Cookhouse** | 5×4 | 1 | Food → Morale and work speed | ✅ 20/20 designed |
-| 4 | QM Store | 4×4 | 1 | Stores Supplies; delivery trucks unload here | planned |
+| 4 | **QM Store** | 4×4 | 1 | Stores Supplies; delivery trucks unload here | ✅ 20/20 designed |
 | 5 | Workshop | 4×4 | 2 | Produces Supplies; repairs | planned |
 | 6 | Utilities | 3×3 | 2 | Power and water; buildings run better when supplied | planned |
 | 7 | Mama Shop | 2×2 | 2 | Small Morale boost and a trickle of income | planned |
@@ -140,7 +140,7 @@ Houses Recruits. Higher levels house more of them and help them rest faster. Foo
 | 5 | **Twin Barracks:** two parallel red-roofed barracks joined by covered link-ways |
 | 6 | **Bunk Block:** first two storeys; front corridor with towels on the parapet; end stair |
 | 7 | **Stair Tower:** two storeys plus a three-storey stair tower with a pyramid roof |
-| 8 | **Three-Storey Bunk:** corridor block, three storeys, water tank |
+| 8 | **Three-Storey Bunk:** corridor block, three storeys, **long gable roof** with white gable ends, water tank |
 | 9 | **Void Deck:** HDB-style open ground floor with benches; projecting gabled stair/lift core with a painted block number |
 | 10 | **Bunk Complex:** void deck plus three room floors; stair towers at both ends; rooftop tanks |
 | 11 | **Modern Bunk:** flat roof, white vertical fins, rooftop solar |
@@ -213,3 +213,61 @@ Feeds the outpost. Well-fed Recruits work faster and Morale rises. Footprint **5
 | 20 | **Pavilion Citadel:** **octagonal glass dining pavilion** with a gold ring and faceted red roof; kitchen with four stacks behind |
 
 Review scene: open the game with `?showcase=cookhouse`.
+
+---
+
+# QM Store: full specification
+
+Stores Supplies; delivery trucks unload here. **Signature at every level:** crates and pallets, a forklift, a loading dock or roller shutter. Footprint **4×4**.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Capacity | Unload |
+|---|---|---|---|---|---|---|---|
+| 1 | Supply Dump | 100 | 0 | 1 min | 320 | 1,500 | 13/min |
+| 2 | Container Store | 400 | 0 | 4 min | 380 | 2,000 | 16/min |
+| 3 | Timber Godown | 1,100 | 20 | 15 min | 460 | 3,000 | 19/min |
+| 4 | QM Store | 3,000 | 80 | 45 min | 550 | 4,000 | 22/min |
+| 5 | Store · Steel Shed | 7,000 | 200 | 1.5 h | 660 | 5,500 | 25/min |
+| 6 | Quonset Store | 14,000 | 400 | 3 h | 800 | 7,500 | 28/min |
+| 7 | Store · Gantry Yard | 26,000 | 700 | 5 h | 960 | 10,500 | 31/min |
+| 8 | Distribution Depot | 48,000 | 1,100 | 8 h | 1,150 | 14,500 | 34/min |
+| 9 | High-Bay Store | 80,000 | 1,600 | 14 h | 1,380 | 19,500 | 37/min |
+| 10 | Logistics Hub *(release cap)* | 135,000 | 2,300 | 20 h | 1,650 | 27,000 | 40/min |
+| 11 | Automated Store | 210,000 | 3,100 | 1.25 d | 1,980 | 37,500 | 43/min |
+| 12 | Drone Depot | 320,000 | 4,100 | 1.75 d | 2,380 | 52,000 | 46/min |
+| 13 | Vertical Store | 450,000 | 5,300 | 2.25 d | 2,850 | 71,500 | 49/min |
+| 14 | Wave-Roof Depot | 610,000 | 6,700 | 2.75 d | 3,420 | 98,500 | 52/min |
+| 15 | Grand Goods Shed | 800,000 | 8,300 | 3.25 d | 4,110 | 136,500 | 55/min |
+| 16 | Vault Store | 1,050,000 | 10,000 | 3.75 d | 4,930 | 188,000 | 58/min |
+| 17 | Robotic Warehouse | 1,350,000 | 12,000 | 4.25 d | 5,920 | 259,500 | 61/min |
+| 18 | Tensile Depot | 1,650,000 | 14,300 | 4.75 d | 7,100 | 358,000 | 64/min |
+| 19 | Rail Depot | 2,000,000 | 16,900 | 5.25 d | 8,520 | 494,000 | 67/min |
+| 20 | Dome Depot | 2,400,000 | 19,800 | 5.75 d | 10,220 | 682,000 | 70/min |
+
+*Levels 11–15 are post-release; 16–20 are reserve. QM Store level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Supply Dump:** pallets of crates, drums and sacks under a camo net; sandbag walls |
+| 2 | **Container Store:** olive shipping container with a zinc lean-to canopy over pallets |
+| 3 | **Timber Godown:** plank shed with sliding barn doors, zinc roof, timber ramp |
+| 4 | **QM Store:** cream store with a roller shutter, red gable roof, issue window with a counter, loading dock |
+| 5 | **Steel Shed:** small store plus a tall open-sided steel shed with orange/blue pallet racking |
+| 6 | **Quonset Store:** corrugated half-cylinder hut with ribs; shutter in the end wall |
+| 7 | **Gantry Yard:** store beside a yellow gantry crane over stacked containers |
+| 8 | **Distribution Depot:** long depot with three dock shutters under a canopy; zinc **monitor roof** with a louvred ridge strip |
+| 9 | **High-Bay Store:** tall shed with a clerestory strip and a glass mezzanine office pod |
+| 10 | **Logistics Hub:** high-bay store, cold store, covered dock and weighbridge |
+| 11 | **Automated Store:** white high-bay with a giant yellow/black chevron band and a cantilevered glass control room |
+| 12 | **Drone Depot:** flat roof with three yellow drone pads; a delivery drone hovering |
+| 13 | **Vertical Store:** glass automated storage tower with visible racking, conveyor into a low dock hall |
+| 14 | **Wave-Roof Depot:** undulating roof of alternating arcs over a glazed shed |
+| 15 | **Grand Goods Shed:** railway-style goods shed with three gabled arched doorways, gold band, 'QM DEPOT' plaque |
+| 16 | **Vault Store:** windowless concrete strongroom with a round vault door; fenced cage of crates |
+| 17 | **Robotic Warehouse:** glass walls reveal a colourful robot shelving grid; conveyor out to the dock |
+| 18 | **Tensile Depot:** three peaked white fabric canopies over a pallet yard |
+| 19 | **Rail Depot:** short rail siding with a red freight wagon beside a platform store |
+| 20 | **Dome Depot:** geodesic storage dome with a gold ring and a glazed dock entrance |
+
+Review scene: open the game with `?showcase=qmstore`.
