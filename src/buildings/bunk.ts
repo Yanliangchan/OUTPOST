@@ -203,10 +203,14 @@ function field(k: Kit, level: number, y: number) {
 
 function camp(k: Kit, level: number, y: number) {
   if (level === 4) {
-    barrack(k, 0, -0.55, 5.2, 1.7, y, 'zinc');
-    k.clothesLine(-1.6, 1.35, 1.6, y);
-    k.bench(1.3, 1.05, 0.8, y);
-    k.bin(2.6, 1.5, y);
+    // Long red-roofed barrack with a full-length green veranda (vs the timber kampong hut at Lv 3)
+    barrack(k, 0, -0.75, 5.2, 1.6, y, 'red');
+    k.box(5.2, 0.05, 0.7, '#c9c3b5', 0, y, 0.4);
+    for (let i = 0; i < 6; i++) k.box(0.07, 0.8, 0.07, C.white, -2.5 + i * 1.0, y, 0.7);
+    k.box(5.4, 0.06, 0.85, C.roofGreen, 0, y + 0.82, 0.35);
+    k.clothesLine(-1.6, 1.45, 1.6, y);
+    k.bench(1.3, 1.25, 0.8, y);
+    k.bin(2.6, 1.6, y);
     return;
   }
   if (level === 5) {
@@ -294,13 +298,20 @@ function command(k: Kit, level: number, y: number) {
     return;
   }
   if (level === 12) {
+    // Three room floors, then a set-back sky-garden storey with a planted terrace in front
     const top = corridorBlock(k, { bw: 4.8, bd: 1.35, bz: -0.95, storeys: 4, y, voidDeck: true, roof: 'flat' });
     const ry = y + top + 0.06;
-    // Roof garden with a pergola
     k.box(4.6, 0.04, 1.7, '#6cbf45', 0, ry, -0.7);
-    for (const x of [-1.6, -0.6, 0.4, 1.4]) for (const z of [-1.2, -0.2]) k.box(0.06, 0.6, 0.06, C.white, x, ry, z);
-    for (let i = 0; i < 8; i++) k.box(0.05, 0.05, 1.1, C.wood, -1.7 + i * 0.45, ry + 0.6, -0.7);
-    k.box(3.3, 0.04, 1.15, '#b07a4a', -0.1, ry + 0.66, -0.7);
+    // Garden pavilion: low glass room under a timber roof
+    k.glassBox(2.0, 0.6, 0.8, -0.9, ry, -1.2);
+    k.box(2.2, 0.06, 1.0, C.wood, -0.9, ry + 0.6, -1.2);
+    for (const x of [-1.6, -0.6, 0.4, 1.4]) k.box(0.06, 0.7, 0.06, C.white, x, ry, -0.05);
+    for (let i = 0; i < 8; i++) k.box(0.05, 0.05, 0.6, C.wood, -1.7 + i * 0.45, ry + 0.7, -0.35);
+    for (const x of [-1.9, 1.7]) {
+      const t = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 0), new THREE.MeshStandardMaterial({ color: '#4fae3a', flatShading: true }));
+      t.position.set(x, ry + 0.35, -0.3);
+      k.add(t);
+    }
     k.glassBox(0.5, top - 0.1, 1.4, -2.65, y, -0.8);
     k.linkway(-2.4, 1.6, 2.4, 1.6, y, 0.75, 0.6);
     k.hedge(-1.8, -0.1, 0.8, 0.2, ry);
@@ -377,6 +388,7 @@ function secure(k: Kit, level: number, y: number) {
     k.box(w + 0.08, 0.1, d + 0.08, C.white, 0, y + 4 * STOREY, z);
     roofCanopy(k, 4.4, 1.2, 0, y + 4 * STOREY + 0.1, z);
     k.glassBox(0.5, 4 * STOREY - 0.1, 1.2, 2.55, y, z);
+    k.linkway(-2.4, 1.3, 2.4, 1.3, y, 0.75, 0.55);
     k.box(3.0, 0.08, 0.6, C.roofGreen, -0.8, y + 0.9, 0.55);
     for (const x of [-2.2, 0.6]) k.box(0.07, 0.9, 0.07, C.white, x, y, 0.8);
     k.door('right', 0, z, w, d, 0, y, 0.4, 0.66, DARK_GLASS);
@@ -399,6 +411,8 @@ function secure(k: Kit, level: number, y: number) {
     }
     k.stairs(2.6, -0.2, 0.4, 1.6, 3 * STOREY);
     roofCanopy(k, 4.2, 1.3, 0.3, y + 4 * STOREY + 0.05, -0.75);
+    k.box(4.6, 0.07, 0.5, C.roofGreen, 0.1, y + 0.9, 1.1);
+    for (const x of [-2.1, 0.1, 2.3]) k.box(0.06, 0.9, 0.06, C.white, x, y, 1.3);
     return;
   }
   if (level === 18) {
@@ -414,6 +428,12 @@ function secure(k: Kit, level: number, y: number) {
       }
       k.box(4.88, 0.1, 0.83, '#6cbf45', 0, y + 4 * STOREY, z);
       k.hedge(0, z, 4.4, 0.4, y + 4 * STOREY + 0.1);
+      // Outer face: dark windows with green planter boxes on every floor
+      const oz = z + (flip > 0 ? -0.4 : 0.4);
+      for (let f = 0; f < 4; f++) {
+        k.box(4.4, 0.32, 0.04, DARK_GLASS, 0, y + f * STOREY + 0.36, oz);
+        k.box(4.6, 0.14, 0.16, '#4fae3a', 0, y + f * STOREY + 0.18, oz + (flip > 0 ? -0.08 : 0.08));
+      }
     }
     // Street: paving, trees, pergola with towels on lines
     k.box(4.6, 0.02, 1.2, '#e3dccb', 0, y, -0.25);

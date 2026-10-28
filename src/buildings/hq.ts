@@ -272,6 +272,13 @@ function base(k: Kit, level: number, y: number) {
   k.lamp(-0.75, 2.6, y);
   k.lamp(0.6, 2.6, y);
   if (!complex) k.antenna(1.3, y + h + 0.35, bz - 0.25, 1.4);
+  if (level === 8) {
+    // Rooftop cupola with a flag: an early hint of the Lv 9 clock tower
+    k.box(0.7, 0.55, 0.7, C.white, 0, y + h + 0.35, bz);
+    k.box(0.5, 0.25, 0.04, DARK_GLASS, 0, y + h + 0.5, bz + 0.36);
+    k.hipRoof(0.7, 0.7, 0.35, 0, y + h + 0.9, bz, C.roof, 0.08);
+    k.flagpole(0, bz, 0.7, y + h + 1.2);
+  }
 }
 
 
@@ -501,7 +508,12 @@ function secureCompound(k: Kit, y: number) {
 /** 17 — Operations Centre: three-storey base with a glass fourth storey cantilevered over the entrance. */
 function opsCentre(k: Kit, y: number) {
   const bz = -1.0;
-  const h = ribbonBlock(k, 0, bz, 4.4, 2.2, 4, y);
+  // Vertical-fin facade (HQ 16 uses horizontal ribbons)
+  const h = 4 * STOREY;
+  k.box(4.4, h, 2.2, CONCRETE, 0, y, bz);
+  k.box(4.3, h - 0.3, 0.04, DARK_GLASS, 0, y + 0.15, bz + 1.11);
+  k.fins(4.4, h - 0.2, 0, y + 0.1, bz + 1.17, 16);
+  k.box(4.48, 0.1, 2.28, C.white, 0, y + h, bz);
   // Cantilevered glass box projecting forward over the drop-off
   k.glassBox(3.0, STOREY - 0.05, 2.6, 0.3, y + h + 0.1, bz + 0.4);
   k.box(3.1, 0.1, 2.7, C.white, 0.3, y + h, bz + 0.4);

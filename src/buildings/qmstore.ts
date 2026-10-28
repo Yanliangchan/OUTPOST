@@ -328,11 +328,12 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level === 13) {
     // Vertical Store: glass automated tower beside a low dock hall.
-    k.glassBox(1.2, 3.1, 1.2, -1.15, y, -1.0);
-    for (let l = 0; l < 5; l++) k.box(1.0, 0.04, 1.0, RACK_UP, -1.15, y + 0.5 + l * 0.55, -1.0);
-    k.box(1.3, 0.12, 1.3, C.white, -1.15, y + 3.1, -1.0);
-    const h = store(k, 2.4, 2.6, 0.75, -0.5, y, 3, CONCRETE);
-    k.flatRoof(2.4, 2.6, 0.75, y + h, -0.5);
+    k.glassBox(1.5, 3.2, 1.5, -1.1, y, -0.9);
+    for (let l = 0; l < 5; l++) for (let b = 0; b < 3; b++) k.box(0.36, 0.3, 1.2, BOX[(l + b) % BOX.length], -1.5 + b * 0.4, y + 0.35 + l * 0.58, -0.9);
+    for (let l = 0; l < 6; l++) k.box(1.4, 0.04, 1.3, RACK_UP, -1.1, y + 0.3 + l * 0.58, -0.9);
+    k.box(1.6, 0.12, 1.6, '#ffc93c', -1.1, y + 3.2, -0.9);
+    const h = store(k, 2.2, 2.6, 0.85, -0.5, y, 2, CONCRETE);
+    k.flatRoof(2.2, 2.6, 0.85, y + h, -0.5);
     const belt = k.box(0.9, 0.08, 0.2, '#5c6166', -0.15, y + 1.2, -1.0);
     belt.rotation.z = -0.3;
     dock(k, 0.75, 1.05, 2.0, y);
@@ -343,14 +344,14 @@ function command(k: Kit, level: number, y: number) {
   if (level === 14) {
     // Wave-Roof Depot: undulating roof of alternating arcs over a glazed shed.
     const w = 3.4, d = 2.6, z = -0.5;
-    k.box(w, 2.85, d, CONCRETE, 0, y, z);
-    k.box(w - 0.3, 0.4, 0.04, DARK_GLASS, 0, y + 2.2, z + d / 2 + 0.01);
+    k.box(w, 3.1, d, '#e6e9eb', 0, y, z);
+    k.box(w - 0.3, 1.1, 0.04, DARK_GLASS, 0, y + 1.5, z + d / 2 + 0.01);
     k.box(w + 0.02, 0.06, d + 0.02, C.trim, 0, y + 1.15, z);
     for (let i = 0; i < 4; i++) {
-      const arc = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, d + 0.3, 10, 1, true, -Math.PI / 2, Math.PI), new THREE.MeshStandardMaterial({ color: i % 2 ? C.white : '#9aa3a6', flatShading: true, side: THREE.DoubleSide }));
+      const arc = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, d + 0.3, 10, 1, true, -Math.PI / 2, Math.PI), new THREE.MeshStandardMaterial({ color: i % 2 ? C.white : '#2bb3a3', flatShading: true, side: THREE.DoubleSide }));
       arc.rotation.x = Math.PI / 2;
-      arc.scale.set(1, 1, i % 2 ? 0.45 : 0.75);
-      arc.position.set(-1.27 + i * 0.85, y + 2.85, z);
+      arc.scale.set(1, 1, i % 2 ? 0.8 : 1.3);
+      arc.position.set(-1.27 + i * 0.85, y + 3.1, z);
       arc.rotation.y = 0;
       arc.castShadow = true;
       k.add(arc);
@@ -362,13 +363,13 @@ function command(k: Kit, level: number, y: number) {
     return;
   }
   // 15: Grand Goods Shed: railway-style shed with three arched gable doorways and gold trim.
-  const w = 3.6, d = 2.2, z = -0.6;
+  const w = 3.6, d = 2.6, z = -0.5;
   const h = k.block(w, d, 2, 0, y, z) + 0.3;
   k.box(w, 0.3, d, C.wall, 0, y + 2 * STOREY, z);
   k.windowRow('front', 0, z, w, d, 6, y + STOREY + 0.45, { louvre: true });
   for (let i = 0; i < 3; i++) {
     const g = new Kit();
-    g.gableRoof(1.1, d, 0.55, 0, 0, 0, C.roof, 0.08);
+    g.gableRoof(1.1, d, 0.8, 0, 0, 0, C.roof, 0.08);
     g.group.rotation.y = Math.PI / 2;
     g.group.position.set(-1.2 + i * 1.2, y + h, z);
     k.add(g.group);
@@ -390,12 +391,18 @@ function secure(k: Kit, level: number, y: number) {
     k.box(2.8, 2.9, 2.0, CONCRETE, -0.3, y, -0.8);
     for (let i = 0; i < 7; i++) k.box(2.82, 0.03, 2.02, '#c2bdb3', -0.3, y + 0.4 + i * 0.4, -0.8);
     roofCanopy(k, 2.4, 1.6, -0.3, y + 2.9, -0.8, 0.3);
+    for (let i = 0; i < 9; i++) k.box(0.3, 0.2, 0.04, i % 2 ? C.kerbB : C.kerbY, -1.5 + i * 0.3, y + 1.4, 0.21);
+    for (const x of [-1.5, 0.9]) {
+      k.box(0.06, 0.06, 0.2, C.dark, x, y + 2.4, 0.3);
+      k.box(0.2, 0.12, 0.06, '#fff6c8', x, y + 2.35, 0.42);
+    }
     const door = k.cyl(0.5, 0.12, '#8a9196', -0.3, y + 0.15, 0.25, 16);
     door.rotation.x = Math.PI / 2;
     door.position.set(-0.3, y + 0.62, 0.22);
     k.cyl(0.08, 0.16, '#d9b24a', -0.3, y + 0.62, 0.28, 8).rotation.x = Math.PI / 2;
     for (const [x, z] of [[1.4, -1.2], [1.4, -0.4]]) pallet(k, x, z, y, 'crates', 2);
     for (let i = 0; i < 6; i++) k.box(0.03, 0.8, 0.03, C.metal, 1.05 + (i % 3) * 0.33, y, i < 3 ? -1.55 : -0.05);
+    k.box(0.9, 0.05, 1.7, C.roofGreen, 1.38, y + 0.85, -0.8); // cage roof
     forklift(k, 0.8, 1.0, y, Math.PI);
     return;
   }
@@ -441,7 +448,7 @@ function secure(k: Kit, level: number, y: number) {
     k.box(1.4, 0.07, 3.0, C.roofGreen, -1.05, y + 2.0, -0.3);
     for (const z2 of [-1.6, -0.3, 1.0]) k.box(0.06, 2.0, 0.06, C.white, -0.4, y, z2);
     for (const z of [-1.2, 0.0]) k.cyl(0.08, 0.06, '#2a2b2d', -1.05, y + 0.08, z, 8).rotation.z = Math.PI / 2;
-    const h = store(k, 1.9, 2.4, 0.8, -0.6, y, 3, CONCRETE);
+    const h = store(k, 1.9, 2.4, 0.8, -0.6, y, 3, '#b5654a'); // brick goods shed
     k.box(1.9, 0.07, 0.9, C.roofGreen, 0.8, y + 1.0, 1.05);
     for (const x2 of [0.0, 1.6]) k.box(0.06, 1.0, 0.06, C.white, x2, y, 1.45);
     k.box(2.4, 0.08, 2.6, C.roofGreen, 0.55, y + h + 0.1, -0.6);

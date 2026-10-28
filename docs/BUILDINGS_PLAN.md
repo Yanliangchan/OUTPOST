@@ -15,6 +15,7 @@ export const RELEASE_MAX_LEVEL = 10;
 - **Height budget:** a building's bulk stays within about **4 storeys** so it never hides what's behind it; only thin elements (masts, flags, spires) go higher.
 - **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter.
 - **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level).
+- **Every step is an upgrade:** height rises level by level until it reaches the building's cap (**HQ 5 storeys, Bunk 4.5, Cookhouse 3.5, QM Store 3.5**), then holds while coverage and detail keep growing. Checked by measurement: open the browser console and run `__outpost.metrics()` to get the height, peak, coverage and detail of every level. A level fails if height drops by more than half a storey or presence (height × coverage) drops by more than 15%.
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
 - **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
 - **Stats live in data:** cost, Reputation, build time, HP and building-specific stats, defined per level in each building's file.
@@ -66,7 +67,7 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 15 | Command Centre · Landmark | 4,000,000 | 10,000 | 7 d | 17,500 | 700,000 | 5 | Buildings to Lv 15, Landmark status |
 | 16 | Secure Compound | 5,200,000 | 12,000 | 8 d | 19,800 | 850,000 | 5 | Buildings to Lv 16 |
 | 17 | Operations Centre | 6,600,000 | 14,500 | 9 d | 22,300 | 1,000,000 | 6 | Buildings to Lv 17, 6th construction crew |
-| 18 | Bunker Command | 8,200,000 | 17,000 | 10 d | 25,000 | 1,200,000 | 6 | Buildings to Lv 18 |
+| 18 | Fortress Command | 8,200,000 | 17,000 | 10 d | 25,000 | 1,200,000 | 6 | Buildings to Lv 18 |
 | 19 | Comms Hub | 10,000,000 | 20,000 | 11 d | 28,000 | 1,400,000 | 6 | Buildings to Lv 19 |
 | 20 | Citadel | 12,000,000 | 23,000 | 12 d | 31,000 | 1,600,000 | 7 | Buildings to Lv 20, 7th construction crew, Citadel status |
 *Levels 11–15 are post-release; 16–20 are reserve.* "Crews" means construction crews (simultaneous builds). All numbers are first-pass balance and will be tuned against the economy in Phase 6.
@@ -82,7 +83,7 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 5 | **Camp HQ · East Wing:** **L-shape**: a red-roofed east wing projects forward; gabled entrance bay; covered link-way; antenna |
 | 6 | **Admin Block · Veranda:** first **two storeys**; full-width green veranda on columns; rooftop water tank |
 | 7 | **Admin Block · Courtyard:** **U-shape**: two-storey wings either side; projecting gabled entrance with a balcony; courtyard with a central flagpole and hedges |
-| 8 | **Headquarters:** three-storey main block with wings, grand porch, twin flagpoles |
+| 8 | **Headquarters:** three-storey main block with wings, grand porch, twin flagpoles; **rooftop cupola with a flag** (a preview of the Lv 9 clock tower) |
 | 9 | **Headquarters · Clock Tower:** four-storey clock tower with a dish and antenna |
 | 10 | **HQ Complex:** five-storey tower, two-storey wings with red roofs, white columned portico with a pediment *(release cap)* |
 | 11 | **Ops Block · Radar:** wide four-storey flat-roof block topped by a **giant white radar dome** on a drum; clock over a projecting entrance; low red-roofed pavilions either side |
@@ -91,8 +92,8 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 14 | **Command Centre · Twin Towers:** **twin four-storey towers** bridged by a three-storey glass block, with a red-and-white lattice comms mast between them |
 | 15 | **Command Centre · Landmark:** **five-storey crowned tower** on a podium; red-roofed wings; fountain plaza and ceremonial arch |
 | 16 | **Secure Compound:** the secure band begins. **Perimeter wall with mesh fence, gatehouse, boom gate, bollards and CCTV**; wide three-storey concrete block with dark ribbon windows, glass lobby, rooftop solar |
-| 17 | **Operations Centre:** a **glass fourth storey cantilevered** over the entrance, with a green roof |
-| 18 | **Bunker Command:** **earth-bermed** concrete core with steel blast doors and vents; green roof with a glass command pavilion and radar (~2.5 storeys) |
+| 17 | **Operations Centre:** four-storey block with **vertical white fins** and a glass fifth storey cantilevered over the entrance, with a green roof |
+| 18 | **Fortress Command:** earth-bermed two-storey concrete base with blast doors, and a three-storey glass command tower rising from the grass roof |
 | 19 | **Comms Hub:** three-storey block with a **saw-tooth solar roof**; big satellite dish on a low terrace; short lattice mast |
 | 20 | **Citadel:** low **courtyard ring** of three-storey ranges with **glass corner towers**, gold accent band, Supertree garden in the courtyard and a glass gate |
 
@@ -136,7 +137,7 @@ Houses Recruits. Higher levels house more of them and help them rest faster. Foo
 | 1 | **Basha Lines:** olive tarp shelters on poles over sleeping mats, field packs, sandbags, crates |
 | 2 | **Tent Lines:** two big canvas tents, washing line, water drums and cooler |
 | 3 | **Kampong Barrack:** timber hut on stilts, zinc roof, wooden steps |
-| 4 | **Barrack:** classic cream single-storey barrack, zinc roof, louvre windows |
+| 4 | **Barrack:** long cream barrack with a **red-brown hip roof** and a full-length green veranda |
 | 5 | **Twin Barracks:** two parallel red-roofed barracks joined by covered link-ways |
 | 6 | **Bunk Block:** first two storeys; front corridor with towels on the parapet; end stair |
 | 7 | **Stair Tower:** two storeys plus a three-storey stair tower with a pyramid roof |
@@ -144,13 +145,13 @@ Houses Recruits. Higher levels house more of them and help them rest faster. Foo
 | 9 | **Void Deck:** HDB-style open ground floor with benches; projecting gabled stair/lift core with a painted block number |
 | 10 | **Bunk Complex:** void deck plus three room floors; stair towers at both ends; rooftop tanks |
 | 11 | **Modern Bunk:** flat roof, white vertical fins, rooftop solar |
-| 12 | **Sky Garden:** planted roof with a timber pergola; glass stair core |
+| 12 | **Sky Garden:** void deck plus three room floors, and a planted roof terrace with a low glass garden pavilion and pergola |
 | 13 | **Twin Block:** two slim red-roofed blocks joined by glass sky-bridges |
 | 14 | **Terrace Bunk:** stepped tiers with planted terraces |
 | 15 | **Residences:** U-shape, red roofs, gold band, courtyard Supertree, entrance arch |
 | 16 | **Balcony Quarters:** perimeter wall and gate; long three-storey block with recessed, colour-panelled balconies and laundry; solar roof |
 | 17 | **Pod Quarters:** stacked modular pods with coloured doors, steel walkways |
-| 18 | **Garden Quarters:** two slim two-storey slabs with a planted, tree-lined street and a pergola with laundry between them |
+| 18 | **Garden Quarters:** two slim four-storey slabs with planter boxes on every floor, joined by a tree-lined street with a pergola |
 | 19 | **Green-Wall Quarters:** chequerboard of planted panels and windows across the facade; rooftop wind turbines |
 | 20 | **Townhouse Citadel:** staggered row of four three- and four-storey townhouse units with coloured balconies, gold-trimmed roof terraces |
 
@@ -261,13 +262,13 @@ Stores Supplies; delivery trucks unload here. **Signature at every level:** crat
 | 10 | **Logistics Hub:** high-bay store, cold store, covered dock and weighbridge |
 | 11 | **Automated Store:** white high-bay with a giant yellow/black chevron band and a cantilevered glass control room |
 | 12 | **Drone Depot:** flat roof with three yellow drone pads; a delivery drone hovering |
-| 13 | **Vertical Store:** glass automated storage tower with visible racking, conveyor into a low dock hall |
-| 14 | **Wave-Roof Depot:** undulating roof of alternating arcs over a glazed shed |
+| 13 | **Vertical Store:** tall glass storage tower with colourful stacked stock and a yellow cap, beside a two-storey dock hall |
+| 14 | **Wave-Roof Depot:** light glazed shed under big **teal and white wave roofs** |
 | 15 | **Grand Goods Shed:** railway-style goods shed with three gabled arched doorways, gold band, 'QM DEPOT' plaque |
-| 16 | **Vault Store:** windowless concrete strongroom with a round vault door; fenced cage of crates |
+| 16 | **Vault Store:** concrete strongroom with a round vault door, hazard-stripe band, floodlights and a covered crate cage |
 | 17 | **Robotic Warehouse:** glass walls reveal a colourful robot shelving grid; conveyor out to the dock |
 | 18 | **Tensile Depot:** three peaked white fabric canopies over a pallet yard |
-| 19 | **Rail Depot:** short rail siding with a red freight wagon beside a platform store |
+| 19 | **Rail Depot:** rail siding with a red freight wagon under a platform canopy, beside a **brick-red** goods shed |
 | 20 | **Dome Depot:** geodesic storage dome with a gold ring and a glazed dock entrance |
 
 Review scene: open the game with `?showcase=qmstore`.
