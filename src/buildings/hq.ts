@@ -24,10 +24,10 @@ export const HQ_LEVELS: LevelStats[] = [
   L(8, 'Headquarters', 220_000, 1_500, 1 * DAY, 6100, 100_000, 3, ['Mortar Pit', '2nd Cookhouse', 'Boat Jetty (Cove)', 'Adventure Training Centre (Lakeside)']),
   L(9, 'Headquarters · Clock Tower', 400_000, 2_200, 1.5 * DAY, 7200, 150_000, 4, ['Searchlight', 'Armoury', 'Signal Station (Ridge)', '4th construction crew']),
   L(10, 'HQ Complex', 700_000, 3_000, 2 * DAY, 8500, 200_000, 4, ['Firing Range', '5th Bunk', 'All buildings to Lv 10']),
-  L(11, 'Command HQ · Radar', 1_100_000, 4_000, 3 * DAY, 10000, 275_000, 4, ['Artillery Emplacement', 'Buildings to Lv 11']),
+  L(11, 'Ops Block · Radar', 1_100_000, 4_000, 3 * DAY, 10000, 275_000, 4, ['Artillery Emplacement', 'Buildings to Lv 11']),
   L(12, 'Command HQ · Atrium', 1_600_000, 5_200, 4 * DAY, 11600, 350_000, 4, ['Buildings to Lv 12', '6th Bunk']),
-  L(13, 'Command HQ · Helipad', 2_200_000, 6_600, 5 * DAY, 13400, 450_000, 5, ['Air Defence', '5th construction crew', 'Buildings to Lv 13']),
-  L(14, 'Command Centre', 3_000_000, 8_200, 6 * DAY, 15400, 575_000, 5, ['Buildings to Lv 14']),
+  L(13, 'Helipad Tower', 2_200_000, 6_600, 5 * DAY, 13400, 450_000, 5, ['Air Defence', '5th construction crew', 'Buildings to Lv 13']),
+  L(14, 'Command Centre · Twin Towers', 3_000_000, 8_200, 6 * DAY, 15400, 575_000, 5, ['Buildings to Lv 14']),
   L(15, 'Command Centre · Landmark', 4_000_000, 10_000, 7 * DAY, 17500, 700_000, 5, ['Buildings to Lv 15', 'Landmark status']),
 ];
 
@@ -285,87 +285,190 @@ function clock(k: Kit, y: number, z: number) {
   k.box(0.1, 0.02, 0.02, C.dark, 0.04, y, z + 0.07);
 }
 
-/** Command band (11–15): radar → atrium → helipad → comms mast → landmark. */
+/** Command band (11–15): every level gets its own massing. */
 function command(k: Kit, level: number, y: number) {
   k.path(1.2, 1.3, 0, 2.25, y);
-  const bw = 3.4, bd = 2.0, bz = -1.5;
-  // Main block: hip roof until 13, then flat roof with a helipad.
-  const h = k.block(bw, bd, 3, 0, y, bz);
-  if (level < 13) k.hipRoof(bw, bd, 0.7, 0, y + h, bz);
-  else {
-    k.flatRoof(bw, bd, 0, y + h, bz);
-    k.helipad(-0.55, y + h + 0.06, bz, 1.4);
-    k.windsock(-1.5, y + h + 0.06, bz + 0.75);
-  }
-  frontWindows(k, 0, bz, bw, bd, 3, y, 6, []);
-  sideWindows(k, 0, bz, bw, bd, 3, y);
+  if (level === 11) opsRadar(k, y);
+  else if (level === 12) atrium(k, y);
+  else if (level === 13) helipadTower(k, y);
+  else if (level === 14) twinTowers(k, y);
+  else landmark(k, y);
+}
 
-  // Wings keep the camp's red-brown hip roofs; two storeys (11), three from 12.
-  const wingStoreys = level >= 12 ? 3 : 2;
-  const ww = 1.0, wd = 1.8, wz = bz - 0.05;
-  for (const s of [-1, 1]) {
-    const wx = s * (bw / 2 + ww / 2);
-    const wh = k.block(ww, wd, wingStoreys, wx, y, wz, C.wallAlt);
-    k.hipRoof(ww, wd, 0.45, wx, y + wh, wz);
-    for (let f = 0; f < wingStoreys; f++) k.windowRow('front', wx, wz, ww, wd, 1, y + f * STOREY + 0.42, { louvre: f > 0 });
-    aircons(k, wx + (s * ww) / 2, wz, wingStoreys, y, s as 1 | -1);
-    if (level >= 14) k.fins(ww - 0.1, wingStoreys * STOREY - 0.25, wx, y + 0.12, wz + wd / 2 + 0.07, 4);
-  }
-  if (level < 13) k.solarPanels(0.9, y + h + 0.05, bz - 0.55, 0.9, 0.5);
-  if (level >= 14) k.latticeMast(1.1, y + h + 0.06, bz - 0.45, 3.0);
-
-  // Tower: 5 storeys (11–12), 6 (13–14), 7 + crown (15).
-  const floors = level >= 15 ? 7 : level >= 13 ? 6 : 5;
-  const tw = 1.3, td = 1.1, tz = bz + bd / 2 + td / 2 - 0.05;
-  const th = k.block(tw, td, floors, 0, y, tz, C.wallAlt);
-  for (let f = 1; f < floors; f++) k.window('front', 0, tz, tw, td, 0, y + f * STOREY + 0.36, 0.66, 0.44);
-  clock(k, y + (floors - 1) * STOREY + 0.55, tz + td / 2);
-  if (level >= 15) {
-    // Stepped crown: gold band, belvedere storey with arched openings, gold pyramid and spire.
-    k.box(tw + 0.14, 0.12, td + 0.14, '#d9b24a', 0, y + th, tz);
-    const cy = y + th + 0.12;
-    for (const [cx, cz] of [[-0.42, -0.35], [0.42, -0.35], [-0.42, 0.35], [0.42, 0.35]]) k.box(0.16, 0.8, 0.16, C.white, cx, cy, tz + cz);
-    k.box(0.7, 0.8, 0.55, '#5d8aa3', 0, cy, tz);
-    k.box(1.1, 0.1, 0.95, '#d9b24a', 0, cy + 0.8, tz);
-    k.hipRoof(1.0, 0.85, 0.55, 0, cy + 0.9, tz, '#d9b24a', 0.05);
-    k.cyl(0.03, 0.55, '#d9b24a', 0, cy + 1.42, tz, 6, 0.005);
-  } else {
-    k.flatRoof(tw, td, 0, y + th, tz);
-    k.radarDome(0, y + th + 0.06, tz, 0.32);
-    k.dish(0.45, y + th + 0.06, tz - 0.3, 0.8);
-  }
-  if (level >= 12) {
-    k.glassBox(2.2, 2 * STOREY - 0.1, 0.8, 0, y, tz + td / 2 + 0.4);
-    k.door('front', 0, tz + td / 2 + 0.4, 2.2, 0.8, 0, y, 0.5, 0.66, '#3d5a6c');
-    // Green entrance canopy on the atrium
-    k.box(1.2, 0.07, 0.5, C.roofGreen, 0, y + 0.82, tz + td / 2 + 1.05);
-    for (const s of [-0.5, 0.5]) k.box(0.05, 0.82, 0.05, C.white, s, y, tz + td / 2 + 1.25);
-  } else {
-    k.door('front', 0, tz, tw, td, 0, y, 0.5, 0.66);
-    portico(k, tz + td / 2 + 0.42, 2.2, y, 6);
-  }
-
-  // Forecourt
-  const gold = level >= 15;
+/** Shared forecourt: flags, lamps, planters, name plaque. */
+function forecourt(k: Kit, y: number, name: string, plaque = true) {
   k.flagpole(-2.4, 2.3, 2.8, y);
   k.flagpole(2.4, 2.3, 2.8, y);
-  if (gold) for (const s of [-2.4, 2.4]) k.cyl(0.05, 0.06, '#d9b24a', s, y + 0.1 + 2.8, 2.3, 8);
-  if (level >= 15) {
-    k.box(2.6, 0.015, 1.2, '#e3dccb', 0, y, 2.1); // ceremonial plaza paving
-    k.fountain(0, 2.0, 0.42, y);
-    k.arch(0, 2.72, 2.1, 'COMMAND CENTRE', y);
-    k.hedge(-1.6, 1.65, 0.8, 0.25, y);
-    k.hedge(1.6, 1.65, 0.8, 0.25, y);
-  } else {
-    k.planter(-1.35, 1.9, 0.8, y);
-    k.planter(1.35, 1.9, 0.8, y);
-    k.plaque(level >= 14 ? 'COMMAND CENTRE' : 'COMMAND HQ', -1.2, 2.6, y, 1.25);
-    if (level >= 14) {
-      k.hedge(1.45, 2.55, 0.9, 0.25, y);
-    }
+  k.lamp(-0.85, 2.65, y);
+  k.lamp(0.7, 2.65, y);
+  if (plaque) k.plaque(name, -1.25, 2.6, y, 1.25);
+}
+
+/** Low red-roofed pavilion: keeps the camp look on the modern levels. */
+function pavilion(k: Kit, x: number, z: number, w: number, d: number, y: number, storeys = 1) {
+  const h = k.block(w, d, storeys, x, y, z);
+  k.hipRoof(w, d, 0.45, x, y + h, z);
+  k.window('front', x, z, w, d, 0, y + 0.42);
+  return h;
+}
+
+/** 11 — Ops Block: broad four-storey flat-roofed block crowned by a giant radar dome. */
+function opsRadar(k: Kit, y: number) {
+  const bw = 3.6, bd = 2.2, bz = -1.2;
+  const h = k.block(bw, bd, 4, 0, y, bz);
+  k.flatRoof(bw, bd, 0, y + h, bz);
+  frontWindows(k, 0, bz, bw, bd, 4, y, 6, [2, 3]);
+  sideWindows(k, 0, bz, bw, bd, 4, y);
+  // Radar drum + big dome
+  k.cyl(0.6, 0.45, C.wallAlt, 0, y + h + 0.06, bz, 12);
+  k.cyl(0.64, 0.06, C.trim, 0, y + h + 0.51, bz, 12);
+  k.radarDome(0, y + h + 0.5, bz, 0.72);
+  k.dish(1.4, y + h + 0.06, bz - 0.6, 0.6);
+  k.dish(-1.4, y + h + 0.06, bz - 0.6, 2.4);
+  // Projecting entrance with a clock over it
+  const ez = bz + bd / 2 + 0.4;
+  const eh = k.block(1.4, 0.8, 2, 0, y, ez, C.wallAlt);
+  k.flatRoof(1.4, 0.8, 0, y + eh, ez);
+  clock(k, y + STOREY + 0.5, ez + 0.4);
+  k.door('front', 0, ez, 1.4, 0.8, 0, y, 0.5, 0.66);
+  k.porch(0, ez + 0.75, 1.2, 0.6, 0.8, y, 2);
+  // Camp-style pavilions either side
+  for (const s of [-1, 1]) pavilion(k, s * 2.35, -0.2, 1.0, 1.6, y);
+  aircons(k, bw / 2, bz, 4, y, 1);
+  aircons(k, -bw / 2, bz, 4, y, -1);
+  k.planter(-1.4, 1.8, 0.7, y);
+  k.planter(1.4, 1.8, 0.7, y);
+  forecourt(k, y, 'COMMAND HQ');
+}
+
+/** 12 — Atrium: full-width glass atrium across the front; roof garden on top. */
+function atrium(k: Kit, y: number) {
+  const bw = 4.6, bd = 2.0, bz = -1.6;
+  const h = k.block(bw, bd, 4, 0, y, bz);
+  k.flatRoof(bw, bd, 0, y + h, bz);
+  frontWindows(k, 0, bz, bw, bd, 4, y, 7, []);
+  sideWindows(k, 0, bz, bw, bd, 4, y);
+  // Roof garden: hedges, a small tree canopy and a pergola
+  const ry = y + h + 0.06;
+  k.hedge(-1.5, bz + 0.6, 1.2, 0.3, ry);
+  k.hedge(1.5, bz + 0.6, 1.2, 0.3, ry);
+  for (const x of [-1.2, 0, 1.2]) {
+    const t = new THREE.Mesh(new THREE.IcosahedronGeometry(0.28, 0), new THREE.MeshStandardMaterial({ color: '#4fae3a', flatShading: true }));
+    t.position.set(x, ry + 0.45, bz - 0.35);
+    k.add(t);
+    k.box(0.05, 0.3, 0.05, '#8a5a3b', x, ry, bz - 0.35);
   }
-  k.lamp(-0.8, 2.65, y);
-  k.lamp(0.65, 2.65, y);
+  k.radarDome(1.7, ry, bz - 0.5, 0.3);
+  // Full-width glass atrium, two storeys, with sun fins and a long canopy
+  const az = bz + bd / 2 + 0.65;
+  k.glassBox(4.6, 2 * STOREY - 0.1, 1.3, 0, y, az);
+  k.fins(4.6, 2 * STOREY - 0.2, 0, y + 0.05, az + 0.7, 12);
+  k.door('front', 0, az, 4.6, 1.3, 0, y, 0.6, 0.7, '#3d5a6c');
+  k.box(2.2, 0.08, 0.6, C.roofGreen, 0, y + 0.9, az + 0.95);
+  for (const s of [-1, 1]) k.box(0.06, 0.9, 0.06, C.white, s * 1.0, y, az + 1.2);
+  clock(k, y + 3 * STOREY + 0.5, bz + bd / 2);
+  aircons(k, bw / 2, bz, 4, y, 1);
+  aircons(k, -bw / 2, bz, 4, y, -1);
+  forecourt(k, y, 'COMMAND HQ');
+}
+
+/** 13 — Helipad Tower: asymmetric; a tall six-storey slab carries the helipad. */
+function helipadTower(k: Kit, y: number) {
+  // Lower four-storey block on the left
+  const lw = 2.8, ld = 2.0, lx = -0.9, lz = -1.4;
+  const lh = k.block(lw, ld, 4, lx, y, lz);
+  k.hipRoof(lw, ld, 0.6, lx, y + lh, lz);
+  frontWindows(k, lx, lz, lw, ld, 4, y, 4, [1, 2]);
+  k.windowRow('left', lx, lz, lw, ld, 2, y + 0.42);
+  // Tall slab on the right
+  const tw = 1.7, td = 2.6, tx = 1.55, tz = -1.1;
+  const th = k.block(tw, td, 6, tx, y, tz, C.wallAlt);
+  k.flatRoof(tw, td, tx, y + th, tz);
+  for (let f = 0; f < 6; f++) {
+    k.windowRow('front', tx, tz, tw, td, 2, y + f * STOREY + 0.42, { louvre: f > 0 });
+    k.windowRow('left', tx, tz, tw, td, 3, y + f * STOREY + 0.42, { louvre: f > 0 });
+  }
+  k.fins(tw - 0.1, 6 * STOREY - 0.3, tx, y + 0.15, tz + td / 2 + 0.07, 5);
+  k.helipad(tx, y + th + 0.06, tz, 1.5);
+  k.windsock(tx + 0.75, y + th + 0.06, tz - 1.1);
+  aircons(k, tx + tw / 2, tz, 6, y, 1);
+  // Glass link between the two blocks, and a glass entrance on the low block
+  k.glassBox(1.1, 2 * STOREY - 0.1, 1.0, lx + 0.4, y, lz + ld / 2 + 0.5);
+  k.door('front', lx + 0.4, lz + ld / 2 + 0.5, 1.1, 1.0, 0, y, 0.5, 0.66, '#3d5a6c');
+  k.box(1.3, 0.07, 0.5, C.roofGreen, lx + 0.4, y + 0.9, lz + ld / 2 + 1.2);
+  clock(k, y + 3 * STOREY + 0.5, lz + ld / 2);
+  k.radarDome(lx - 0.7, y + lh + 0.25, lz, 0.28);
+  k.hedge(-2.2, 1.0, 0.8, 0.25, y);
+  forecourt(k, y, 'COMMAND HQ');
+}
+
+/** 14 — Command Centre: twin towers bridged by a glass block, giant comms mast between. */
+function twinTowers(k: Kit, y: number) {
+  for (const s of [-1, 1]) {
+    const tw = 1.35, td = 2.2, tx = s * 1.8, tz = -1.2;
+    const th = k.block(tw, td, 6, tx, y, tz);
+    k.hipRoof(tw, td, 0.5, tx, y + th, tz);
+    for (let f = 0; f < 6; f++) {
+      k.windowRow('front', tx, tz, tw, td, 2, y + f * STOREY + 0.42, { louvre: f > 0 });
+      k.windowRow(s < 0 ? 'left' : 'right', tx, tz, tw, td, 2, y + f * STOREY + 0.42);
+    }
+    k.fins(tw - 0.1, 6 * STOREY - 0.3, tx, y + 0.15, tz + td / 2 + 0.07, 4);
+    aircons(k, tx + (s * tw) / 2, tz, 6, y, s as 1 | -1);
+  }
+  // Glass bridge block: four storeys between the towers
+  const bw = 2.25, bd = 1.8, bz = -1.3;
+  k.glassBox(bw, 4 * STOREY - 0.1, bd, 0, y, bz);
+  k.flatRoof(bw, bd, 0, y + 4 * STOREY, bz);
+  k.latticeMast(0, y + 4 * STOREY + 0.06, bz - 0.1, 4.0, 0.7);
+  // Entrance canopy and clock on the bridge
+  k.door('front', 0, bz, bw, bd, 0, y, 0.6, 0.7, '#3d5a6c');
+  k.box(1.6, 0.08, 0.7, C.roofGreen, 0, y + 0.9, bz + bd / 2 + 0.35);
+  for (const s of [-0.7, 0.7]) k.box(0.06, 0.9, 0.06, C.white, s, y, bz + bd / 2 + 0.65);
+  k.hedge(-1.6, 1.4, 1.0, 0.25, y);
+  k.hedge(1.6, 1.4, 1.0, 0.25, y);
+  forecourt(k, y, 'COMMAND CENTRE');
+}
+
+/** 15 — Landmark: one eight-storey tower with a gold crown on a stepped podium. */
+function landmark(k: Kit, y: number) {
+  // Podium: three storeys, stepped
+  const pw = 3.4, pd = 2.4, pz = -1.3;
+  const ph = k.block(pw, pd, 2, 0, y, pz);
+  k.flatRoof(pw, pd, 0, y + ph, pz);
+  frontWindows(k, 0, pz, pw, pd, 2, y, 6, [2, 3]);
+  // Red-roofed camp wings
+  for (const s of [-1, 1]) {
+    const h = pavilion(k, s * 2.35, -1.0, 1.1, 2.0, y, 2);
+    k.window('front', s * 2.35, -1.0, 1.1, 2.0, 0, y + STOREY + 0.42);
+    void h;
+  }
+  // Tower
+  const tw = 1.4, td = 1.4, tz = pz;
+  const floors = 8;
+  const th = k.block(tw, td, floors, 0, y, tz, C.wallAlt);
+  for (let f = 2; f < floors; f++) {
+    k.window('front', 0, tz, tw, td, -0.32, y + f * STOREY + 0.36, 0.3, 0.44);
+    k.window('front', 0, tz, tw, td, 0.32, y + f * STOREY + 0.36, 0.3, 0.44);
+    k.window('right', 0, tz, tw, td, 0, y + f * STOREY + 0.36, 0.5, 0.44);
+  }
+  clock(k, y + (floors - 1) * STOREY + 0.5, tz + td / 2);
+  // Gold crown: band, open belvedere, pyramid, spire
+  k.box(tw + 0.16, 0.12, td + 0.16, '#d9b24a', 0, y + th, tz);
+  const cy = y + th + 0.12;
+  for (const [cx, cz] of [[-0.45, -0.45], [0.45, -0.45], [-0.45, 0.45], [0.45, 0.45]]) k.box(0.16, 0.85, 0.16, C.white, cx, cy, tz + cz);
+  k.box(0.7, 0.85, 0.7, '#5d8aa3', 0, cy, tz);
+  k.box(1.2, 0.1, 1.2, '#d9b24a', 0, cy + 0.85, tz);
+  k.hipRoof(1.1, 1.1, 0.6, 0, cy + 0.95, tz, '#d9b24a', 0.05);
+  k.cyl(0.035, 0.7, '#d9b24a', 0, cy + 1.5, tz, 6, 0.005);
+  // Grand entrance and plaza
+  portico(k, pz + pd / 2 + 0.42, 2.0, y, 6);
+  k.box(3.0, 0.015, 1.3, '#e3dccb', 0, y, 2.05);
+  k.fountain(0, 1.95, 0.42, y);
+  k.arch(0, 2.72, 2.1, 'COMMAND CENTRE', y);
+  k.hedge(-1.6, 1.6, 0.8, 0.25, y);
+  k.hedge(1.6, 1.6, 0.8, 0.25, y);
+  forecourt(k, y, '', false);
+  for (const s of [-2.4, 2.4]) k.cyl(0.05, 0.06, '#d9b24a', s, y + 2.9, 2.3, 8);
 }
 
 export function buildHq(level: number): Kit {

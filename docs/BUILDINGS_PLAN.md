@@ -55,10 +55,10 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 8 | Headquarters | 220,000 | 1,500 | 1 d | 6,100 | 100,000 | 3 | Mortar Pit, 2nd Cookhouse, Boat Jetty (Cove), Adventure Training Centre (Lakeside) |
 | 9 | Headquarters · Clock Tower | 400,000 | 2,200 | 1.5 d | 7,200 | 150,000 | 4 | Searchlight, Armoury, Signal Station (Ridge), 4th construction crew |
 | 10 | HQ Complex | 700,000 | 3,000 | 2 d | 8,500 | 200,000 | 4 | Firing Range, 5th Bunk, All buildings to Lv 10 |
-| 11 | Command HQ · Radar | 1,100,000 | 4,000 | 3 d | 10,000 | 275,000 | 4 | Artillery Emplacement, Buildings to Lv 11 |
+| 11 | Ops Block · Radar | 1,100,000 | 4,000 | 3 d | 10,000 | 275,000 | 4 | Artillery Emplacement, Buildings to Lv 11 |
 | 12 | Command HQ · Atrium | 1,600,000 | 5,200 | 4 d | 11,600 | 350,000 | 4 | Buildings to Lv 12, 6th Bunk |
-| 13 | Command HQ · Helipad | 2,200,000 | 6,600 | 5 d | 13,400 | 450,000 | 5 | Air Defence, 5th construction crew, Buildings to Lv 13 |
-| 14 | Command Centre | 3,000,000 | 8,200 | 6 d | 15,400 | 575,000 | 5 | Buildings to Lv 14 |
+| 13 | Helipad Tower | 2,200,000 | 6,600 | 5 d | 13,400 | 450,000 | 5 | Air Defence, 5th construction crew, Buildings to Lv 13 |
+| 14 | Command Centre · Twin Towers | 3,000,000 | 8,200 | 6 d | 15,400 | 575,000 | 5 | Buildings to Lv 14 |
 | 15 | Command Centre · Landmark | 4,000,000 | 10,000 | 7 d | 17,500 | 700,000 | 5 | Buildings to Lv 15, Landmark status |
 
 *Levels 11–15 are post-release.* "Crews" means construction crews (simultaneous builds). All numbers are first-pass balance and will be tuned against the economy in Phase 6.
@@ -77,10 +77,10 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 8 | **Headquarters:** three-storey main block with wings, grand porch, twin flagpoles |
 | 9 | **Headquarters · Clock Tower:** four-storey clock tower with a dish and antenna |
 | 10 | **HQ Complex:** five-storey tower, two-storey wings with red roofs, white columned portico with a pediment *(release cap)* |
-| 11 | **Command HQ · Radar:** radar dome replaces the tower roof; solar panels |
-| 12 | **Command HQ · Atrium:** glass entrance atrium with a green canopy; three-storey wings |
-| 13 | **Command HQ · Helipad:** main roof goes flat with a helipad and windsock; six-storey tower |
-| 14 | **Command Centre:** red-and-white lattice comms mast; vertical sun fins on the wings |
-| 15 | **Command Centre · Landmark:** seven-storey tower with a gold belvedere crown and spire; plaza with a fountain and a ceremonial "COMMAND CENTRE" arch |
+| 11 | **Ops Block · Radar:** wide four-storey flat-roof block topped by a **giant white radar dome** on a drum; clock over a projecting entrance; low red-roofed pavilions either side |
+| 12 | **Command HQ · Atrium:** **full-width two-storey glass atrium** with sun fins across the front; rooftop garden |
+| 13 | **Helipad Tower:** **asymmetric**: four-storey red-roofed block and a **tall six-storey slab with a rooftop helipad** |
+| 14 | **Command Centre · Twin Towers:** **twin six-storey towers** bridged by a glass block, with a **giant red-and-white lattice comms mast** between them |
+| 15 | **Command Centre · Landmark:** **single eight-storey tower with a gold belvedere crown and spire** on a podium; red-roofed wings; fountain plaza and ceremonial arch |
 
 Review scene: open the game with `?showcase=hq`.
