@@ -31,6 +31,7 @@ export const RELEASE_MAX_LEVEL = 10;
 | **QM Store** | Forklift shuttles stock: drives in, raises its forks, reverses and lowers them; gantry hoist travels and drops its hook | |
 | **Workshop** | Vehicle lift raises and lowers the jeep; the engine is winched on the hoist; overhead crane trolley travels; robot arms swing; turbines and roof vents spin; welding sparks | |
 | **Utilities** | Generator fans spin and exhaust smokes; hand pump rocks; float gauge rises and falls; clarifier arm sweeps; flywheel turns; battery LEDs blink; energy-core rings spin | |
+| **Mama Shop** | Awning fringe flaps; hanging snack packets sway; fridge light flickers; tri-vision billboard turns; bubble-tea cup spins; lanterns sway; vending lights blink; delivery drone lands | |
 | **Secure band (16–20)** | Boom gate lifts to let vehicles in; CCTV cameras pan | |
 
 ## Roster and build order
@@ -45,7 +46,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 4 | **QM Store** | 4×4 | 1 | Stores Supplies; delivery trucks unload here | ✅ 20/20 designed |
 | 5 | **Workshop** | 4×4 | 2 | Produces Supplies; repairs | ✅ 20/20 designed |
 | 6 | **Utilities** | 3×3 | 2 | Power and water; nearby buildings run faster | ✅ 20/20 designed |
-| 7 | Mama Shop | 2×2 | 2 | Small Morale boost and a trickle of income | planned |
+| 7 | **Mama Shop** | 2×2 | 2 | Morale and a trickle of Supplies | ✅ 20/20 designed |
 | 8 | Admin Office | 4×3 | 3 | Objectives and Reputation boosts | planned |
 | 9 | Rec Centre | 4×4 | 3 | Morale | planned |
 | 10 | Medical Centre | 4×3 | 4 | Recovery (and healing units, later) | planned |
@@ -401,3 +402,61 @@ Power and water for the outpost; nearby buildings run faster when supplied. **Si
 | 20 | **Energy Core:** glowing core in a glass drum with **three spinning gold rings** |
 
 Review scene: open the game with `?showcase=utilities`.
+
+---
+
+# Mama Shop: full specification
+
+The neighbourhood provision shop: lifts Morale nearby and earns a trickle of Supplies. **Signature at every level:** a striped awning with a flapping fringe, shelves of colourful snacks, a drinks fridge with a flickering light. Footprint **2×2**; unlocked at HQ 2.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Morale | Income |
+|---|---|---|---|---|---|---|---|
+| 1 | Tricycle Cart | 150 | 0 | 1 min | 200 | +1 | 15/h |
+| 2 | Drinks Kiosk | 450 | 0 | 5 min | 240 | +1 | 20/h |
+| 3 | Kedai Kayu | 1,000 | 25 | 15 min | 290 | +2 | 25/h |
+| 4 | Mama Shop | 2,500 | 90 | 45 min | 350 | +2 | 35/h |
+| 5 | Corner Shop | 5,500 | 220 | 1.5 h | 410 | +3 | 45/h |
+| 6 | Shophouse | 11,000 | 400 | 3 h | 500 | +3 | 55/h |
+| 7 | Mini-Mart | 20,000 | 700 | 5 h | 600 | +4 | 70/h |
+| 8 | Billboard Shop | 36,000 | 1,100 | 8 h | 720 | +4 | 95/h |
+| 9 | Twin Shophouses | 60,000 | 1,600 | 14 h | 860 | +5 | 120/h |
+| 10 | Convenience Store *(release cap)* | 95,000 | 2,300 | 20 h | 1,030 | +5 | 160/h |
+| 11 | Vending Pavilion | 150,000 | 3,100 | 1.25 d | 1,240 | +6 | 205/h |
+| 12 | Bubble Tea Kiosk | 225,000 | 4,100 | 1.75 d | 1,490 | +6 | 270/h |
+| 13 | Container Pop-up | 320,000 | 5,300 | 2.25 d | 1,780 | +7 | 350/h |
+| 14 | Glass Cube Store | 440,000 | 6,700 | 2.75 d | 2,140 | +7 | 455/h |
+| 15 | Heritage Shophouse | 590,000 | 8,300 | 3.25 d | 2,570 | +8 | 590/h |
+| 16 | Armoured Kiosk | 770,000 | 10,000 | 3.75 d | 3,080 | +8 | 770/h |
+| 17 | Locker Shop | 990,000 | 12,000 | 4.25 d | 3,700 | +9 | 1000/h |
+| 18 | Garden Kiosk | 1,240,000 | 14,300 | 4.75 d | 4,440 | +9 | 1300/h |
+| 19 | Drone Drop Kiosk | 1,520,000 | 16,900 | 5.25 d | 5,320 | +10 | 1685/h |
+| 20 | Galleria | 1,850,000 | 19,800 | 5.75 d | 6,390 | +10 | 2195/h |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Mama Shop level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Tricycle Cart:** tricycle cart with a striped canopy, snacks, cooler box, plastic stools |
+| 2 | **Drinks Kiosk:** tiny olive kiosk with a flip-up flap, fridge, drink crates, hanging snack packets |
+| 3 | **Kedai Kayu:** timber shop with folding doors flung open, zinc roof, hanging snacks, 'KEDAI' sign |
+| 4 | **Mama Shop:** cream shop with a rolled-up shutter, red-and-white awning, 'MAMA SHOP' fascia, fridge outside |
+| 5 | **Corner Shop:** wrap-around teal awning, ice-cream freezer chest, newspaper rack |
+| 6 | **Shophouse:** two-storey pastel shophouse with a **five-foot-way arcade** and green shuttered windows |
+| 7 | **Mini-Mart:** tall store with a big shop window, blinking OPEN light, red 'MINI MART' fascia |
+| 8 | **Billboard Shop:** two-storey shop with a rooftop **rotating tri-vision billboard** |
+| 9 | **Twin Shophouses:** two narrow pastel shophouses with gable fronts, 'MAMA & SONS' |
+| 10 | **Convenience Store:** three-storey 24/7 mart with a teal fascia, vending machines, ATM |
+| 11 | **Vending Pavilion:** tall glass pavilion lined with colourful vending machines |
+| 12 | **Bubble Tea Kiosk:** round kiosk with a giant **spinning bubble-tea cup** on the roof |
+| 13 | **Container Pop-up:** three stacked shipping containers converted into a shop, rooftop deck |
+| 14 | **Glass Cube Store:** glass box with visible shelves and a planted roof |
+| 15 | **Heritage Shophouse:** three-storey ornate pastel shophouse, gold bands, **swaying red lanterns** |
+| 16 | **Armoured Kiosk:** concrete kiosk with a steel service hatch, hazard band, bollards, CCTV |
+| 17 | **Locker Shop:** wall of colourful parcel lockers with blinking lights, plus a service counter |
+| 18 | **Garden Kiosk:** kiosk wrapped in a living wall with swaying hanging planters |
+| 19 | **Drone Drop Kiosk:** three-storey kiosk with a rooftop pad and a **delivery drone** landing and taking off |
+| 20 | **Galleria:** glass barrel-vault arcade with gold ribs and a gold entrance arch |
+
+Review scene: open the game with `?showcase=mamashop`.
