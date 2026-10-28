@@ -38,6 +38,8 @@ const UP = new THREE.Vector3(0, 1, 0);
 const ease = (t: number) => t * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const FRESH_DIRT = new THREE.Color('#8a6a48');
+/** Dirt sits just above the plateau's micro-facets (±0.035) so grass never pokes through. */
+const DIRT_LIFT = 0.05;
 const GRADED_DIRT = new THREE.Color('#b8956b');
 
 /**
@@ -193,7 +195,7 @@ export class ClearanceJob {
     const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, flatShading: true }), this.tiles.length);
     mesh.receiveShadow = true;
     this.tiles.forEach((t, k) => {
-      this.m4.compose(new THREE.Vector3(t.cx, this.groundY + 0.025, t.cz), this.q.identity(), new THREE.Vector3(0, 1, 0));
+      this.m4.compose(new THREE.Vector3(t.cx, this.groundY + DIRT_LIFT, t.cz), this.q.identity(), new THREE.Vector3(0, 1, 0));
       mesh.setMatrixAt(k, this.m4);
       mesh.setColorAt(k, FRESH_DIRT);
     });
@@ -304,7 +306,7 @@ export class ClearanceJob {
     if (tile.items.length) this.fx.emit(new THREE.Vector3(tile.cx, this.groundY + 0.1, tile.cz), { color: DUST, size: 0.3, life: 1, spread: 0.5, opacity: 0.4 }, 2);
     // Raw dirt appears.
     this.animate(0.6, (t) => {
-      this.m4.compose(new THREE.Vector3(tile.cx, this.groundY + 0.025, tile.cz), this.q.identity(), this.v.set(smooth(t), 1, smooth(t)));
+      this.m4.compose(new THREE.Vector3(tile.cx, this.groundY + DIRT_LIFT, tile.cz), this.q.identity(), this.v.set(smooth(t), 1, smooth(t)));
       this.dirt.setMatrixAt(k, this.m4);
       this.dirty.add(this.dirt);
     }, 0.3);
@@ -361,7 +363,7 @@ export class ClearanceJob {
       const regrow = (gameTime - (this.startTime + this.duration)) / (this.duration * REGROW_FRACTION);
       this.tiles.forEach((t, k) => {
         const s = 1 - smooth(Math.min(1, Math.max(0, (regrow - t.regrowAt) / 0.2)));
-        this.m4.compose(new THREE.Vector3(t.cx, this.groundY + 0.025, t.cz), this.q.identity(), this.v.set(s, 1, s));
+        this.m4.compose(new THREE.Vector3(t.cx, this.groundY + DIRT_LIFT, t.cz), this.q.identity(), this.v.set(s, 1, s));
         this.dirt.setMatrixAt(k, this.m4);
       });
       this.dirty.add(this.dirt);

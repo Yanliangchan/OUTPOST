@@ -145,7 +145,7 @@ export function createSiteProps(gate: THREE.Vector3, inward: THREE.Vector3, edge
   // Pyramid: rows of 6,5,4,3,2,1
   for (let row = 0; row < 6; row++) {
     for (let k = 0; k < 6 - row; k++) {
-      const x = -4.5 + (k - (5 - row) / 2) * 0.26;
+      const x = 6.7 + (k - (5 - row) / 2) * 0.26;
       q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2 + (Math.random() - 0.5) * 0.08);
       m4.compose(new THREE.Vector3(x, row * 0.21, 2.6 + (Math.random() - 0.5) * 0.1), q, new THREE.Vector3(1.1, 1.05, 1.05));
       logs.setMatrixAt(idx++, m4);
@@ -153,15 +153,15 @@ export function createSiteProps(gate: THREE.Vector3, inward: THREE.Vector3, edge
   }
   group.add(logs);
   // Timber chocks under the pile
-  for (const z of [2.1, 3.1]) box(group, 1.8, 0.06, 0.12, '#7a5a3b', -4.5, 0, z);
+  for (const z of [2.1, 3.1]) box(group, 1.8, 0.06, 0.12, '#7a5a3b', 6.7, 0, z);
 
   group.updateMatrixWorld(true);
   return {
     group,
     cabinDoor: toWorld(3.4, 1.9),
-    pileFront: toWorld(-4.5, 1.6),
+    pileFront: toWorld(6.7, 1.4),
     flagSpot: toWorld(-2.1, 0.9),
-    truckPark: toWorld(-2.6, 4.2),
+    truckPark: toWorld(-2.9, 2.8),
     pileCapacity: capacity,
     setPileLogs(n: number) {
       logs.count = Math.max(0, Math.min(capacity, n));
