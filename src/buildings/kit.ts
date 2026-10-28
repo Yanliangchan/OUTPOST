@@ -68,7 +68,7 @@ export type Face = 'front' | 'back' | 'left' | 'right';
 export class Kit {
   readonly group = new THREE.Group();
   /** World-space-relative points where smoke/steam can be emitted. */
-  readonly emitters: { pos: THREE.Vector3; kind: 'steam' | 'smoke' }[] = [];
+  readonly emitters: { pos: THREE.Vector3; kind: 'steam' | 'smoke' | 'spray' }[] = [];
   /** Animated sub-objects (flags etc.). */
   readonly flags: THREE.Mesh[] = [];
 
@@ -227,7 +227,7 @@ export class Kit {
   }
 
   /** Gable roof with the ridge along x (rotate the kit group for other directions). */
-  gableRoof(w: number, d: number, h: number, x = 0, y = 0, z = 0, color: string = C.roof, overhang = 0.18) {
+  gableRoof(w: number, d: number, h: number, x = 0, y = 0, z = 0, color: string = C.roof, overhang = 0.18, endColor: string = C.wall, trim = true) {
     const W = w / 2 + overhang;
     const D = d / 2 + overhang;
     const v = (px: number, py: number, pz: number) => new THREE.Vector3(px, py, pz);
@@ -240,9 +240,10 @@ export class Kit {
     this.add(roof);
     // Gable end walls (triangles) in wall colour
     const ends = [v(-w / 2, 0, d / 2), v(-w / 2, h * (d / 2) / D, 0), v(-w / 2, 0, -d / 2), v(w / 2, 0, -d / 2), v(w / 2, h * (d / 2) / D, 0), v(w / 2, 0, d / 2)];
-    const gable = new THREE.Mesh(outwardGeo(ends, new THREE.Vector3(0, 0.1, 0)), mat(C.wall));
+    const gable = new THREE.Mesh(outwardGeo(ends, new THREE.Vector3(0, 0.1, 0)), mat(endColor));
     gable.position.set(x, y, z);
     this.add(gable);
+    if (!trim) return;
     this.box(2 * W + 0.04, 0.05, 0.09, C.roofDark, x, y + h - 0.03, z);
     this.box(2 * W, 0.05, 2 * D, C.trim, x, y - 0.05, z);
   }
@@ -501,5 +502,187 @@ export class Kit {
       }
       this.box(0.02, 0.02, 0.24, ['#d8342c', '#2f5a8a', '#3f7d4a'][i % 3], bx, y + 0.16, z);
     }
+  }
+
+  // ---------------- Field / early-game pieces ----------------
+
+  /** General-purpose canvas tent: short walls and a pitched roof, ridge along x. */
+  tent(w: number, d: number, x: number, z: number, y = 0.08, color = '#b9a878') {
+    const wallH = 0.38;
+    this.box(w, wallH, d, color, x, y, z);
+    this.gableRoof(w, d, 0.62, x, y + wallH, z, '#a8996a', 0.12, color, false);
+    // Rolled-up door flap and guy ropes/pegs
+    this.box(0.5, 0.48, 0.03, '#7d7250', x, y, z + d / 2 + 0.01);
+    this.box(0.56, 0.07, 0.07, '#9a8c62', x, y + 0.5, z + d / 2 + 0.02);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      this.box(0.03, 0.12, 0.03, C.wood, x + sx * (w / 2 + 0.25), y, z + sz * (d / 2 + 0.25));
+    }
+    // Ridge poles poking out
+    for (const sx of [-1, 1]) this.box(0.04, 0.08, 0.04, C.wood, x + sx * (w / 2 + 0.1), y + wallH + 0.6, z);
+  }
+
+  /** Two-layer row of sandbags. */
+  sandbags(x: number, z: number, len: number, rotY = 0, y = 0.08, layers = 2) {
+    const g = new THREE.Group();
+    g.position.set(x, y, z);
+    g.rotation.y = rotY;
+    const bag = new THREE.BoxGeometry(0.26, 0.11, 0.16);
+    const n = Math.max(1, Math.round(len / 0.26));
+    for (let l = 0; l < layers; l++) {
+      for (let i = 0; i < n - (l % 2); i++) {
+        const m = new THREE.Mesh(bag, mat(i % 3 === 1 ? '#c2ad7e' : '#cdb98a'));
+        m.position.set(-len / 2 + 0.13 + i * 0.26 + (l % 2) * 0.13, 0.055 + l * 0.1, 0);
+        m.rotation.y = (i % 2 ? 1 : -1) * 0.04;
+        g.add(m);
+      }
+    }
+    return this.add(g);
+  }
+
+  /** Stack of wooden crates and green field boxes. */
+  crates(x: number, z: number, y = 0.08, n = 3) {
+    const spots = [[0, 0, 0], [0.3, 0, 0.05], [0.12, 0.26, 0.02], [-0.28, 0, -0.05]];
+    for (let i = 0; i < Math.min(n, spots.length); i++) {
+      const [dx, dy, dz] = spots[i];
+      const c = i === 2 ? '#5b6b3a' : C.wood;
+      this.box(0.26, 0.26, 0.26, c, x + dx, y + dy, z + dz);
+      this.box(0.27, 0.03, 0.27, '#8a5a3b', x + dx, y + dy + 0.12, z + dz);
+    }
+  }
+
+  /** Steel drum (water / fuel). */
+  drum(x: number, z: number, color = '#2f6fa8', y = 0.08) {
+    this.cyl(0.11, 0.32, color, x, y, z, 10);
+    this.cyl(0.115, 0.02, C.metal, x, y + 0.16, z, 10);
+  }
+
+  /** Field radio set on a folding table with a whip antenna. */
+  radioTable(x: number, z: number, y = 0.08) {
+    this.box(0.6, 0.03, 0.34, C.wood, x, y + 0.3, z);
+    for (const sx of [-0.26, 0.26]) this.box(0.03, 0.3, 0.3, C.metal, x + sx, y, z);
+    this.box(0.24, 0.14, 0.16, '#4b5a3a', x - 0.08, y + 0.33, z);
+    this.box(0.08, 0.06, 0.08, C.dark, x + 0.15, y + 0.33, z);
+    this.cyl(0.008, 0.9, C.metal, x - 0.16, y + 0.47, z - 0.05, 4);
+  }
+
+  /** Bamboo/timber flag pole for the earliest camp. */
+  fieldFlag(x: number, z: number, y = 0.08) {
+    this.flagpole(x, z, 1.5, y);
+  }
+
+  // ---------------- Late-game / landmark pieces ----------------
+
+  radarDome(x: number, y: number, z: number, r = 0.32) {
+    this.cyl(r * 0.8, 0.14, C.metal, x, y, z, 10);
+    const dome = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), mat('#f4f4f0'));
+    dome.position.set(x, y + 0.14 + r * 0.8, z);
+    this.add(dome);
+  }
+
+  /** Rooftop helipad: dark square, yellow ring and H. */
+  helipad(x: number, y: number, z: number, size = 1.4) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d')!;
+    g.fillStyle = '#4a4f54';
+    g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = '#ffc93c';
+    g.lineWidth = 8;
+    g.beginPath();
+    g.arc(64, 64, 48, 0, Math.PI * 2);
+    g.stroke();
+    g.fillStyle = '#ffffff';
+    g.font = '900 64px Nunito, system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.fillText('H', 64, 86);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(size, 0.04, size), [
+      mat('#4a4f54'), mat('#4a4f54'), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }), mat('#4a4f54'), mat('#4a4f54'), mat('#4a4f54'),
+    ]);
+    pad.position.set(x, y + 0.02, z);
+    this.add(pad);
+    for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) this.box(0.05, 0.05, 0.05, '#7cff8a', x + (dx * size) / 2, y + 0.04, z + (dz * size) / 2);
+  }
+
+  /** Lattice comms mast: chunky red/white braced tower with dishes and a beacon. */
+  latticeMast(x: number, y: number, z: number, h = 3.0, base = 0.5) {
+    const segs = Math.round(h / 0.35);
+    const half = base / 2;
+    for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const top = 0.35;
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, h, 5), mat(C.metal));
+      leg.position.set(x + dx * half * (1 + top) / 2, y + h / 2, z + dz * half * (1 + top) / 2);
+      leg.rotation.z = (dx * half * (1 - top)) / h;
+      leg.rotation.x = (-dz * half * (1 - top)) / h;
+      this.add(leg);
+    }
+    for (let i = 0; i <= segs; i++) {
+      const t = i / segs;
+      const w = base * (1 - t * 0.65);
+      const col = i % 2 ? '#e04a3a' : '#f7f5ef';
+      this.box(w, 0.05, 0.05, col, x, y + h * t, z + w / 2);
+      this.box(w, 0.05, 0.05, col, x, y + h * t, z - w / 2);
+      this.box(0.05, 0.05, w, col, x + w / 2, y + h * t, z);
+      this.box(0.05, 0.05, w, col, x - w / 2, y + h * t, z);
+    }
+    this.box(0.18, 0.12, 0.18, '#e04a3a', x, y + h, z);
+    this.cyl(0.06, 0.1, '#ff3b30', x, y + h + 0.12, z, 8);
+    this.dish(x + 0.2, y + h * 0.62, z + 0.1, 0.4);
+    this.dish(x - 0.2, y + h * 0.42, z - 0.1, 2.8);
+  }
+
+  /** Glass curtain-wall box (lobbies, atriums) with green mullions. */
+  glassBox(w: number, h: number, d: number, x: number, y: number, z: number) {
+    this.box(w, h, d, '#86b7cc', x, y, z);
+    const n = Math.max(2, Math.round(w / 0.35));
+    for (let i = 0; i <= n; i++) this.box(0.03, h, d + 0.02, C.trim, x - w / 2 + (w / n) * i, y, z);
+    for (let j = 1; j < Math.round(h / STOREY) + 1; j++) this.box(w + 0.02, 0.04, d + 0.02, C.trim, x, y + Math.min(h - 0.04, j * STOREY - 0.02), z);
+    this.box(w + 0.08, 0.06, d + 0.08, C.white, x, y + h, z);
+  }
+
+  /** Vertical sun-shading fins across a facade. */
+  fins(w: number, h: number, x: number, y: number, z: number, n = 8) {
+    for (let i = 0; i <= n; i++) this.box(0.04, h, 0.12, C.white, x - w / 2 + (w / n) * i, y, z);
+  }
+
+  fountain(x: number, z: number, r = 0.5, y = 0.08) {
+    this.cyl(r, 0.16, '#d6d0c2', x, y, z, 12);
+    this.cyl(r * 0.86, 0.02, '#4fc7d4', x, y + 0.15, z, 12);
+    this.cyl(0.12, 0.3, '#d6d0c2', x, y + 0.1, z, 8);
+    this.cyl(0.24, 0.04, '#d6d0c2', x, y + 0.4, z, 10);
+    this.cyl(0.04, 0.22, '#d9f6fa', x, y + 0.44, z, 6);
+    this.emitters.push({ pos: new THREE.Vector3(x, y + 0.7, z), kind: 'spray' });
+  }
+
+  /** Ceremonial gateway arch with a name plaque. */
+  arch(x: number, z: number, w: number, text: string, y = 0.08) {
+    for (const s of [-1, 1]) {
+      this.box(0.26, 1.3, 0.26, C.wallAlt, x + (s * w) / 2, y, z);
+      this.box(0.32, 0.08, 0.32, C.trim, x + (s * w) / 2, y + 1.3, z);
+      this.box(0.3, 0.12, 0.3, C.trim, x + (s * w) / 2, y, z);
+    }
+    this.box(w + 0.4, 0.14, 0.24, C.trim, x, y + 1.38, z);
+    this.plaque(text, x, z + 0.14, y + 0.95, Math.min(w - 0.3, 1.6));
+  }
+
+  hedge(x: number, z: number, w: number, d: number, y = 0.08) {
+    this.box(w, 0.2, d, '#3f8a2e', x, y, z);
+    this.box(w * 0.98, 0.06, d * 0.9, '#55a832', x, y + 0.2, z);
+  }
+
+  solarPanels(x: number, y: number, z: number, w: number, d: number) {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(w, 0.03, d), mat('#284a73', { roughness: 0.4 }));
+    p.position.set(x, y + 0.14, z);
+    p.rotation.x = -0.35;
+    this.add(p);
+    this.box(w, 0.1, 0.04, C.metal, x, y, z - d / 2 + 0.05);
+  }
+
+  windsock(x: number, y: number, z: number) {
+    this.cyl(0.015, 0.5, C.metal, x, y, z, 4);
+    const sock = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.26, 6).rotateZ(Math.PI / 2), mat('#ff7a1a'));
+    sock.position.set(x + 0.14, y + 0.48, z);
+    this.add(sock);
   }
 }

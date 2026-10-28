@@ -2,102 +2,14 @@ import * as THREE from 'three';
 import { PALETTE } from '../config/palette';
 import { C, Kit, STOREY } from './kit';
 
+import { HQ } from './hq';
+import type { BuildingDef } from './types';
+
 /**
- * Building catalogue: data + a builder per level. Footprints stay constant
- * across upgrades (like CoC) so upgrading never needs re-placement.
+ * Building catalogue. Footprints stay constant across upgrades (like CoC) so
+ * upgrading never needs re-placement. Buildings are being brought up to the
+ * full 15-level plan one at a time (see docs/BUILDINGS_PLAN.md).
  */
-export interface BuildingDef {
-  id: string;
-  name: string;
-  /** Footprint in tiles: [width along x, depth along z]. */
-  footprint: [number, number];
-  maxLevel: number;
-  build(level: number): Kit;
-}
-
-// ------------------------------------------------------------------ HQ
-
-function hq(level: number): Kit {
-  const k = new Kit();
-  const y = k.pad(5, 5);
-  k.path(0.9, 1.5, 0, 1.75, y);
-  if (level === 1) {
-    // Field HQ: single-storey admin block with a green porch.
-    const bw = 3.4, bd = 2.0, bz = -0.75;
-    const h = k.block(bw, bd, 1, 0, y, bz);
-    k.hipRoof(bw, bd, 0.6, 0, y + h, bz);
-    k.door('front', 0, bz, bw, bd, 0, y);
-    k.windowRow('front', 0, bz, bw, bd, 4, y + 0.42);
-    k.windowRow('left', 0, bz, bw, bd, 2, y + 0.42);
-    k.windowRow('right', 0, bz, bw, bd, 2, y + 0.42);
-    k.porch(0, bz + bd / 2 + 0.42, 1.1, 0.8, 0.72, y);
-    k.aircon(bw / 2 + 0.08, y + 0.25, bz - 0.4, Math.PI / 2);
-    k.flagpole(-1.85, 1.75, 1.9, y);
-    k.planter(-0.95, 0.75, 0.6, y);
-    k.planter(0.95, 0.75, 0.6, y);
-    k.plaque('HQ', 1.55, 1.85, y, 0.8);
-  } else if (level === 2) {
-    // Admin block: two storeys, porch with a balcony, radio mast.
-    const bw = 3.8, bd = 2.1, bz = -0.75;
-    const h = k.block(bw, bd, 2, 0, y, bz);
-    k.hipRoof(bw, bd, 0.7, 0, y + h, bz);
-    k.door('front', 0, bz, bw, bd, 0, y, 0.44);
-    for (const fy of [0.42, STOREY + 0.42]) k.windowRow('front', 0, bz, bw, bd, 5, y + fy, { skip: fy < 1 ? [2] : [] });
-    for (const fy of [0.42, STOREY + 0.42]) {
-      k.windowRow('left', 0, bz, bw, bd, 2, y + fy);
-      k.windowRow('right', 0, bz, bw, bd, 2, y + fy);
-    }
-    k.porch(0, bz + bd / 2 + 0.45, 1.5, 0.85, STOREY - 0.05, y, 2);
-    k.box(1.5, 0.28, 0.05, C.white, 0, y + STOREY + 0.03, bz + bd / 2 + 0.86); // balcony parapet
-    k.window('front', 0, bz, bw, bd, 0, y + STOREY + 0.42, 0.5, 0.42);
-    k.antenna(1.2, y + h + 0.35, bz - 0.2, 1.2);
-    k.aircon(bw / 2 + 0.08, y + 0.25, bz - 0.4, Math.PI / 2);
-    k.aircon(bw / 2 + 0.08, y + STOREY + 0.25, bz - 0.4, Math.PI / 2);
-    k.aircon(-bw / 2 - 0.08, y + 0.25, bz + 0.3, -Math.PI / 2);
-    k.flagpole(-1.9, 1.8, 2.3, y);
-    k.planter(-1.05, 0.95, 0.7, y);
-    k.planter(1.05, 0.95, 0.7, y);
-    k.plaque('HQ', 1.6, 1.9, y, 0.85);
-    k.noticeboard(2.05, 0.6, -Math.PI / 2, y);
-  } else {
-    // Headquarters: three storeys with a central look-out tower and a grand porch.
-    const bw = 4.2, bd = 2.0, bz = -1.05;
-    const h = k.block(bw, bd, 3, 0, y, bz);
-    k.hipRoof(bw, bd, 0.7, 0, y + h, bz);
-    for (let f = 0; f < 3; f++) {
-      k.windowRow('front', 0, bz, bw, bd, 6, y + f * STOREY + 0.42, { skip: [2, 3], louvre: f > 0 });
-      k.windowRow('left', 0, bz, bw, bd, 2, y + f * STOREY + 0.42);
-      k.windowRow('right', 0, bz, bw, bd, 2, y + f * STOREY + 0.42);
-    }
-    // Tower
-    const tw = 1.4, td = 1.0, tz = bz + bd / 2 + td / 2 - 0.05;
-    const th = k.block(tw, td, 4, 0, y, tz, C.wallAlt);
-    k.flatRoof(tw, td, 0, y + th, tz);
-    k.dish(0.35, y + th + 0.06, tz - 0.15);
-    k.antenna(-0.4, y + th + 0.06, tz - 0.2, 1.3);
-    k.door('front', 0, tz, tw, td, 0, y, 0.5, 0.66);
-    for (let f = 1; f < 4; f++) k.window('front', 0, tz, tw, td, 0, y + f * STOREY + 0.36, 0.7, 0.44);
-    // Clock face on the tower
-    const clock = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.04, 16).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#f7f5ef', flatShading: true }));
-    clock.position.set(0, y + 3 * STOREY + 0.55, tz + td / 2 + 0.04);
-    k.add(clock);
-    k.box(0.02, 0.14, 0.02, C.dark, 0, y + 3 * STOREY + 0.53, tz + td / 2 + 0.07);
-    k.box(0.1, 0.02, 0.02, C.dark, 0.04, y + 3 * STOREY + 0.55, tz + td / 2 + 0.07);
-    k.porch(0, tz + td / 2 + 0.45, 1.9, 0.85, STOREY - 0.05, y, 4);
-    for (let f = 0; f < 3; f++) {
-      k.aircon(bw / 2 + 0.08, y + f * STOREY + 0.25, bz - 0.4, Math.PI / 2);
-      k.aircon(-bw / 2 - 0.08, y + f * STOREY + 0.25, bz - 0.4, -Math.PI / 2);
-    }
-    k.flagpole(-2.0, 1.95, 2.6, y);
-    k.flagpole(2.0, 1.95, 2.6, y);
-    k.planter(-1.4, 1.35, 0.9, y);
-    k.planter(1.4, 1.35, 0.9, y);
-    k.plaque('HEADQUARTERS', -1.25, 2.0, y, 1.3);
-    k.lamp(1.2, 2.05, y);
-    k.noticeboard(2.1, 0.55, -Math.PI / 2, y);
-  }
-  return k;
-}
 
 // ------------------------------------------------------------------ Bunk
 
@@ -240,7 +152,8 @@ function cookhouse(level: number): Kit {
 }
 
 export const BUILDINGS: BuildingDef[] = [
-  { id: 'hq', name: 'HQ', footprint: [5, 5], maxLevel: 3, build: hq },
-  { id: 'bunk', name: 'Bunk', footprint: [6, 4], maxLevel: 3, build: bunk },
-  { id: 'cookhouse', name: 'Cookhouse', footprint: [5, 4], maxLevel: 3, build: cookhouse },
+  HQ,
+  // Early concepts (levels 1–3); full 15-level plans to follow building by building.
+  { id: 'bunk', name: 'Bunk', role: 'Houses Recruits.', footprint: [6, 4], unlockHq: 1, levels: [], designedLevels: 3, build: bunk },
+  { id: 'cookhouse', name: 'Cookhouse', role: 'Feeds the outpost.', footprint: [5, 4], unlockHq: 1, levels: [], designedLevels: 3, build: cookhouse },
 ];

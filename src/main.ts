@@ -45,7 +45,8 @@ scene.add(terrain.mesh, createWater(terrain), vegetation.group, createLighting()
 const rig = new CameraRig(renderer.domElement, groundY);
 
 // Phase 2 review: ?showcase lays every building/level out in the start clearing.
-const showcase = new URLSearchParams(location.search).has('showcase') ? createShowcase(groundY, particles) : null;
+const params = new URLSearchParams(location.search);
+const showcase = params.has('showcase') ? createShowcase(groundY, particles, params.get('showcase') || null) : null;
 if (showcase) {
   // Clear the whole plateau so every building is unobstructed.
   for (const z of ZONES) if (z.kind !== 'hidden') vegetation.clearables[z.id].group.visible = false;

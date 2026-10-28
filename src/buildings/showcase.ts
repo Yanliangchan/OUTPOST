@@ -1,52 +1,82 @@
 import * as THREE from 'three';
 import { BUILDINGS } from './catalogue';
+import { RELEASE_MAX_LEVEL } from '../config/release';
 import type { Particles } from '../fx/particles';
 
-function label(text: string) {
-  const c = document.createElement('canvas');
+function label(text: string, sub = '', subColor = '#5d6b60') {
   const font = '900 34px Nunito, system-ui, sans-serif';
+  const subFont = '800 22px Nunito, system-ui, sans-serif';
+  const c = document.createElement('canvas');
   const probe = c.getContext('2d')!;
   probe.font = font;
-  c.width = Math.ceil(probe.measureText(text).width) + 48;
-  c.height = 72;
+  let w = probe.measureText(text).width;
+  probe.font = subFont;
+  w = Math.max(w, probe.measureText(sub).width);
+  c.width = Math.ceil(w) + 48;
+  c.height = sub ? 100 : 72;
   const g = c.getContext('2d')!;
   g.fillStyle = 'rgba(255,255,252,0.95)';
   g.beginPath();
-  g.roundRect(4, 4, c.width - 8, 64, 18);
+  g.roundRect(4, 4, c.width - 8, c.height - 8, 18);
   g.fill();
+  g.textAlign = 'center';
   g.fillStyle = '#26332a';
   g.font = font;
-  g.textAlign = 'center';
-  g.fillText(text, c.width / 2, 48);
+  g.fillText(text, c.width / 2, 46);
+  if (sub) {
+    g.fillStyle = subColor;
+    g.font = subFont;
+    g.fillText(sub, c.width / 2, 80);
+  }
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
-  s.scale.set((c.width / 72) * 0.79, 0.79, 1);
+  const k = 0.011;
+  s.scale.set(c.width * k, c.height * k, 1);
   s.renderOrder = 30;
   return s;
 }
 
+type Emitter = { pos: THREE.Vector3; kind: 'steam' | 'smoke' | 'spray' };
+
 /**
- * Phase 2 review scene: every building at each upgrade level, in rows,
- * laid out in the starting clearing.
+ * Review scene laid out on the cleared plateau.
+ *   ?showcase        → every building, each designed level, one row per building
+ *   ?showcase=<id>   → one building, all its designed levels in a 5-wide grid
  */
-export function createShowcase(groundY: number, fx: Particles) {
+export function createShowcase(groundY: number, fx: Particles, only: string | null) {
   const group = new THREE.Group();
   group.name = 'showcase';
-  const emitters: { pos: THREE.Vector3; kind: 'steam' | 'smoke' }[] = [];
-  const rowZ = [-6.2, 0.2, 6.4];
-  BUILDINGS.forEach((def, row) => {
-    for (let lv = 1; lv <= def.maxLevel; lv++) {
-      const kit = def.build(lv);
-      const x = (lv - 2) * 7.2;
-      kit.group.position.set(x, groundY, rowZ[row]);
-      group.add(kit.group);
-      const tag = label(`${def.name} · Lv ${lv}`);
-      tag.position.set(x, groundY + 4.4, rowZ[row]);
-      group.add(tag);
-      for (const e of kit.emitters) emitters.push({ pos: e.pos.clone().add(kit.group.position), kind: e.kind });
+  const emitters: Emitter[] = [];
+  const place = (defIdx: number, level: number, x: number, z: number) => {
+    const def = BUILDINGS[defIdx];
+    const kit = def.build(level);
+    kit.group.position.set(x, groundY, z);
+    group.add(kit.group);
+    const stats = def.levels[level - 1];
+    const tag = label(`${def.name} · Lv ${level}`, stats ? `${stats.title}${level > RELEASE_MAX_LEVEL ? ' · post-release' : ''}` : '', level > RELEASE_MAX_LEVEL ? '#8a5cd6' : '#5d6b60');
+    const top = new THREE.Box3().setFromObject(kit.group).max.y;
+    tag.position.set(x, top + 0.9, z);
+    group.add(tag);
+    for (const e of kit.emitters) emitters.push({ pos: e.pos.clone().add(kit.group.position), kind: e.kind });
+  };
+
+  const idx = only ? BUILDINGS.findIndex((b) => b.id === only) : -1;
+  if (idx >= 0) {
+    const def = BUILDINGS[idx];
+    const step = Math.max(def.footprint[0], def.footprint[1]) + 2.2;
+    for (let lv = 1; lv <= def.designedLevels; lv++) {
+      const col = (lv - 1) % 5;
+      const row = Math.floor((lv - 1) / 5);
+      place(idx, lv, (col - 2) * step, (row - 1) * step);
     }
-  });
+  } else {
+    const rowZ = [-7, 0.5, 7.5];
+    BUILDINGS.forEach((def, row) => {
+      for (let lv = 1; lv <= Math.min(3, def.designedLevels); lv++) place(row, lv, (lv - 2) * 7.6, rowZ[row]);
+    });
+  }
+
   let acc = 0;
   return {
     group,
@@ -56,7 +86,8 @@ export function createShowcase(groundY: number, fx: Particles) {
       acc = 0;
       for (const e of emitters) {
         if (e.kind === 'steam') fx.emit(e.pos, { color: '#f4f4f0', size: 0.14, life: 2.2, spread: 0.05, vel: new THREE.Vector3(0.1, 0.7, 0), opacity: 0.55, grow: 3 });
-        else if (Math.random() < 0.5) fx.emit(e.pos, { color: '#8d8f91', size: 0.12, life: 2.0, spread: 0.05, vel: new THREE.Vector3(0.1, 0.6, 0), opacity: 0.45, grow: 3 });
+        else if (e.kind === 'smoke' && Math.random() < 0.5) fx.emit(e.pos, { color: '#8d8f91', size: 0.12, life: 2.0, spread: 0.05, vel: new THREE.Vector3(0.1, 0.6, 0), opacity: 0.45, grow: 3 });
+        else if (e.kind === 'spray') fx.emit(e.pos, { color: '#d9f6fa', size: 0.05, life: 0.7, spread: 0.25, chip: true, gravity: 3, vel: new THREE.Vector3(0, 1.4, 0), opacity: 0.8, grow: 1 });
       }
     },
   };
