@@ -50,8 +50,8 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 3 | Admin Hut | 4,000 | 50 | 30 min | 2,100 | 10,000 | 2 | Admin Office, Rec Centre, 2nd Bunk, Clear zones 3–4 |
 | 4 | Camp HQ | 12,000 | 150 | 2 h | 2,700 | 20,000 | 2 | Medical Centre, Motor Pool, 2nd QM Store, Clear zones 5–6 |
 | 5 | Camp HQ · East Wing | 30,000 | 350 | 4 h | 3,400 | 35,000 | 3 | Parade Square, 3rd Bunk, 3rd construction crew, Clear zones 7–8 |
-| 6 | Admin Block | 60,000 | 600 | 8 h | 4,200 | 50,000 | 3 | Guardhouse, Sentry Tower, Sandbag Wall, Raids begin, Clear zones 9–10 |
-| 7 | Admin Block · Annex | 120,000 | 1,000 | 12 h | 5,100 | 75,000 | 3 | Training Shed, 4th Bunk, Clear zones 11–12 |
+| 6 | Admin Block · Veranda | 60,000 | 600 | 8 h | 4,200 | 50,000 | 3 | Guardhouse, Sentry Tower, Sandbag Wall, Raids begin, Clear zones 9–10 |
+| 7 | Admin Block · Courtyard | 120,000 | 1,000 | 12 h | 5,100 | 75,000 | 3 | Training Shed, 4th Bunk, Clear zones 11–12 |
 | 8 | Headquarters | 220,000 | 1,500 | 1 d | 6,100 | 100,000 | 3 | Mortar Pit, 2nd Cookhouse, Boat Jetty (Cove), Adventure Training Centre (Lakeside) |
 | 9 | Headquarters · Clock Tower | 400,000 | 2,200 | 1.5 d | 7,200 | 150,000 | 4 | Searchlight, Armoury, Signal Station (Ridge), 4th construction crew |
 | 10 | HQ Complex | 700,000 | 3,000 | 2 d | 8,500 | 200,000 | 4 | Firing Range, 5th Bunk, All buildings to Lv 10 |
@@ -70,10 +70,10 @@ The HQ is the heart of the outpost. Each level raises the cap for every other bu
 | 1 | **Command Tent:** canvas tent, field radio on a folding table, sandbag berms, crates, drums, field flag |
 | 2 | **Field Office:** timber hut with a zinc roof and a veranda; radio mast, supplies piled up |
 | 3 | **Admin Hut:** first permanent cream building; zinc gable roof, louvre windows, green porch, flagpole, "HQ" plaque, noticeboard |
-| 4 | **Camp HQ:** red-brown hip roof (the camp look arrives), porch, planters, lamp |
-| 5 | **Camp HQ · East Wing:** annex joined by a covered link-way; radio antenna |
-| 6 | **Admin Block:** two storeys; aircon units both sides; noticeboard |
-| 7 | **Admin Block · Annex:** balcony porch; west annex with a rooftop water tank |
+| 4 | **Camp HQ:** simple single-storey rectangle; red-brown hip roof arrives; small porch |
+| 5 | **Camp HQ · East Wing:** **L-shape**: a red-roofed east wing projects forward; gabled entrance bay; covered link-way; antenna |
+| 6 | **Admin Block · Veranda:** first **two storeys**; full-width green veranda on columns; rooftop water tank |
+| 7 | **Admin Block · Courtyard:** **U-shape**: two-storey wings either side; projecting gabled entrance with a balcony; courtyard with a central flagpole and hedges |
 | 8 | **Headquarters:** three-storey main block with wings, grand porch, twin flagpoles |
 | 9 | **Headquarters · Clock Tower:** four-storey clock tower with a dish and antenna |
 | 10 | **HQ Complex:** five-storey tower, two-storey wings with red roofs, white columned portico with a pediment *(release cap)* |

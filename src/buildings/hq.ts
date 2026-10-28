@@ -19,8 +19,8 @@ export const HQ_LEVELS: LevelStats[] = [
   L(3, 'Admin Hut', 4_000, 50, 30 * MIN, 2100, 10_000, 2, ['Admin Office', 'Rec Centre', '2nd Bunk', 'Clear zones 3–4']),
   L(4, 'Camp HQ', 12_000, 150, 2 * HOUR, 2700, 20_000, 2, ['Medical Centre', 'Motor Pool', '2nd QM Store', 'Clear zones 5–6']),
   L(5, 'Camp HQ · East Wing', 30_000, 350, 4 * HOUR, 3400, 35_000, 3, ['Parade Square', '3rd Bunk', '3rd construction crew', 'Clear zones 7–8']),
-  L(6, 'Admin Block', 60_000, 600, 8 * HOUR, 4200, 50_000, 3, ['Guardhouse', 'Sentry Tower', 'Sandbag Wall', 'Raids begin', 'Clear zones 9–10']),
-  L(7, 'Admin Block · Annex', 120_000, 1_000, 12 * HOUR, 5100, 75_000, 3, ['Training Shed', '4th Bunk', 'Clear zones 11–12']),
+  L(6, 'Admin Block · Veranda', 60_000, 600, 8 * HOUR, 4200, 50_000, 3, ['Guardhouse', 'Sentry Tower', 'Sandbag Wall', 'Raids begin', 'Clear zones 9–10']),
+  L(7, 'Admin Block · Courtyard', 120_000, 1_000, 12 * HOUR, 5100, 75_000, 3, ['Training Shed', '4th Bunk', 'Clear zones 11–12']),
   L(8, 'Headquarters', 220_000, 1_500, 1 * DAY, 6100, 100_000, 3, ['Mortar Pit', '2nd Cookhouse', 'Boat Jetty (Cove)', 'Adventure Training Centre (Lakeside)']),
   L(9, 'Headquarters · Clock Tower', 400_000, 2_200, 1.5 * DAY, 7200, 150_000, 4, ['Searchlight', 'Armoury', 'Signal Station (Ridge)', '4th construction crew']),
   L(10, 'HQ Complex', 700_000, 3_000, 2 * DAY, 8500, 200_000, 4, ['Firing Range', '5th Bunk', 'All buildings to Lv 10']),
@@ -112,68 +112,121 @@ function field(k: Kit, level: number, y: number) {
   k.crates(-2.2, -1.9, y, 2);
 }
 
-/** Camp band (4–6): red-roofed HQ block → east wing → two storeys. */
+/** Camp band (4–6): each level changes the silhouette, not just the details. */
 function camp(k: Kit, level: number, y: number) {
   k.path(0.9, 1.6, 0, 2.1, y);
-  const storeys = level >= 6 ? 2 : 1;
-  const bx = level === 5 ? -0.4 : 0;
-  const bw = level >= 6 ? 4.0 : 3.5, bd = 2.0, bz = -0.8;
-  const h = k.block(bw, bd, storeys, bx, y, bz);
-  k.hipRoof(bw, bd, storeys > 1 ? 0.7 : 0.6, bx, y + h, bz);
-  k.door('front', bx, bz, bw, bd, 0, y, 0.42);
-  frontWindows(k, bx, bz, bw, bd, storeys, y, 5, [2]);
-  if (storeys > 1) k.window('front', bx, bz, bw, bd, 0, y + STOREY + 0.42);
-  sideWindows(k, bx, bz, bw, bd, storeys, y);
-  k.porch(bx, bz + bd / 2 + 0.42, 1.2, 0.8, 0.74, y);
-  aircons(k, bx + bw / 2, bz, storeys, y, 1);
-  k.flagpole(-2.35, 2.2, storeys > 1 ? 2.4 : 2.1, y);
-  k.planter(bx - 1.0, 0.85, 0.6, y);
-  k.planter(bx + 1.0, 0.85, 0.6, y);
+  k.flagpole(-2.35, 2.2, level >= 6 ? 2.4 : 2.1, y);
   k.plaque('HQ', 1.6, 2.25, y, 0.85);
-  if (level >= 5) {
-    // East wing annex joined by a covered link-way
-    const ax = level === 5 ? 2.25 : 2.35, aw = 0.9, ad = 1.3, az = -1.2;
-    if (level === 5) {
-      const ah = k.block(aw, ad, 1, ax, y, az, C.wallAlt);
-      k.flatRoof(aw, ad, ax, y + ah, az);
-      k.door('front', ax, az, aw, ad, 0, y, 0.3);
-      k.linkway(bx + bw / 2, -0.35, ax - aw / 2 + 0.05, -0.35, y, 0.7, 0.5);
-      k.antenna(bx + 1.0, y + h + 0.3, bz - 0.3, 1.0);
-      k.lamp(-1.3, 2.4, y);
-    }
+
+  if (level === 4) {
+    // Simple rectangle: one storey, red hip roof, small porch.
+    const bw = 3.5, bd = 2.0, bz = -0.8;
+    const h = k.block(bw, bd, 1, 0, y, bz);
+    k.hipRoof(bw, bd, 0.6, 0, y + h, bz);
+    k.door('front', 0, bz, bw, bd, 0, y, 0.42);
+    frontWindows(k, 0, bz, bw, bd, 1, y, 5, [2]);
+    sideWindows(k, 0, bz, bw, bd, 1, y);
+    k.porch(0, bz + bd / 2 + 0.42, 1.2, 0.8, 0.74, y);
+    aircons(k, bw / 2, bz, 1, y, 1);
+    k.planter(-1.0, 0.85, 0.6, y);
+    k.planter(1.0, 0.85, 0.6, y);
+    return;
   }
-  if (level >= 6) {
-    k.antenna(1.3, y + h + 0.35, bz - 0.25, 1.2);
-    aircons(k, -bw / 2, bz + 0.6, 2, y, -1);
-    k.noticeboard(2.45, 0.6, -Math.PI / 2, y);
-    k.lamp(-1.3, 2.4, y);
+
+  if (level === 5) {
+    // L-shape: main block shifts left, a red-roofed east wing projects forward,
+    // and a raised entrance gable marks the door.
+    const bw = 3.2, bd = 1.8, bx = -0.8, bz = -1.2;
+    const h = k.block(bw, bd, 1, bx, y, bz);
+    k.hipRoof(bw, bd, 0.6, bx, y + h, bz);
+    frontWindows(k, bx, bz, bw, bd, 1, y, 4, [1]);
+    sideWindows(k, bx, bz, bw, bd, 1, y);
+    // Entrance gable (front-facing): rotated gable roof over a projecting bay.
+    const ex = bx - 0.4, ez = bz + bd / 2 + 0.35;
+    k.block(1.0, 0.7, 1, ex, y, ez, C.wallAlt);
+    const eg = new Kit();
+    eg.gableRoof(0.7, 1.0, 0.45, 0, 0, 0, C.roof, 0.12);
+    eg.group.rotation.y = Math.PI / 2;
+    eg.group.position.set(ex, y + STOREY, ez);
+    k.add(eg.group);
+    k.door('front', ex, ez, 1.0, 0.7, 0, y, 0.4);
+    // East wing, perpendicular, reaching toward the front
+    const wx = 1.75, ww = 1.3, wd = 3.0, wz = -0.4;
+    const wh = k.block(ww, wd, 1, wx, y, wz);
+    k.hipRoof(ww, wd, 0.55, wx, y + wh, wz);
+    k.windowRow('left', wx, wz, ww, wd, 3, y + 0.42);
+    k.windowRow('front', wx, wz, ww, wd, 1, y + 0.42);
+    k.door('left', wx, wz, ww, wd, 1.0, y, 0.34);
+    aircons(k, wx + ww / 2, wz, 1, y, 1);
+    k.linkway(ex + 0.5, ez + 0.75, wx - ww / 2 - 0.05, ez + 0.75, y, 0.7, 0.55);
+    k.antenna(bx - 1.0, y + h + 0.3, bz - 0.3, 1.3);
+    k.planter(-2.2, 0.8, 0.6, y);
+    k.lamp(0.5, 1.5, y);
+    return;
   }
+
+  // Level 6: two storeys with a full-width green veranda and a rooftop water tank.
+  const bw = 4.2, bd = 1.9, bz = -1.0;
+  const h = k.block(bw, bd, 2, 0, y, bz);
+  k.hipRoof(bw, bd, 0.7, 0, y + h, bz);
+  frontWindows(k, 0, bz, bw, bd, 2, y, 5, [2]);
+  k.window('front', 0, bz, bw, bd, 0, y + STOREY + 0.42);
+  sideWindows(k, 0, bz, bw, bd, 2, y);
+  k.door('front', 0, bz, bw, bd, 0, y, 0.44);
+  // Veranda: columns + green lean-to roof along the whole front
+  const vz = bz + bd / 2 + 0.4;
+  k.box(bw, 0.05, 0.8, '#c9c3b5', 0, y, vz);
+  for (let i = 0; i < 6; i++) k.box(0.08, 0.78, 0.08, C.white, -bw / 2 + 0.1 + (i * (bw - 0.2)) / 5, y, vz + 0.32);
+  k.box(bw + 0.2, 0.07, 0.95, C.roofGreen, 0, y + 0.8, vz);
+  k.box(bw + 0.22, 0.04, 0.97, C.white, 0, y + 0.78, vz);
+  k.waterTank(1.2, y + h + 0.1, bz - 0.3, 0.2, 0.32);
+  k.antenna(-1.3, y + h + 0.35, bz - 0.25, 1.3);
+  aircons(k, bw / 2, bz, 2, y, 1);
+  aircons(k, -bw / 2, bz + 0.6, 2, y, -1);
+  k.noticeboard(2.45, 0.9, -Math.PI / 2, y);
+  k.lamp(-1.3, 2.4, y);
+  k.planter(-1.4, 1.75, 0.6, y);
 }
 
 /** Base band (7–10): balcony + annex → three storeys → clock tower → HQ complex. */
 function base(k: Kit, level: number, y: number) {
   k.path(1.0, 1.4, 0, 2.2, y);
   if (level === 7) {
-    const bw = 4.0, bd = 2.0, bz = -0.8;
+    // U-shape: two-storey main range, two forward wings, projecting gabled entrance with a balcony.
+    const bw = 3.0, bd = 1.6, bz = -1.5;
     const h = k.block(bw, bd, 2, 0, y, bz);
-    k.hipRoof(bw, bd, 0.7, 0, y + h, bz);
-    k.door('front', 0, bz, bw, bd, 0, y, 0.44);
-    frontWindows(k, 0, bz, bw, bd, 2, y, 5, [2]);
-    sideWindows(k, 0, bz, bw, bd, 2, y);
-    k.porch(0, bz + bd / 2 + 0.45, 1.5, 0.85, STOREY - 0.05, y, 2);
-    k.box(1.5, 0.28, 0.05, C.white, 0, y + STOREY + 0.03, bz + bd / 2 + 0.86);
-    k.window('front', 0, bz, bw, bd, 0, y + STOREY + 0.42, 0.5, 0.42);
-    // West annex with a water tank on its roof
-    const ah = k.block(0.75, 1.4, 1, -2.45, y, -1.1, C.wallAlt);
-    k.flatRoof(0.75, 1.4, -2.45, y + ah, -1.1);
-    k.waterTank(-2.45, y + ah + 0.06, -1.1, 0.16, 0.26);
-    k.antenna(1.4, y + h + 0.35, bz - 0.25, 1.5);
-    aircons(k, 2.0, bz, 2, y, 1);
-    k.flagpole(-2.4, 2.25, 2.5, y);
-    k.planter(-1.1, 0.95, 0.7, y);
-    k.planter(1.1, 0.95, 0.7, y);
-    k.plaque('HQ', 1.65, 2.3, y, 0.9);
-    k.noticeboard(2.5, 0.65, -Math.PI / 2, y);
+    k.hipRoof(bw, bd, 0.65, 0, y + h, bz);
+    frontWindows(k, 0, bz, bw, bd, 2, y, 4, [1, 2]);
+    for (const s of [-1, 1]) {
+      const wx = s * 1.95, ww = 1.1, wd = 3.0, wz = -0.8;
+      const wh = k.block(ww, wd, 2, wx, y, wz);
+      k.hipRoof(ww, wd, 0.55, wx, y + wh, wz);
+      for (let f = 0; f < 2; f++) {
+        k.windowRow(s < 0 ? 'right' : 'left', wx, wz, ww, wd, 3, y + f * STOREY + 0.42, { louvre: f > 0 });
+        k.window('front', wx, wz, ww, wd, 0, y + f * STOREY + 0.42);
+      }
+      aircons(k, wx + (s * ww) / 2, wz, 2, y, s as 1 | -1);
+    }
+    // Central entrance bay
+    const ez = bz + bd / 2 + 0.45;
+    const eh = k.block(1.2, 0.9, 2, 0, y, ez, C.wallAlt);
+    const eg = new Kit();
+    eg.gableRoof(0.9, 1.2, 0.5, 0, 0, 0, C.roof, 0.12, C.white);
+    eg.group.rotation.y = Math.PI / 2;
+    eg.group.position.set(0, y + eh, ez);
+    k.add(eg.group);
+    k.door('front', 0, ez, 1.2, 0.9, 0, y, 0.44);
+    k.box(1.0, 0.08, 0.35, '#cfc9bc', 0, y + STOREY - 0.04, ez + 0.6);
+    k.box(1.0, 0.26, 0.04, C.white, 0, y + STOREY, ez + 0.76);
+    k.window('front', 0, ez, 1.2, 0.9, 0, y + STOREY + 0.42, 0.5, 0.42);
+    for (const s of [-0.45, 0.45]) k.box(0.07, STOREY - 0.04, 0.07, C.white, s, y, ez + 0.74);
+    // Courtyard
+    k.box(2.2, 0.015, 1.3, '#e3dccb', 0, y, 1.3);
+    k.flagpole(0, 1.25, 2.5, y);
+    k.hedge(-0.9, 1.9, 0.6, 0.22, y);
+    k.hedge(0.9, 1.9, 0.6, 0.22, y);
+    k.antenna(1.0, y + h + 0.35, bz - 0.25, 1.5);
+    k.plaque('HQ', 1.65, 2.45, y, 0.9);
     k.lamp(-1.3, 2.45, y);
     k.lamp(0.85, 2.45, y);
     return;
