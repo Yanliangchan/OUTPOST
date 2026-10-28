@@ -16,6 +16,7 @@ import { gameClock } from './core/gameClock';
 import { plateauZoneAt, ZONES } from './world/zones';
 import { createShowcase } from './buildings/showcase';
 import { buildingMetrics } from './buildings/metrics';
+import { groundUniform } from './buildings/kit';
 import { BUILDINGS } from './buildings/catalogue';
 
 const app = document.getElementById('app')!;
@@ -45,6 +46,8 @@ clearance.onChange(() => plan.refresh());
 scene.add(terrain.mesh, createWater(terrain), vegetation.group, createLighting(), ambient.group, grid, scaleRef, clearance.group, particles.group, plan.group);
 
 const rig = new CameraRig(renderer.domElement, groundY);
+// Buildings sit on the plateau; their pads are 0.08 thick.
+groundUniform.value = groundY + 0.06;
 
 // Phase 2 review: ?showcase lays every building/level out in the start clearing.
 const params = new URLSearchParams(location.search);

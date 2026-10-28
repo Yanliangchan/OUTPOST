@@ -161,3 +161,27 @@ export function roofCanopy(k: Kit, w: number, d: number, x: number, y: number, z
   k.add(p);
   k.box(w + 0.04, 0.03, 0.04, C.white, x, y + h + 0.03, z + d / 2);
 }
+
+/**
+ * Breeze-block screen: the patterned ventilation blocks of Singapore stairwells.
+ * A wall panel in the x/y plane at local z, turned by rotY.
+ */
+export function breezeBlocks(k: Kit, w: number, h: number, x: number, y: number, z: number, rotY = 0) {
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+  g.rotation.y = rotY;
+  k.box(w, h, 0.05, C.white, 0, 0, 0, g);
+  const cell = 0.16;
+  const nx = Math.max(1, Math.floor((w - 0.1) / cell));
+  const ny = Math.max(1, Math.floor((h - 0.1) / cell));
+  const geo = new THREE.BoxGeometry(cell * 0.62, cell * 0.62, 0.06);
+  const holes = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: '#8f9a92', flatShading: true }), nx * ny);
+  const m4 = new THREE.Matrix4();
+  let i = 0;
+  for (let a = 0; a < nx; a++) for (let b = 0; b < ny; b++) {
+    m4.makeRotationZ(Math.PI / 4).setPosition(-((nx - 1) * cell) / 2 + a * cell, 0.08 + cell / 2 + b * cell, 0.0);
+    holes.setMatrixAt(i++, m4);
+  }
+  g.add(holes);
+  return k.add(g);
+}

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { C, Kit, STOREY } from './kit';
-import { CONCRETE, DARK_GLASS, perimeter, roofCanopy, supertree } from './common';
+import { breezeBlocks, CONCRETE, DARK_GLASS, perimeter, roofCanopy, supertree } from './common';
 import { DAY, HOUR, MIN, type BuildingDef, type LevelStats } from './types';
 
 /*
@@ -116,7 +116,7 @@ function endStair(k: Kit, x: number, bz: number, storeys: number, y: number) {
   const h = (storeys - 1) * STOREY;
   if (h <= 0) return;
   k.stairs(x, bz + 0.2, 0.42, 1.8, h);
-  k.box(0.04, h + 0.3, 1.8, C.white, x + 0.22, y, bz + 0.2);
+  breezeBlocks(k, 1.8, h + 0.3, x + 0.22, y, bz + 0.2, Math.PI / 2);
 }
 
 /** Single-storey barrack with louvre windows; zinc or red roof. */

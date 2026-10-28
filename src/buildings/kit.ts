@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { PALETTE } from '../config/palette';
 import { timeUniform } from '../core/wind';
 
@@ -54,13 +55,57 @@ function outwardGeo(tris: THREE.Vector3[], centre: THREE.Vector3) {
   return geo;
 }
 
-const cache = new Map<string, THREE.MeshStandardMaterial>();
-export function mat(color: string, opts: THREE.MeshStandardMaterialParameters = {}) {
-  const key = color + JSON.stringify(opts);
-  let m = cache.get(key);
-  if (!m) cache.set(key, (m = new THREE.MeshStandardMaterial({ color, flatShading: true, roughness: 0.8, metalness: 0, ...opts })));
+/** World-space height of the ground buildings stand on (for contact shading). */
+export const groundUniform = { value: 1.78 };
+
+type Finish = 'plain' | 'tile' | 'zinc';
+
+/**
+ * Shared building shader polish:
+ *  - contact shading: surfaces darken toward the ground like ambient occlusion,
+ *    so buildings sit into the world instead of floating;
+ *  - 'tile': horizontal tile courses across roof slopes;
+ *  - 'zinc': corrugation ribs.
+ */
+function polish(m: THREE.MeshStandardMaterial, finish: Finish) {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uGround = groundUniform;
+    sh.vertexShader = 'varying vec3 vPolishW;\n' + sh.vertexShader.replace(
+      '#include <project_vertex>',
+      '#include <project_vertex>\n  vPolishW = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+    );
+    let f = `float ao = mix(0.68, 1.0, smoothstep(uGround, uGround + 0.6, vPolishW.y));
+      diffuseColor.rgb *= ao;`;
+    if (finish === 'tile') f += `
+      float course = fract(vPolishW.y * 5.5);
+      float seam = smoothstep(0.0, 0.22, course);
+      // Staggered tile joints within each course
+      float row = floor(vPolishW.y * 5.5);
+      float joint = abs(fract((vPolishW.x + vPolishW.z) * 3.0 + row * 0.5) - 0.5);
+      diffuseColor.rgb *= mix(0.72, 1.0, seam) * mix(0.9, 1.0, smoothstep(0.02, 0.08, joint));
+      diffuseColor.rgb *= 1.0 + (1.0 - course) * 0.08;`;
+    if (finish === 'zinc') f += `
+      float rib = abs(fract(vPolishW.x * 11.0) - 0.5);
+      diffuseColor.rgb *= mix(0.86, 1.04, smoothstep(0.1, 0.3, rib));`;
+    sh.fragmentShader = 'uniform float uGround;\nvarying vec3 vPolishW;\n' + sh.fragmentShader.replace(
+      '#include <color_fragment>',
+      '#include <color_fragment>\n      ' + f,
+    );
+  };
+  m.customProgramCacheKey = () => 'kit-polish-' + finish;
   return m;
 }
+
+const cache = new Map<string, THREE.MeshStandardMaterial>();
+export function mat(color: string, opts: THREE.MeshStandardMaterialParameters = {}, finish: Finish = 'plain') {
+  const key = color + JSON.stringify(opts) + finish;
+  let m = cache.get(key);
+  if (!m) cache.set(key, (m = polish(new THREE.MeshStandardMaterial({ color, flatShading: true, roughness: 0.8, metalness: 0, ...opts }), finish)));
+  return m;
+}
+
+/** Roof surface material: tile courses on coloured roofs, ribs on zinc. */
+const roofMat = (color: string) => mat(color, {}, color === C.zinc ? 'zinc' : 'tile');
 
 export type EmitterKind = 'steam' | 'smoke' | 'spray' | 'sparks';
 
@@ -130,7 +175,12 @@ export class Kit {
 
   /** Box with its base at y. */
   box(w: number, h: number, d: number, color: string, x = 0, y = 0, z = 0, parent?: THREE.Object3D) {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color));
+    // Chunky bevelled edges on large masses (walls, blocks); small parts stay crisp boxes.
+    const min = Math.min(w, h, d);
+    const geo = Math.max(w, h, d) >= 0.6 && min >= 0.2
+      ? new RoundedBoxGeometry(w, h, d, 2, Math.min(0.06, min * 0.16))
+      : new THREE.BoxGeometry(w, h, d);
+    const m = new THREE.Mesh(geo, mat(color));
     m.position.set(x, y + h / 2, z);
     return this.add(m, parent);
   }
@@ -161,6 +211,11 @@ export class Kit {
     kerb(w, true, -d / 2 + 0.06);
     kerb(d - 0.24, false, w / 2 - 0.06);
     kerb(d - 0.24, false, -w / 2 + 0.06);
+    // Expansion joints every tile and a drain grate in the front corner.
+    for (let gx = -w / 2 + 1; gx < w / 2 - 0.1; gx += 1) this.box(0.018, 0.004, d - 0.26, '#b9b3a6', gx, h, 0);
+    for (let gz = -d / 2 + 1; gz < d / 2 - 0.1; gz += 1) this.box(w - 0.26, 0.004, 0.018, '#b9b3a6', 0, h, gz);
+    this.box(0.22, 0.006, 0.22, '#4a4f54', w / 2 - 0.3, h, d / 2 - 0.3);
+    for (let i = 0; i < 4; i++) this.box(0.18, 0.008, 0.02, '#2a2f33', w / 2 - 0.3, h, d / 2 - 0.37 + i * 0.045);
     return h;
   }
 
@@ -181,6 +236,12 @@ export class Kit {
     this.box(w + 0.03, 0.16, d + 0.03, C.trim, x, y, z);
     for (let s = 1; s < storeys; s++) this.box(w + 0.05, 0.06, d + 0.05, C.trim, x, y + s * STOREY - 0.03, z);
     this.box(w + 0.06, 0.07, d + 0.06, C.white, x, y + h - 0.07, z);
+    // Downpipes at the front corners and a concrete U-drain along the front (a Singapore staple).
+    for (const sx of [-1, 1]) this.box(0.045, h, 0.045, C.trim, x + sx * (w / 2 - 0.04), y, z + d / 2 + 0.03);
+    if (y < 0.3) {
+      this.box(w, 0.012, 0.1, '#a9a395', x, y, z + d / 2 + 0.09);
+      this.box(w, 0.02, 0.025, '#8f897c', x, y, z + d / 2 + 0.15);
+    }
     return h;
   }
 
@@ -205,6 +266,13 @@ export class Kit {
     this.box(ww, wh, 0.05, C.glass, 0, 0, 0.005, g);
     this.box(0.03, wh, 0.055, C.frame, 0, 0, 0.006, g);
     if (louvre) for (let i = 1; i < 4; i++) this.box(ww, 0.02, 0.06, C.glassLight, 0, (wh / 4) * i - 0.01, 0.01, g);
+    else {
+      // Diagonal glint across the pane
+      for (const [o, len] of [[0, 0.5], [0.07, 0.25]]) {
+        const gl = this.box(ww * len, 0.022, 0.056, '#bfe0ec', -ww * 0.12 + o, wh * 0.55 + o * 0.6, 0.006, g);
+        gl.rotation.z = 0.75;
+      }
+    }
     this.box(ww + 0.12, 0.04, 0.09, C.sill, 0, -0.07, 0.03, g);
     return this.add(g);
   }
@@ -227,6 +295,16 @@ export class Kit {
     this.box(dw + 0.08, dh + 0.05, 0.04, C.white, 0, 0, 0, g);
     this.box(dw, dh, 0.06, color, 0, 0, 0.005, g);
     this.box(0.03, 0.03, 0.08, '#d8c26a', dw / 2 - 0.07, dh * 0.48, 0.01, g);
+    if (y < 0.2) {
+      // Potted plant beside ground-floor doors
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.045, 0.1, 8), mat('#b8653a'));
+      pot.position.set(dw / 2 + 0.12, 0.05, 0.11);
+      g.add(pot);
+      const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.08, 0), mat('#4fae3a'));
+      leaf.position.set(dw / 2 + 0.12, 0.16, 0.11);
+      leaf.scale.y = 1.2;
+      g.add(leaf);
+    }
     return this.add(g);
   }
 
@@ -261,7 +339,7 @@ export class Kit {
       ? [a, b, r1, a, r1, r0, c, e, r0, c, r0, r1, b, c, r1, e, a, r0]
       : [b, c, r0, b, r0, r1, e, a, r1, e, r1, r0, a, b, r1, c, e, r0];
     const geo = outwardGeo(faces, new THREE.Vector3(0, -1, 0));
-    const m = new THREE.Mesh(geo, mat(color));
+    const m = new THREE.Mesh(geo, roofMat(color));
     m.position.set(x, y, z);
     this.add(m);
     // Eaves fascia and ridge cap
@@ -280,7 +358,7 @@ export class Kit {
       v(-W, 0, D), v(W, 0, D), v(W, h, 0), v(-W, 0, D), v(W, h, 0), v(-W, h, 0),
       v(W, 0, -D), v(-W, 0, -D), v(-W, h, 0), v(W, 0, -D), v(-W, h, 0), v(W, h, 0),
     ];
-    const roof = new THREE.Mesh(outwardGeo(tris, new THREE.Vector3(0, -1, 0)), mat(color));
+    const roof = new THREE.Mesh(outwardGeo(tris, new THREE.Vector3(0, -1, 0)), roofMat(color));
     roof.position.set(x, y, z);
     this.add(roof);
     // Gable end walls (triangles) in wall colour
