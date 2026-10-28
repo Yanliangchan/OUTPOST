@@ -30,6 +30,7 @@ export const RELEASE_MAX_LEVEL = 10;
 | **Cookhouse** | Pot lids rattle as they boil; ceiling fans spin; kitchen extractor fans whirr; steam and smoke rise | |
 | **QM Store** | Forklift shuttles stock: drives in, raises its forks, reverses and lowers them; gantry hoist travels and drops its hook | |
 | **Workshop** | Vehicle lift raises and lowers the jeep; the engine is winched on the hoist; overhead crane trolley travels; robot arms swing; turbines and roof vents spin; welding sparks | |
+| **Utilities** | Generator fans spin and exhaust smokes; hand pump rocks; float gauge rises and falls; clarifier arm sweeps; flywheel turns; battery LEDs blink; energy-core rings spin | |
 | **Secure band (16–20)** | Boom gate lifts to let vehicles in; CCTV cameras pan | |
 
 ## Roster and build order
@@ -342,3 +343,61 @@ Produces Supplies and repairs vehicles and equipment. **Signature at every level
 | 20 | **Forge Citadel:** hall with a glowing forge tower, glass gallery and gold accents |
 
 Review scene: open the game with `?showcase=workshop`.
+
+---
+
+# Utilities: full specification
+
+Power and water for the outpost; nearby buildings run faster when supplied. **Signature at every level:** a generator or electrical gear, water tanks, pipes and cables. Footprint **3×3**; unlocked at HQ 2.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Power | Water | Boost radius |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Field Genset | 250 | 0 | 2 min | 260 | 20 kW | 30 kL/day | 6 tiles |
+| 2 | Water Point | 800 | 0 | 8 min | 310 | 25 kW | 40 kL/day | 6 tiles |
+| 3 | Pump Hut | 1,800 | 30 | 25 min | 370 | 35 kW | 50 kL/day | 7 tiles |
+| 4 | Generator Hut | 4,200 | 100 | 1 h | 450 | 45 kW | 65 kL/day | 7 tiles |
+| 5 | Water Tower | 9,000 | 250 | 2 h | 540 | 55 kW | 85 kL/day | 8 tiles |
+| 6 | Substation | 17,000 | 450 | 4 h | 650 | 75 kW | 110 kL/day | 8 tiles |
+| 7 | Pump & Power House | 30,000 | 800 | 6 h | 780 | 95 kW | 145 kL/day | 9 tiles |
+| 8 | Cooling Tower | 52,000 | 1,200 | 10 h | 930 | 125 kW | 190 kL/day | 9 tiles |
+| 9 | Twin Tanks | 85,000 | 1,800 | 16 h | 1,120 | 165 kW | 245 kL/day | 10 tiles |
+| 10 | Utilities Plant *(release cap)* | 140,000 | 2,500 | 1 d | 1,340 | 210 kW | 320 kL/day | 10 tiles |
+| 11 | Solar Array | 215,000 | 3,400 | 1.5 d | 1,610 | 275 kW | 415 kL/day | 11 tiles |
+| 12 | Water Treatment | 330,000 | 4,500 | 2 d | 1,930 | 360 kW | 540 kL/day | 11 tiles |
+| 13 | Fuel Cell Block | 465,000 | 5,800 | 2.5 d | 2,320 | 465 kW | 700 kL/day | 12 tiles |
+| 14 | Pipe Gallery | 630,000 | 7,300 | 3 d | 2,780 | 605 kW | 910 kL/day | 12 tiles |
+| 15 | Mushroom Water Tower | 840,000 | 9,000 | 3.5 d | 3,340 | 785 kW | 1180 kL/day | 13 tiles |
+| 16 | Secure Substation | 1,090,000 | 10,800 | 4 d | 4,010 | 1025 kW | 1535 kL/day | 13 tiles |
+| 17 | Battery Bank | 1,390,000 | 13,000 | 4.5 d | 4,810 | 1330 kW | 1995 kL/day | 14 tiles |
+| 18 | Desalination Unit | 1,720,000 | 15,500 | 5 d | 5,770 | 1730 kW | 2595 kL/day | 14 tiles |
+| 19 | Rain Harvest Tower | 2,080,000 | 18,300 | 5.5 d | 6,920 | 2250 kW | 3375 kL/day | 15 tiles |
+| 20 | Energy Core | 2,500,000 | 21,300 | 6 d | 8,310 | 2925 kW | 4385 kL/day | 15 tiles |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Utilities level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Field Genset:** portable generator with a spinning fan and exhaust, jerrycans, blue water bladder, cable reel |
+| 2 | **Water Point:** raised water tank on a timber stand with a tap, genset, timber power pole |
+| 3 | **Pump Hut:** timber pump hut, raised drum, **hand pump with a rocking handle** |
+| 4 | **Generator Hut:** red-roofed hut with louvres and an exhaust stack, red fuel tank, transformer, overhead cable |
+| 5 | **Water Tower:** steel-legged water tower with a **rising and falling float gauge**, pump room |
+| 6 | **Substation:** fenced transformer yard with insulators and gantry, two-storey switch room |
+| 7 | **Pump & Power House:** two-storey plant house, ground tank, blue and yellow pipes |
+| 8 | **Cooling Tower:** curved concrete cooling tower **puffing steam**, cooling basin |
+| 9 | **Twin Tanks:** two tall tanks with a catwalk and spiral stair, bund wall, pump with a turning flywheel |
+| 10 | **Utilities Plant:** power house, water tower, pipe rack and transformer yard |
+| 11 | **Solar Array:** big raised solar canopy over a battery container and control block |
+| 12 | **Water Treatment:** round clarifier with a **rotating sweep arm**, three-storey filter block |
+| 13 | **Fuel Cell Block:** stepped white fuel-cell modules with status lights, horizontal hydrogen tanks |
+| 14 | **Pipe Gallery:** tall two-tier rack of colour-coded pipes looping to a pump hall |
+| 15 | **Mushroom Water Tower:** landmark concrete mushroom tower with a gold ring and beacon |
+| 16 | **Secure Substation:** perimeter; tall concrete transformer bunkers with lightning rods and hazard bands |
+| 17 | **Battery Bank:** stacked teal battery containers with **blinking LED strips** |
+| 18 | **Desalination Unit:** racks of white membrane tubes beside a tall seawater tank |
+| 19 | **Rain Harvest Tower:** green-walled tank under an inverted funnel roof, rain chain dripping into a basin |
+| 20 | **Energy Core:** glowing core in a glass drum with **three spinning gold rings** |
+
+Review scene: open the game with `?showcase=utilities`.
