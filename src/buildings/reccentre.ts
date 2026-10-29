@@ -345,7 +345,8 @@ function field(k: Kit, level: number, y: number) {
     k.gableRoof(0.9, 0.8, 0.3, -1.3, y + ch, 1.2, C.zinc, 0.1, C.wood);
     k.door('front', -1.3, 1.2, 0.9, 0.8, 0, y, 0.28, 0.55, '#7a5a3b');
     waterCooler(k, 1.4, -1.3, y);
-    player(k, -0.1, 0.45, y, '#2bb3a3', 0);
+    player(k, -0.1, 0.45, y, '#2bb3a3', 4);
+    player(k, -0.75, -0.6, y, '#ffc93c', 3.2);
     return;
   }
   // 3: games shed: timber open shed, zinc roof, ping-pong + carrom; hoop outside
@@ -592,6 +593,12 @@ function command(k: Kit, level: number, y: number) {
       logo.position.y = y + 3.05 + Math.sin(t * 1.5) * 0.05;
     });
     k.door('front', 0, -0.4, 3.4, 2.8, 1.25, y, 0.4, 0.66, DARK_GLASS);
+    for (const x of [-1.15, 1.15]) {
+      k.cyl(0.3, 0.16, '#5c6166', x, y + 2.8, -1.2, 10);
+      fan(k, x, y + 2.97, -1.2);
+    }
+    player(k, 0.55, 1.5, y, '#ff5ec4', 3.5);
+    player(k, 0.85, 1.65, y, '#3fd1ff', 2.8);
     return;
   }
   // 15: stadium bowl: oval stands ringing a pitch, floodlight masts, gold trim

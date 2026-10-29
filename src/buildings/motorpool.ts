@@ -718,8 +718,8 @@ function secure(k: Kit, level: number, y: number) {
     k.glassBox(0.9, 2.6, 0.8, -1.55, y + 0.0, 1.15);
     k.box(1.0, 0.1, 0.9, C.white, -1.55, y + 2.6, 1.15);
     k.antenna(-1.75, y + 2.7, 1.0, 0.7);
-    const lead = vehicle(k, 'jeep', 1.2, 1.2, y, 0, OLIVE_D);
-    dispatchLoop(k, lead, -1.4, 10, 1);
+    const lead = vehicle(k, 'jeep', 1.2, 1.2, y, Math.PI, OLIVE_D);
+    dispatchLoop(k, lead, 1.4, 10, 1);
     return;
   }
   if (level === 19) {

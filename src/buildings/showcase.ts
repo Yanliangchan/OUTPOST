@@ -45,7 +45,7 @@ type Emitter = { pos: THREE.Vector3; kind: EmitterKind };
  *   ?showcase        → every building, each designed level, one row per building
  *   ?showcase=<id>   → one building, all its designed levels in a 5-wide grid
  */
-export function createShowcase(groundY: number, fx: Particles, only: string | null) {
+export function createShowcase(groundY: number, fx: Particles, only: string | null, subset: string[] | null = null) {
   const group = new THREE.Group();
   group.name = 'showcase';
   const emitters: Emitter[] = [];
@@ -74,10 +74,18 @@ export function createShowcase(groundY: number, fx: Particles, only: string | nu
     // Compare view: one column per building, one row per level.
     const [lo, hi] = [Number(range[1]), Number(range[2])];
     const n = hi - lo + 1;
-    BUILDINGS.forEach((def, col) => {
+    // Columns packed by footprint width so a subset fits on the plateau.
+    const cols = BUILDINGS.map((def, i) => ({ def, i })).filter(({ def }) => !subset || subset.includes(def.id));
+    const widths = cols.map(({ def }) => def.footprint[0] + 1.6);
+    const total = widths.reduce((a, b) => a + b, 0);
+    const rowStep = Math.max(...cols.map(({ def }) => def.footprint[1])) + 1.9;
+    let cx = -total / 2;
+    cols.forEach(({ def, i }, c) => {
+      const x = cx + widths[c] / 2;
+      cx += widths[c];
       for (let lv = lo; lv <= hi; lv++) {
         if (lv > def.designedLevels) continue;
-        place(col, lv, (col - (BUILDINGS.length - 1) / 2) * 8.5, (lv - lo - (n - 1) / 2) * 7.5);
+        place(i, lv, x, (lv - lo - (n - 1) / 2) * rowStep);
       }
     });
   } else if (idx >= 0) {

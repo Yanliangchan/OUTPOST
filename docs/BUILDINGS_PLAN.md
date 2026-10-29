@@ -14,8 +14,8 @@ export const RELEASE_MAX_LEVEL = 10;
 - **Footprints never change.** An upgrade replaces the model on the same tiles, so it never needs re-placing (as in Clash of Clans).
 - **Height budget:** a building's bulk stays within about **4 storeys** so it never hides what's behind it; only thin elements (masts, flags, spires) go higher.
 - **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter; **Workshop** has workbenches, a vehicle on a lift or hoist, oil drums and welding sparks.
-- **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level).
-- **Every step is an upgrade:** height rises level by level until it reaches the building's cap (**HQ 5 storeys, Bunk 4.5, Cookhouse 3.5, QM Store 3.5**), then holds while coverage and detail keep growing. Checked by measurement: open the browser console and run `__outpost.metrics()` to get the height, peak, coverage and detail of every level. A level fails if height drops by more than half a storey or presence (height × coverage) drops by more than 15%.
+- **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level); add `&only=admin,parade,…` to compare a subset.
+- **Every step is an upgrade:** height rises level by level until it reaches the building's cap (**HQ 5 storeys, Bunk 4.5, Cookhouse 3.5, QM Store 3.5; the other buildings stay at or under 4, and the Parade Square stays mostly flat at about 2**), then holds while coverage and detail keep growing. Checked by measurement: open the browser console and run `__outpost.metrics()` to get the height, peak, coverage and detail of every level. A level fails if height drops by more than half a storey or presence (height × coverage) drops by more than 15%.
 - **Every building is alive:** each has a signature "working" micro-animation at every level, like the Clash of Clans gold-mine cart (see the table below). Each building also gets a random timing offset so a base never moves in lockstep. Checked with `__outpost.animCheck()`, which counts moving parts per level; every level has at least one, on top of flags, blinking lights, steam and sparks.
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
 - **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
@@ -32,6 +32,11 @@ export const RELEASE_MAX_LEVEL = 10;
 | **Workshop** | Vehicle lift raises and lowers the jeep; the engine is winched on the hoist; overhead crane trolley travels; robot arms swing; turbines and roof vents spin; welding sparks | |
 | **Utilities** | Generator fans spin and exhaust smokes; hand pump rocks; float gauge rises and falls; clarifier arm sweeps; flywheel turns; battery LEDs blink; energy-core rings spin | |
 | **Mama Shop** | Awning fringe flaps; hanging snack packets sway; fridge light flickers; tri-vision billboard turns; bubble-tea cup spins; lanterns sway; vending lights blink; delivery drone lands | |
+| **Admin Office** | Noticeboard papers flutter; red dispatch bike rides out and back with spinning wheels; mailbox flag flips up; photocopier scan light sweeps; ceiling and condenser fans spin; server LEDs blink; parcels ride the sorting conveyor; burn bin smokes; revolving door turns | |
+| **Rec Centre** | Basketballs dribble and arc into hoops; takraw balls and shuttles volley over swaying nets; punching bags and ropes swing; climber, diver, runners and swimmers move; scoreboards and screens flicker; bowling balls roll and the giant pin wobbles; the wave pool rolls | |
+| **Medical Centre** | Ambulance light bars flash blue/amber and ambulances pull out and back; cross signs and cross-cube beacons turn; IV drips and privacy curtains sway; heartbeat monitors pulse; ceiling fans spin; medevac rotors spin and the helicopter lifts off at Lv 14; scanner ring turns; field-hospital domes breathe; isolation vents spin; gold ring orbits the citadel cross | |
+| **Motor Pool** | Vehicles pull out of their bays and reverse back in (wheels turning); boom barriers lift at dispatch huts; fuel hoses sway; wash-bay brushes spin with spray; tow-truck beacon flashes; camo net breathes; turntable rotates; blast doors slide; stacker lift rises; LED gantry flashes; pods circle the guideway; a jeep laps the rotunda | |
+| **Parade Square** | Squads of Recruits march in step around the square (legs and arms swing, leader out front); drill instructor paces and points; flags raised, held and lowered; drummers beat; crowds bob and cheer | Bunting sways, sprinklers spray, scoreboard and mast lights blink, LED screens and grid floor cycle colours |
 | **Secure band (16–20)** | Boom gate lifts to let vehicles in; CCTV cameras pan | |
 
 ## Roster and build order
@@ -47,11 +52,11 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 5 | **Workshop** | 4×4 | 2 | Produces Supplies; repairs | ✅ 20/20 designed |
 | 6 | **Utilities** | 3×3 | 2 | Power and water; nearby buildings run faster | ✅ 20/20 designed |
 | 7 | **Mama Shop** | 2×2 | 2 | Morale and a trickle of Supplies | ✅ 20/20 designed |
-| 8 | Admin Office | 4×3 | 3 | Objectives and Reputation boosts | planned |
-| 9 | Rec Centre | 4×4 | 3 | Morale | planned |
-| 10 | Medical Centre | 4×3 | 4 | Recovery (and healing units, later) | planned |
-| 11 | Motor Pool | 5×4 | 4 | Vehicles: faster deliveries | planned |
-| 12 | Parade Square | 6×6 | 5 | Fall-in events; Cohesion | planned |
+| 8 | **Admin Office** | 4×3 | 3 | Objectives and Reputation boosts | ✅ 20/20 designed |
+| 9 | **Rec Centre** | 4×4 | 3 | Morale | ✅ 20/20 designed |
+| 10 | **Medical Centre** | 4×3 | 4 | Recovery (and healing units, later) | ✅ 20/20 designed |
+| 11 | **Motor Pool** | 5×4 | 4 | Vehicles: faster deliveries | ✅ 20/20 designed |
+| 12 | **Parade Square** | 6×6 | 5 | Fall-in events; Cohesion | ✅ 20/20 designed |
 | 13 | Guardhouse | 3×2 | 6 | Entrance; first line of defence | planned |
 | 14+ | Defences: Sentry Tower, Sandbag Wall, Mortar Pit, Searchlight, Artillery, Air Defence | various | 6–13 | Raids phase | planned |
 | — | Special plots: Boat Jetty (Cove), Adventure Training Centre (Lakeside), Signal Station (Ridge) | 9×9 sites | 8–9 | Late-game landmarks | planned |
@@ -460,3 +465,283 @@ The neighbourhood provision shop: lifts Morale nearby and earns a trickle of Sup
 | 20 | **Galleria:** glass barrel-vault arcade with gold ribs and a gold entrance arch |
 
 Review scene: open the game with `?showcase=mamashop`.
+
+# Admin Office: full specification
+
+The paperwork hub: runs objectives and boosts the Reputation the outpost earns. **Signature at every level:** a noticeboard with fluttering papers, grey filing cabinets, and the red dispatch bike that rides along the front apron. Footprint **4×3**; unlocked at HQ 3.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Reputation boost | Objective slots |
+|---|---|---|---|---|---|---|---|
+| 1 | Orderly Tent | 400 | 0 | 2 min | 290 | +2% | 1 |
+| 2 | Clerk's Hut | 1,000 | 0 | 8 min | 350 | +4% | 1 |
+| 3 | Atap Pavilion | 2,200 | 30 | 25 min | 420 | +6% | 1 |
+| 4 | Orderly Room | 4,800 | 100 | 1 h | 500 | +8% | 1 |
+| 5 | Records Office | 9,800 | 250 | 2 h | 600 | +10% | 2 |
+| 6 | Admin Block · Hoods | 18,500 | 450 | 4 h | 720 | +12% | 2 |
+| 7 | Lantern Office | 33,000 | 800 | 6 h | 870 | +14% | 2 |
+| 8 | Pay Office | 56,000 | 1,200 | 10 h | 1,040 | +16% | 2 |
+| 9 | Registry | 92,000 | 1,800 | 16 h | 1,250 | +18% | 3 |
+| 10 | Admin Complex *(release cap)* | 148,000 | 2,500 | 1 d | 1,500 | +20% | 3 |
+| 11 | Paperless Office | 230,000 | 3,400 | 1.5 d | 1,800 | +22% | 3 |
+| 12 | Records Tower | 345,000 | 4,500 | 2 d | 2,150 | +24% | 3 |
+| 13 | Brise-Soleil Office | 485,000 | 5,800 | 2.5 d | 2,590 | +26% | 4 |
+| 14 | Rotunda Office | 655,000 | 7,300 | 3 d | 3,100 | +28% | 4 |
+| 15 | Grand Secretariat | 870,000 | 9,000 | 3.5 d | 3,720 | +30% | 4 |
+| 16 | Secure Registry | 1,130,000 | 10,800 | 4 d | 4,470 | +32% | 4 |
+| 17 | Data Vault | 1,430,000 | 13,000 | 4.5 d | 5,360 | +34% | 5 |
+| 18 | Mail Sorting Centre | 1,760,000 | 15,500 | 5 d | 6,430 | +36% | 5 |
+| 19 | Mesh-Screen Bureau | 2,130,000 | 18,300 | 5.5 d | 7,720 | +38% | 5 |
+| 20 | Grand Bureau | 2,560,000 | 21,300 | 6 d | 9,260 | +40% | 5 |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Admin Office level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Orderly Tent:** canvas tent, field desk with a typewriter, easel noticeboard, ammo-box files, sandbags, mailbox |
+| 2 | **Clerk's Hut:** timber hut with a zinc roof, outdoor noticeboard, filing cabinets, mailbox, bicycles |
+| 3 | **Atap Pavilion:** raised timber deck under a deep thatch hip roof, open desks, filing cabinets, **ceiling fans** |
+| 4 | **Orderly Room:** long cream block with a full-length green link-way sheltering two noticeboards |
+| 5 | **Records Office:** office block plus a square two-storey records tower with a pyramid roof |
+| 6 | **Admin Block · Hoods:** two storeys with a projecting glazed bay and concrete **eyebrow sun hoods** over every window |
+| 7 | **Lantern Office:** two storeys with a raised roof lantern, single-storey mail-room annex with a photocopier |
+| 8 | **Pay Office:** two-storey office with a pay-counter annex, green awning, queue rails and a 'paying' light |
+| 9 | **Registry:** three-storey office beside a windowless archive wing with vent grilles and a rooftop condenser |
+| 10 | **Admin Complex:** three-storey main block with eyebrow hoods, two-storey wing, porch drop-off, 'ADMIN' plaque |
+| 11 | **Paperless Office:** three storeys with a glass front, server room of **blinking status LEDs**, rooftop plant screen |
+| 12 | **Records Tower:** slim archive tower with a vertical window slot beside a three-storey office |
+| 13 | **Brise-Soleil Office:** three storeys wrapped in angled horizontal sun louvres, roof garden |
+| 14 | **Rotunda Office:** three-storey drum with a conical red roof joined to a flat-roofed wing |
+| 15 | **Grand Secretariat:** white arched arcade under three storeys with pilasters, gold band, red hip roof |
+| 16 | **Secure Registry:** perimeter; concrete block with slot windows, hazard band, steel canopy, **smoking burn bin** |
+| 17 | **Data Vault:** perimeter; banded concrete vault with glowing skylights and a strip of blinking server LEDs |
+| 18 | **Mail Sorting Centre:** perimeter; open sorting hall with **parcels riding a conveyor**, red-trimmed offices above |
+| 19 | **Mesh-Screen Bureau:** perimeter; block behind a perforated metal screen with a gradient hole pattern, green roof |
+| 20 | **Grand Bureau:** perimeter; glass office raised on white pilotis, gold fascias, lobby with a **revolving door** |
+
+Review scene: open the game with `?showcase=admin`.
+
+# Rec Centre: full specification
+
+Where recruits blow off steam: lifts Morale across the base and hosts a number of Recruits at a time. **Signature at every level:** sport and leisure kit in play, such as courts with hoops and nets, balls in motion, gym gear, pools and stands. It never shows food counters or shop shelves. Footprint **4×4**; unlocked at HQ 3.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Morale | Capacity |
+|---|---|---|---|---|---|---|---|
+| 1 | Fitness Corner | 300 | 0 | 2 min | 280 | +2 | 6 |
+| 2 | Half-Court | 900 | 20 | 8 min | 340 | +2 | 9 |
+| 3 | Games Shed | 2,100 | 60 | 25 min | 400 | +3 | 12 |
+| 4 | Takraw Court | 4,800 | 120 | 1 h | 480 | +3 | 15 |
+| 5 | Gym Hut | 10,000 | 260 | 2 h | 580 | +4 | 18 |
+| 6 | Covered Court | 19,000 | 460 | 4 h | 700 | +5 | 21 |
+| 7 | Rec Hall | 34,000 | 800 | 6 h | 840 | +5 | 24 |
+| 8 | Sports Pavilion | 58,000 | 1,200 | 10 h | 1,000 | +6 | 27 |
+| 9 | Gym & Pool | 95,000 | 1,800 | 16 h | 1,200 | +6 | 30 |
+| 10 | Rec Centre Complex *(release cap)* | 150,000 | 2,500 | 1 d | 1,440 | +7 | 33 |
+| 11 | Climbing Wall Hall | 230,000 | 3,400 | 1.5 d | 1,730 | +8 | 36 |
+| 12 | Rooftop Futsal | 345,000 | 4,500 | 2 d | 2,080 | +8 | 39 |
+| 13 | Aquatic Centre | 485,000 | 5,800 | 2.5 d | 2,500 | +9 | 42 |
+| 14 | E-Sports Arena | 655,000 | 7,300 | 3 d | 3,000 | +9 | 45 |
+| 15 | Stadium Bowl | 870,000 | 9,000 | 3.5 d | 3,590 | +10 | 48 |
+| 16 | Obstacle Course | 1,130,000 | 10,800 | 4 d | 4,310 | +11 | 51 |
+| 17 | Sky Track | 1,430,000 | 13,000 | 4.5 d | 5,180 | +11 | 54 |
+| 18 | Bowling Lanes | 1,770,000 | 15,500 | 5 d | 6,210 | +12 | 57 |
+| 19 | Wave Pool Hall | 2,150,000 | 18,300 | 5.5 d | 7,450 | +12 | 60 |
+| 20 | Arena Citadel | 2,580,000 | 21,300 | 6 d | 8,950 | +13 | 63 |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Rec Centre level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Fitness Corner:** sand pit with pull-up bars, a **swinging punching bag**, a recruit kicking a takraw ball, timber shade shelter |
+| 2 | **Half-Court:** red half-court with a hoop and a **dribbling, shooting basketball**, fitness bars, timber changing hut, two players bouncing on court |
+| 3 | **Games Shed:** zinc-roofed timber shed with ping-pong and carrom tables, a spinning fan, and a hoop outside |
+| 4 | **Takraw Court:** green court with a **takraw ball volleying over a swaying net**, long hip-roofed pavilion, low stand |
+| 5 | **Gym Hut:** hut with weights and a punching bag, side court with a hoop, linkway, small stand |
+| 6 | **Covered Court:** full court under a **curved green roof**, two hoops, players |
+| 7 | **Rec Hall:** two-storey hall with a TV screen and fan; badminton court with a **shuttle rally** |
+| 8 | **Sports Pavilion:** clubhouse under a **roofed five-row grandstand**, court with hoops, flickering scoreboard |
+| 9 | **Gym & Pool:** two-storey gym, lap pool with a **swimmer doing laps**, umbrellas, shade pavilion |
+| 10 | **Rec Centre Complex:** sports hall with a clerestory and gable roof, plaque, side pool, fitness corner |
+| 11 | **Climbing Wall Hall:** three-storey hall with a coloured-hold **climbing wall and a climber**, court |
+| 12 | **Rooftop Futsal:** three-storey block topped by a **netted futsal cage** with a moving ball |
+| 13 | **Aquatic Centre:** open-sided hall under a wavy white roof, teal band, diving tower with an **animated diver** |
+| 14 | **E-Sports Arena:** dark box with neon bands, **colour-cycling screens**, and a rotating logo cube on the roof, spinning roof vents, fans queuing excitedly at the door |
+| 15 | **Stadium Bowl:** four roofed stands around a pitch, gold band, floodlights, scoreboard |
+| 16 | **Obstacle Course:** rope-climb tower, vault wall, monkey bars, **swinging rope**, tyres, a runner |
+| 17 | **Sky Track:** three-storey block with a **rooftop running track and a runner** |
+| 18 | **Bowling Lanes:** purple-banded hall with **rolling balls** and a giant **wobbling pin** on the roof |
+| 19 | **Wave Pool Hall:** glass barrel-vault hall over a **rolling wave pool**, yellow slide |
+| 20 | **Arena Citadel:** ribbed arena drum with a gold ring roof, dome, **floating gold ring**, screen, floodlights |
+
+Review scene: open the game with `?showcase=reccentre`.
+
+# Medical Centre: full specification
+
+Recovery for the outpost: beds for injured troops and a faster heal rate. **Signature at every level:** a green medical cross sign (white cross on a green square; never the protected red cross), an ambulance, stretcher or medevac helicopter, and a white-and-green clinical look. Footprint **4×3**; unlocked at HQ 4.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Beds | Heal rate |
+|---|---|---|---|---|---|---|---|
+| 1 | Aid Post | 400 | 0 | 3 min | 280 | 2 | 14%/h |
+| 2 | Field Clinic | 1,100 | 20 | 10 min | 340 | 4 | 18%/h |
+| 3 | Sick Bay Hut | 2,400 | 60 | 30 min | 400 | 6 | 22%/h |
+| 4 | Medical Centre | 5,500 | 150 | 1.25 h | 480 | 8 | 26%/h |
+| 5 | Clinic · Ward Wing | 11,000 | 300 | 2.5 h | 580 | 10 | 30%/h |
+| 6 | Clinic · Veranda Ward | 20,000 | 500 | 4.5 h | 700 | 12 | 34%/h |
+| 7 | Polyclinic | 35,000 | 850 | 7 h | 840 | 14 | 38%/h |
+| 8 | Ward Block | 58,000 | 1,250 | 11 h | 1,000 | 16 | 42%/h |
+| 9 | Medevac Clinic | 95,000 | 1,850 | 17 h | 1,200 | 18 | 46%/h |
+| 10 | Medical Complex *(release cap)* | 150,000 | 2,550 | 1 d | 1,440 | 20 | 50%/h |
+| 11 | Modern Clinic | 230,000 | 3,450 | 1.5 d | 1,730 | 22 | 54%/h |
+| 12 | Rehab Centre | 345,000 | 4,550 | 2 d | 2,080 | 24 | 58%/h |
+| 13 | Imaging Centre | 485,000 | 5,850 | 2.5 d | 2,500 | 26 | 62%/h |
+| 14 | Raised Medevac Pad | 655,000 | 7,350 | 3 d | 3,000 | 28 | 66%/h |
+| 15 | Grand Hospital | 870,000 | 9,050 | 3.5 d | 3,590 | 30 | 70%/h |
+| 16 | Secure Med Bunker | 1,130,000 | 10,850 | 4 d | 4,310 | 32 | 74%/h |
+| 17 | Field Hospital Domes | 1,430,000 | 13,050 | 4.5 d | 5,180 | 34 | 78%/h |
+| 18 | Isolation Wards | 1,770,000 | 15,550 | 5 d | 6,210 | 36 | 82%/h |
+| 19 | Bio-Lab | 2,150,000 | 18,350 | 5.5 d | 7,450 | 38 | 86%/h |
+| 20 | Medical Citadel | 2,600,000 | 21,350 | 6 d | 8,950 | 40 | 90%/h |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Medical Centre level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Aid Post:** olive canvas tent with a green cross flag, stretcher on trestles with a **swinging IV bag**, first-aid crates |
+| 2 | **Field Clinic:** long ward tent with a cross on the roof, olive field ambulance with **flashing light bar**, triage table |
+| 3 | **Sick Bay Hut:** timber hut on stilts with a corrugated roof, **turning cross sign on a pole**, ramp and stretcher |
+| 4 | **Medical Centre:** white clinic with a green band and red hipped roof, green entrance canopy, wall cross, ambulance bay |
+| 5 | **Clinic · Ward Wing:** L-shaped clinic with a ward wing, beds behind windows, ambulance **pulling out and back** |
+| 6 | **Clinic · Veranda Ward:** two-storey ward with a long green veranda, **ceiling fans spinning**, beds on the veranda |
+| 7 | **Polyclinic:** flat-roofed two-storey block, green glass entrance canopy, EMERGENCY fascia, ambulance |
+| 8 | **Ward Block:** three-storey ward block with balconies, **swaying privacy curtains**, heartbeat monitor |
+| 9 | **Medevac Clinic:** three-storey clinic with a two-storey wing, rooftop green helipad with blinking corners and a **medevac helicopter, rotors spinning**, windsock |
+| 10 | **Medical Complex:** main ward block plus emergency wing with a drive-through canopy, **rotating cross-cube beacon**, two ambulances |
+| 11 | **Modern Clinic:** long white modern block with dark glass bands, rooftop cross cube, ambulance bay |
+| 12 | **Rehab Centre:** four-storey ward tower with a glass hydrotherapy pavilion and garden benches |
+| 13 | **Imaging Centre:** ward block with a transparent glass rotunda; inside, a **scanner ring turns and the bed slides through** |
+| 14 | **Raised Medevac Pad:** ward tower beside a helipad on steel legs; the **helicopter lifts off and lands**, ramp down to the ambulance |
+| 15 | **Grand Hospital:** central block with two red-roofed wings, porte-cochère, cross beacon, ambulances |
+| 16 | **Secure Med Bunker:** concrete bunker with a mint decon annex, jersey barriers, olive armoured ambulance, secure perimeter |
+| 17 | **Field Hospital Domes:** two **breathing** inflatable domes off a concrete core, generator container, perimeter |
+| 18 | **Isolation Wards:** sealed block with glass isolation pods, **spinning extract vents**, perimeter |
+| 19 | **Bio-Lab:** tall clean lab with steel process tanks, airlock tunnel, perimeter |
+| 20 | **Medical Citadel:** three-storey white tower crowned by a cross cube with an **orbiting gold ring**, green glass ward drum with gold floor bands, gold link bridge, ambulance and stretcher |
+
+Review scene: open the game with `?showcase=medical`.
+
+# Motor Pool: full specification
+
+The camp's vehicles: parking and dispatch, not repair. More vehicles and faster dispatch speed up deliveries and transport. **Signature at every level:** olive camp vehicles parked in painted bays under carports, a fuel point, a wash bay, and a dispatch hut with a boom-barrier checkpoint; one vehicle always pulls out and reverses back in. Footprint **5×4**; unlocked at HQ 4.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Vehicles | Delivery speed |
+|---|---|---|---|---|---|---|---|
+| 1 | Vehicle Laager | 350 | 0 | 3 min | 340 | 1 | +9% |
+| 2 | Canvas Carport | 1,000 | 0 | 10 min | 410 | 1 | +13% |
+| 3 | Timber Vehicle Shed | 2,200 | 30 | 30 min | 490 | 2 | +17% |
+| 4 | MT Line | 5,000 | 110 | 1.25 h | 590 | 3 | +21% |
+| 5 | MT Line · Fuel Point | 10,000 | 260 | 2.5 h | 710 | 4 | +25% |
+| 6 | MT Line · Wash Bay | 19,000 | 470 | 4.5 h | 850 | 4 | +29% |
+| 7 | Arched Vehicle Shelter | 34,000 | 820 | 7 h | 1,020 | 5 | +33% |
+| 8 | Dispatch Office | 58,000 | 1,250 | 11 h | 1,220 | 6 | +37% |
+| 9 | Fuel Depot | 95,000 | 1,850 | 17 h | 1,460 | 7 | +41% |
+| 10 | Motor Pool Complex *(release cap)* | 150,000 | 2,550 | 1.1 d | 1,750 | 7 | +45% |
+| 11 | Two-Deck Car Park | 235,000 | 3,450 | 1.6 d | 2,110 | 8 | +49% |
+| 12 | Cantilever Dispatch Hub | 350,000 | 4,550 | 2.1 d | 2,530 | 9 | +53% |
+| 13 | Turntable Depot | 495,000 | 5,850 | 2.6 d | 3,030 | 10 | +57% |
+| 14 | EV Charging Depot | 670,000 | 7,350 | 3.1 d | 3,640 | 10 | +61% |
+| 15 | Motor Rotunda | 880,000 | 9,050 | 3.6 d | 4,370 | 11 | +65% |
+| 16 | Blast-Door Hangar | 1,140,000 | 10,850 | 4.1 d | 5,240 | 12 | +69% |
+| 17 | Vehicle Stacker | 1,450,000 | 13,050 | 4.6 d | 6,290 | 13 | +73% |
+| 18 | Convoy Marshalling Yard | 1,790,000 | 15,550 | 5.1 d | 7,540 | 13 | +77% |
+| 19 | Autonomous Pod Depot | 2,170,000 | 18,350 | 5.6 d | 9,050 | 14 | +81% |
+| 20 | Motor Citadel | 2,600,000 | 21,350 | 6.1 d | 10,860 | 15 | +85% |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Motor Pool level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Vehicle Laager:** two jeeps under a **breathing camo net**, tyre tracks, jerrycans, sandbags, windsock |
+| 2 | **Canvas Carport:** canvas carport over three jeeps, fuel drums with a **rocking hand pump**, tyre stack |
+| 3 | **Timber Vehicle Shed:** timber shed with a zinc gable roof, a 3-tonner and a jeep, 'MT' sign |
+| 4 | **MT Line:** four painted bays under a long green hip-roofed carport, dispatch hut with a **lifting boom barrier** |
+| 5 | **MT Line · Fuel Point:** carport row plus a red-and-white fuel canopy with a pump and a parked bowser |
+| 6 | **MT Line · Wash Bay:** carport row, fuel pump and a wash bay with **spinning brushes and spray** |
+| 7 | **Arched Vehicle Shelter:** ribbed green arched shelter over four bays, a tow truck, a raised dispatch tower with a beacon |
+| 8 | **Dispatch Office:** two-storey dispatch office with a balcony and antenna, long carport, tow truck on standby |
+| 9 | **Fuel Depot:** bunded white fuel tank, tall red double fuel island, bowser doing the rounds |
+| 10 | **Motor Pool Complex:** two-storey MT office, carport row, wash bay, fuel island, checkpoint, 'MOTOR POOL' sign |
+| 11 | **Two-Deck Car Park:** concrete deck with vehicles on top and in the bays below, yellow-railed ramp, deck lamps |
+| 12 | **Cantilever Dispatch Hub:** glass dispatch office and a deep white cantilevered canopy with blinking downlights, a camp bus |
+| 13 | **Turntable Depot:** three-storey garage block with shutters behind a **rotating vehicle turntable** |
+| 14 | **EV Charging Depot:** green-roofed canopy over charging bollards with **pulsing green lights**, electric shuttle and pod |
+| 15 | **Motor Rotunda:** round garage with radial bays, a central dispatch drum, a gold band, and **a jeep lapping the ring** |
+| 16 | **Blast-Door Hangar:** concrete hangar with **sliding hazard-striped blast doors**, red warning beacon, secure fence |
+| 17 | **Vehicle Stacker:** three-tier steel stacker beside a yellow **lift that raises a jeep**, glass kiosk |
+| 18 | **Convoy Marshalling Yard:** lined-up convoy under a skylit canopy, **flashing LED gantry sign**, lighting masts, glass control tower |
+| 19 | **Autonomous Pod Depot:** green-roofed white station and **pods gliding round a looped guideway** around a beacon pylon |
+| 20 | **Motor Citadel:** three-deck garage with a gold band and green roof beside a spiral-ramp tower |
+
+Review scene: open the game with `?showcase=motorpool`.
+
+# Parade Square: full specification
+
+The camp's fall-in ground: hosts Fall-in ceremonies and builds Cohesion, which lifts Morale camp-wide. **Signature at every level:** a painted parade ground with rank lines and file markers, a rostrum, and flagpoles in plain camp colours, with squads of Recruits marching in formation around it. Footprint **6×6**; unlocked at HQ 5.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Cohesion | Fall-in |
+|---|---|---|---|---|---|---|---|
+| 1 | Rope Square | 4,500 | 150 | 1 h | 450 | +3 | 12 |
+| 2 | Laterite Square | 9,000 | 250 | 2 h | 540 | +5 | 20 |
+| 3 | Drill Square | 15,000 | 400 | 3 h | 650 | +7 | 28 |
+| 4 | Parade Square | 24,000 | 600 | 5 h | 780 | +9 | 36 |
+| 5 | Square · Spectator Stand | 36,000 | 850 | 7 h | 930 | +11 | 44 |
+| 6 | Square · Bandstand | 52,000 | 1,150 | 10 h | 1,120 | +13 | 52 |
+| 7 | Asphalt Parade Ground | 75,000 | 1,500 | 14 h | 1,340 | +15 | 60 |
+| 8 | Ceremonial Gate | 105,000 | 1,900 | 18 h | 1,610 | +17 | 68 |
+| 9 | Grandstand Square | 145,000 | 2,350 | 22 h | 1,930 | +19 | 76 |
+| 10 | Parade Ground *(release cap)* | 200,000 | 2,850 | 1.25 d | 2,320 | +21 | 84 |
+| 11 | Shell Rostrum | 270,000 | 3,500 | 1.5 d | 2,790 | +23 | 92 |
+| 12 | Garden Parade | 360,000 | 4,400 | 2 d | 3,340 | +25 | 100 |
+| 13 | Floodlit Parade | 470,000 | 5,500 | 2.5 d | 4,010 | +27 | 108 |
+| 14 | Amphitheatre Square | 610,000 | 6,800 | 3 d | 4,810 | +29 | 116 |
+| 15 | Grand Parade | 790,000 | 8,300 | 3.5 d | 5,780 | +31 | 124 |
+| 16 | Secure Square | 1,010,000 | 10,000 | 4 d | 6,930 | +33 | 132 |
+| 17 | Smart Grid Square | 1,280,000 | 12,000 | 4.5 d | 8,320 | +35 | 140 |
+| 18 | Berm Amphitheatre | 1,600,000 | 14,300 | 5 d | 9,980 | +37 | 148 |
+| 19 | Solar Stands | 1,980,000 | 16,900 | 5.5 d | 11,980 | +39 | 156 |
+| 20 | Parade Citadel | 2,420,000 | 19,800 | 6 d | 14,380 | +41 | 164 |
+
+*Levels 11–15 are post-release; 16–20 are reserve. Parade Square level is capped by HQ level.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Rope Square:** roped-off grass patch on pegs, tree-stump rostrum, bamboo flagpole, one squad drilling |
+| 2 | **Laterite Square:** orange laterite square edged with whitewashed stones, timber dais, two flagpoles |
+| 3 | **Drill Square:** whitewashed rank lines on laterite, timber rostrum under a zinc lean-to, benches, drill instructor |
+| 4 | **Parade Square:** concrete square with yellow ranks and file markers, concrete rostrum with a green canopy, lamps |
+| 5 | **Square · Spectator Stand:** adds a **covered spectator stand** with a cheering crowd along the left side |
+| 6 | **Square · Bandstand:** adds a **bandstand with drummers** and bunting strung between the flagpoles |
+| 7 | **Asphalt Parade Ground:** dark asphalt ground, two **rustic zinc lean-to stands** on timber purlins, zinc-roofed rostrum, **ceremonial flag raising** |
+| 8 | **Ceremonial Gate:** **gateway arch** on the right edge, a colonnade along the back, green-roofed stand, gold-trimmed dais and a **red carpet** from gate to dais |
+| 9 | **Grandstand Square:** **two-tier red-roofed grandstand** with a cantilever roof, an open bleacher on the side, and a blinking scoreboard |
+| 10 | **Parade Ground:** maroon ceremonial border, grandstand, gold VIP dais, arch, obelisk and two squads marching |
+| 11 | **Shell Rostrum:** white **acoustic shell** over the dais, modern stands under white canopies, LED screen |
+| 12 | **Garden Parade:** lawn borders with **sprinklers**, planted terraces, green-roofed stands |
+| 13 | **Floodlit Parade:** navy floodlit court with yellow lines, four **floodlight masts**, big LED screen, **steel cantilever stands** with a yellow fascia and underslung lights |
+| 14 | **Amphitheatre Square:** stands curved round the back corner in a stepped **quarter-ring amphitheatre** |
+| 15 | **Grand Parade:** gold-trimmed U of colonnades, glass reviewing pavilion, memorial obelisk, saluting officer |
+| 16 | **Secure Square:** secure perimeter, concrete stands under steel canopies, guarded dais with a blast screen |
+| 17 | **Smart Grid Square:** **LED grid floor** whose tiles light up in waves under the squads, glass review box |
+| 18 | **Berm Amphitheatre:** grassy **terraced berms** as seating, glass reviewing pavilion on a green roof |
+| 19 | **Solar Stands:** stands roofed with **solar canopies**, scoreboard, light masts |
+| 20 | **Parade Citadel:** gold-trimmed colonnaded ring of stands, glass corner pavilions, obelisk |
+
+Review scene: open the game with `?showcase=parade`.

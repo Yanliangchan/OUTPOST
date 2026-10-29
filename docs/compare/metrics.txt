@@ -1,154 +1,1946 @@
-
-hq  lv  bulk  peak  cover  tris  parts   flags
-       1  1.14  1.82  0.17   2038   135   
-       2  1.61  2.24  0.28   2418   162   
-       3  1.66  2.35  0.26   2854   183   
-       4  1.72  2.45  0.31   3234   185   
-       5  1.72  2.82  0.47   3918   219   
-       6  2.82  3.87  0.43   4090   270   
-       7  2.77  4.08  0.52   5800   324   
-       8  3.82  5.24  0.41   6412   369   
-       9  4.15  5.57  0.45   7164   417   
-      10  5.15  6.57  0.53   7462   442   
-      11  5.80  6.27  0.47   9072   543   
-      12  5.42  5.86  0.52   8592   569   
-      13  5.29  5.71  0.49   7142   462   (parts↓)
-      14  5.40  7.11  0.46   8072   506   
-      15  5.21  7.02  0.54   9056   504   
-      16  5.22  5.22  0.55   4668   239   (parts↓)
-      17  5.46  5.46  0.51   4190   230   
-      18  5.17  6.17  0.60   3964   231   
-      19  5.42  7.52  0.53   4974   268   
-      20  5.04  5.71  0.67   7724   326   
-
-bunk  lv  bulk  peak  cover  tris  parts   flags
-       1  0.72  0.74  0.28   1430   119   
-       2  1.14  1.20  0.40   2088   115   
-       3  1.84  1.84  0.52   2042   143   
-       4  1.87  1.91  0.61   2690   196   
-       5  1.91  1.91  0.76   4288   301   
-       6  2.72  2.75  0.75   5382   305   
-       7  3.66  3.69  0.64   4752   301   
-       8  3.82  3.84  0.59   5946   417   
-       9  3.93  3.95  0.59   5966   361   
-      10  4.72  4.93  0.63   7318   489   
-      11  4.77  4.77  0.75   6348   450   
-      12  4.84  4.94  0.74   7384   463   
-      13  4.72  4.75  0.81   8628   548   
-      14  4.56  4.59  0.89   7462   520   
-      15  4.72  4.75  0.87   8594   575   
-      16  4.79  4.79  0.90   4132   264   (parts↓)
-      17  4.74  4.74  0.81   7980   251   
-      18  4.46  4.46  0.74   6264   364   
-      19  4.80  5.26  0.69   3088   199   (parts↓)
-      20  4.54  4.54  0.69   8256   264   
-
-cookhouse  lv  bulk  peak  cover  tris  parts   flags
-       1  1.05  1.05  0.43   1674   103   
-       2  1.14  1.55  0.48   1782    87   (parts↓)
-       3  1.45  1.82  0.70   2024   134   
-       4  1.66  1.76  0.68   2986   183   
-       5  1.66  1.97  0.84   3092   173   
-       6  2.16  2.18  0.87   3788   232   
-       7  2.37  2.40  0.95   2918   187   (parts↓)
-       8  2.40  2.43  0.92   3764   152   (parts↓)
-       9  2.72  2.76  0.79   3722   248   
-      10  2.61  3.03  0.88   3380   165   (parts↓)
-      11  2.66  2.76  0.86   2464   125   (parts↓)
-      12  3.11  3.16  0.75   3944   262   
-      13  3.60  4.14  0.62   1836    96   (parts↓)
-      14  3.26  3.26  0.95   3920   147   
-      15  3.29  3.29  0.87   3496   217   
-      16  3.08  4.03  0.89   2840   175   (parts↓)
-      17  3.31  3.95  0.81   6648   235   
-      18  3.08  3.76  0.79   3694   182   (parts↓)
-      19  3.19  3.76  0.78   3244   166   
-      20  3.13  3.71  0.83   2768   162   
-
-qmstore  lv  bulk  peak  cover  tris  parts   flags
-       1  0.88  0.88  0.46   1792   131   
-       2  1.35  1.35  0.37   2484   139   
-       3  1.66  1.68  0.66   1514    97   (parts↓)
-       4  1.66  1.68  0.67   1862   102   
-       5  1.62  1.62  0.62   1834   116   
-       6  1.66  1.69  0.55   2230   105   
-       7  1.87  1.87  0.82   2646   125   
-       8  2.05  2.05  0.82   3292   168   
-       9  2.82  2.84  0.82   2066    95   (parts↓)
-      10  3.08  3.08  0.74   2318    91   
-      11  2.91  2.91  0.79   2108    97   
-      12  3.29  4.09  0.78   3144   180   
-      13  3.58  3.58  0.71   6928   132   (parts↓)
-      14  3.35  3.35  0.79   1756    89   (parts↓)
-      15  3.26  3.26  0.86   2672   149   
-      16  3.55  3.55  0.68   2948   179   
-      17  3.19  3.19  0.76   7580   187   
-      18  3.16  3.45  0.95   3176   209   
-      19  3.27  3.27  0.83   3552   184   
-      20  3.31  3.82  0.82   2720   152   (parts↓)
-
-workshop  lv  bulk  peak  cover  tris  parts   flags
-       1  0.74  1.34  0.14   1744    98   
-       2  1.56  1.58  0.41   1998   103   
-       3  1.70  1.70  0.58   1724   101   
-       4  1.89  1.93  0.70   2162   100   
-       5  1.93  2.72  0.66   2474    96   
-       6  2.20  2.20  0.68   1948    91   
-       7  2.29  2.33  0.71   2974   105   
-       8  3.00  3.00  0.74   1534    96   
-       9  3.03  3.21  0.71   2926   135   
-      10  2.93  3.24  0.76   2806    94   (parts↓)
-      11  3.08  3.41  0.71   3364    89   
-      12  3.18  3.18  0.74   1732    87   
-      13  3.42  3.45  0.59   2008    86   
-      14  3.18  3.18  0.84   2460   105   
-      15  3.56  3.87  0.83   1906   100   
-      16  3.35  3.57  0.77   3148   161   
-      17  3.69  3.69  0.68   3308   161   
-      18  3.56  4.03  0.63   3736   151   
-      19  3.35  3.53  0.68   3368   160   
-      20  3.66  3.66  0.78   3508   157   
-
-utilities  lv  bulk  peak  cover  tris  parts   flags
-       1  0.51  0.79  0.19   1172    63   
-       2  1.54  1.54  0.16   1364    70   
-       3  1.69  1.69  0.30   1546    86   
-       4  1.51  1.77  0.50   1734   103   
-       5  2.12  2.12  0.39   1578    86   (parts↓)
-       6  2.45  2.48  0.39   2064   128   
-       7  2.77  2.87  0.62   2670   144   
-       8  2.72  2.72  0.59   2038    86   (parts↓)
-       9  2.69  2.69  0.60   2370    93   
-      10  2.91  2.91  0.56   2102   123   
-      11  3.15  3.29  0.56   1900   100   (parts↓)
-      12  3.15  3.29  0.53   2016   119   
-      13  3.06  3.08  0.63   2900    80   (parts↓)
-      14  3.15  3.29  0.66   2420   120   
-      15  3.23  3.53  0.69   1768    82   (parts↓)
-      16  3.20  3.77  0.61   3402   165   
-      17  3.41  3.41  0.52   7012   239   
-      18  3.01  3.01  0.51   2916   147   (parts↓)
-      19  3.45  3.45  0.70   2272   127   
-      20  3.60  3.60  0.66   3284   139   
-
-mamashop  lv  bulk  peak  cover  tris  parts   flags
-       1  0.84  1.13  0.21   1468    68   
-       2  0.99  0.99  0.48   1904    85   
-       3  1.32  1.32  0.70   1926   114   
-       4  1.72  1.72  0.76   2310   141   
-       5  1.85  1.88  0.78   2370   150   
-       6  2.35  2.38  0.80   2106   104   (parts↓)
-       7  2.27  2.27  0.86   1724    90   
-       8  2.29  3.14  0.74   2028   121   
-       9  2.74  2.74  0.86   3056   136   
-      10  3.08  3.08  0.76   2992   126   
-      11  2.69  2.69  0.82   3028   100   (parts↓)
-      12  2.58  2.80  0.76   1604    73   (parts↓)
-      13  2.72  2.72  0.73   3212   146   
-      14  2.48  2.48  0.76   3708   189   
-      15  3.16  3.16  0.92   1762    89   (parts↓)
-      16  3.08  3.08  0.91   1960    84   
-      17  3.14  3.20  0.90   2760   134   
-      18  3.15  3.15  0.87   2548   109   (parts↓)
-      19  3.29  3.29  0.82   1916    97   
-      20  3.08  3.12  0.76   3108   130   
+{
+ "hq": [
+  {
+   "level": 1,
+   "bulk": 1.14,
+   "peak": 1.82,
+   "coverage": 0.17,
+   "tris": 2038,
+   "parts": 135
+  },
+  {
+   "level": 2,
+   "bulk": 1.61,
+   "peak": 2.24,
+   "coverage": 0.28,
+   "tris": 2418,
+   "parts": 162
+  },
+  {
+   "level": 3,
+   "bulk": 1.66,
+   "peak": 2.35,
+   "coverage": 0.26,
+   "tris": 2854,
+   "parts": 183
+  },
+  {
+   "level": 4,
+   "bulk": 1.72,
+   "peak": 2.45,
+   "coverage": 0.31,
+   "tris": 3234,
+   "parts": 185
+  },
+  {
+   "level": 5,
+   "bulk": 1.72,
+   "peak": 2.82,
+   "coverage": 0.47,
+   "tris": 3918,
+   "parts": 219
+  },
+  {
+   "level": 6,
+   "bulk": 2.82,
+   "peak": 3.87,
+   "coverage": 0.43,
+   "tris": 4090,
+   "parts": 270
+  },
+  {
+   "level": 7,
+   "bulk": 2.77,
+   "peak": 4.08,
+   "coverage": 0.52,
+   "tris": 5800,
+   "parts": 324
+  },
+  {
+   "level": 8,
+   "bulk": 3.82,
+   "peak": 5.24,
+   "coverage": 0.41,
+   "tris": 6412,
+   "parts": 369
+  },
+  {
+   "level": 9,
+   "bulk": 4.15,
+   "peak": 5.57,
+   "coverage": 0.45,
+   "tris": 7164,
+   "parts": 417
+  },
+  {
+   "level": 10,
+   "bulk": 5.15,
+   "peak": 6.57,
+   "coverage": 0.53,
+   "tris": 7462,
+   "parts": 442
+  },
+  {
+   "level": 11,
+   "bulk": 5.8,
+   "peak": 6.27,
+   "coverage": 0.47,
+   "tris": 9072,
+   "parts": 543
+  },
+  {
+   "level": 12,
+   "bulk": 5.42,
+   "peak": 5.86,
+   "coverage": 0.52,
+   "tris": 8592,
+   "parts": 569
+  },
+  {
+   "level": 13,
+   "bulk": 5.29,
+   "peak": 5.71,
+   "coverage": 0.49,
+   "tris": 7142,
+   "parts": 462
+  },
+  {
+   "level": 14,
+   "bulk": 5.4,
+   "peak": 7.11,
+   "coverage": 0.46,
+   "tris": 8072,
+   "parts": 506
+  },
+  {
+   "level": 15,
+   "bulk": 5.21,
+   "peak": 7.02,
+   "coverage": 0.54,
+   "tris": 9056,
+   "parts": 504
+  },
+  {
+   "level": 16,
+   "bulk": 5.22,
+   "peak": 5.22,
+   "coverage": 0.55,
+   "tris": 4668,
+   "parts": 239
+  },
+  {
+   "level": 17,
+   "bulk": 5.46,
+   "peak": 5.46,
+   "coverage": 0.51,
+   "tris": 4190,
+   "parts": 230
+  },
+  {
+   "level": 18,
+   "bulk": 5.17,
+   "peak": 6.17,
+   "coverage": 0.6,
+   "tris": 3964,
+   "parts": 231
+  },
+  {
+   "level": 19,
+   "bulk": 5.42,
+   "peak": 7.52,
+   "coverage": 0.53,
+   "tris": 4974,
+   "parts": 268
+  },
+  {
+   "level": 20,
+   "bulk": 5.04,
+   "peak": 5.71,
+   "coverage": 0.67,
+   "tris": 7724,
+   "parts": 326
+  }
+ ],
+ "bunk": [
+  {
+   "level": 1,
+   "bulk": 0.72,
+   "peak": 0.74,
+   "coverage": 0.28,
+   "tris": 1430,
+   "parts": 119
+  },
+  {
+   "level": 2,
+   "bulk": 1.14,
+   "peak": 1.2,
+   "coverage": 0.4,
+   "tris": 2088,
+   "parts": 115
+  },
+  {
+   "level": 3,
+   "bulk": 1.84,
+   "peak": 1.84,
+   "coverage": 0.52,
+   "tris": 2042,
+   "parts": 143
+  },
+  {
+   "level": 4,
+   "bulk": 1.87,
+   "peak": 1.91,
+   "coverage": 0.61,
+   "tris": 2690,
+   "parts": 196
+  },
+  {
+   "level": 5,
+   "bulk": 1.91,
+   "peak": 1.91,
+   "coverage": 0.76,
+   "tris": 4288,
+   "parts": 301
+  },
+  {
+   "level": 6,
+   "bulk": 2.72,
+   "peak": 2.75,
+   "coverage": 0.75,
+   "tris": 5382,
+   "parts": 305
+  },
+  {
+   "level": 7,
+   "bulk": 3.66,
+   "peak": 3.69,
+   "coverage": 0.64,
+   "tris": 4752,
+   "parts": 301
+  },
+  {
+   "level": 8,
+   "bulk": 3.82,
+   "peak": 3.84,
+   "coverage": 0.59,
+   "tris": 5946,
+   "parts": 417
+  },
+  {
+   "level": 9,
+   "bulk": 3.93,
+   "peak": 3.95,
+   "coverage": 0.59,
+   "tris": 5966,
+   "parts": 361
+  },
+  {
+   "level": 10,
+   "bulk": 4.72,
+   "peak": 4.93,
+   "coverage": 0.63,
+   "tris": 7318,
+   "parts": 489
+  },
+  {
+   "level": 11,
+   "bulk": 4.77,
+   "peak": 4.77,
+   "coverage": 0.75,
+   "tris": 6348,
+   "parts": 450
+  },
+  {
+   "level": 12,
+   "bulk": 4.84,
+   "peak": 4.94,
+   "coverage": 0.74,
+   "tris": 7384,
+   "parts": 463
+  },
+  {
+   "level": 13,
+   "bulk": 4.72,
+   "peak": 4.75,
+   "coverage": 0.81,
+   "tris": 8628,
+   "parts": 548
+  },
+  {
+   "level": 14,
+   "bulk": 4.56,
+   "peak": 4.59,
+   "coverage": 0.89,
+   "tris": 7462,
+   "parts": 520
+  },
+  {
+   "level": 15,
+   "bulk": 4.72,
+   "peak": 4.75,
+   "coverage": 0.87,
+   "tris": 8594,
+   "parts": 575
+  },
+  {
+   "level": 16,
+   "bulk": 4.79,
+   "peak": 4.79,
+   "coverage": 0.9,
+   "tris": 4132,
+   "parts": 264
+  },
+  {
+   "level": 17,
+   "bulk": 4.74,
+   "peak": 4.74,
+   "coverage": 0.81,
+   "tris": 7980,
+   "parts": 251
+  },
+  {
+   "level": 18,
+   "bulk": 4.46,
+   "peak": 4.46,
+   "coverage": 0.74,
+   "tris": 6264,
+   "parts": 364
+  },
+  {
+   "level": 19,
+   "bulk": 4.8,
+   "peak": 5.26,
+   "coverage": 0.69,
+   "tris": 3088,
+   "parts": 199
+  },
+  {
+   "level": 20,
+   "bulk": 4.54,
+   "peak": 4.54,
+   "coverage": 0.69,
+   "tris": 8256,
+   "parts": 264
+  }
+ ],
+ "cookhouse": [
+  {
+   "level": 1,
+   "bulk": 1.05,
+   "peak": 1.05,
+   "coverage": 0.43,
+   "tris": 1674,
+   "parts": 103
+  },
+  {
+   "level": 2,
+   "bulk": 1.14,
+   "peak": 1.55,
+   "coverage": 0.48,
+   "tris": 1782,
+   "parts": 87
+  },
+  {
+   "level": 3,
+   "bulk": 1.45,
+   "peak": 1.82,
+   "coverage": 0.7,
+   "tris": 2024,
+   "parts": 134
+  },
+  {
+   "level": 4,
+   "bulk": 1.66,
+   "peak": 1.76,
+   "coverage": 0.68,
+   "tris": 2986,
+   "parts": 183
+  },
+  {
+   "level": 5,
+   "bulk": 1.66,
+   "peak": 1.97,
+   "coverage": 0.84,
+   "tris": 3092,
+   "parts": 173
+  },
+  {
+   "level": 6,
+   "bulk": 2.16,
+   "peak": 2.18,
+   "coverage": 0.87,
+   "tris": 3788,
+   "parts": 232
+  },
+  {
+   "level": 7,
+   "bulk": 2.37,
+   "peak": 2.4,
+   "coverage": 0.95,
+   "tris": 2918,
+   "parts": 187
+  },
+  {
+   "level": 8,
+   "bulk": 2.4,
+   "peak": 2.43,
+   "coverage": 0.92,
+   "tris": 3764,
+   "parts": 152
+  },
+  {
+   "level": 9,
+   "bulk": 2.72,
+   "peak": 2.76,
+   "coverage": 0.79,
+   "tris": 3722,
+   "parts": 248
+  },
+  {
+   "level": 10,
+   "bulk": 2.61,
+   "peak": 3.03,
+   "coverage": 0.88,
+   "tris": 3380,
+   "parts": 165
+  },
+  {
+   "level": 11,
+   "bulk": 2.66,
+   "peak": 2.76,
+   "coverage": 0.86,
+   "tris": 2464,
+   "parts": 125
+  },
+  {
+   "level": 12,
+   "bulk": 3.11,
+   "peak": 3.16,
+   "coverage": 0.75,
+   "tris": 3944,
+   "parts": 262
+  },
+  {
+   "level": 13,
+   "bulk": 3.6,
+   "peak": 4.14,
+   "coverage": 0.62,
+   "tris": 1836,
+   "parts": 96
+  },
+  {
+   "level": 14,
+   "bulk": 3.26,
+   "peak": 3.26,
+   "coverage": 0.95,
+   "tris": 3920,
+   "parts": 147
+  },
+  {
+   "level": 15,
+   "bulk": 3.29,
+   "peak": 3.29,
+   "coverage": 0.87,
+   "tris": 3496,
+   "parts": 217
+  },
+  {
+   "level": 16,
+   "bulk": 3.08,
+   "peak": 4.03,
+   "coverage": 0.89,
+   "tris": 2840,
+   "parts": 175
+  },
+  {
+   "level": 17,
+   "bulk": 3.31,
+   "peak": 3.95,
+   "coverage": 0.81,
+   "tris": 6648,
+   "parts": 235
+  },
+  {
+   "level": 18,
+   "bulk": 3.08,
+   "peak": 3.76,
+   "coverage": 0.79,
+   "tris": 3694,
+   "parts": 182
+  },
+  {
+   "level": 19,
+   "bulk": 3.19,
+   "peak": 3.76,
+   "coverage": 0.78,
+   "tris": 3244,
+   "parts": 166
+  },
+  {
+   "level": 20,
+   "bulk": 3.13,
+   "peak": 3.71,
+   "coverage": 0.83,
+   "tris": 2768,
+   "parts": 162
+  }
+ ],
+ "qmstore": [
+  {
+   "level": 1,
+   "bulk": 0.88,
+   "peak": 0.88,
+   "coverage": 0.46,
+   "tris": 1792,
+   "parts": 131
+  },
+  {
+   "level": 2,
+   "bulk": 1.35,
+   "peak": 1.35,
+   "coverage": 0.37,
+   "tris": 2484,
+   "parts": 139
+  },
+  {
+   "level": 3,
+   "bulk": 1.66,
+   "peak": 1.68,
+   "coverage": 0.66,
+   "tris": 1514,
+   "parts": 97
+  },
+  {
+   "level": 4,
+   "bulk": 1.66,
+   "peak": 1.68,
+   "coverage": 0.67,
+   "tris": 1862,
+   "parts": 102
+  },
+  {
+   "level": 5,
+   "bulk": 1.62,
+   "peak": 1.62,
+   "coverage": 0.62,
+   "tris": 1834,
+   "parts": 116
+  },
+  {
+   "level": 6,
+   "bulk": 1.66,
+   "peak": 1.69,
+   "coverage": 0.55,
+   "tris": 2230,
+   "parts": 105
+  },
+  {
+   "level": 7,
+   "bulk": 1.87,
+   "peak": 1.87,
+   "coverage": 0.82,
+   "tris": 2646,
+   "parts": 125
+  },
+  {
+   "level": 8,
+   "bulk": 2.05,
+   "peak": 2.05,
+   "coverage": 0.82,
+   "tris": 3292,
+   "parts": 168
+  },
+  {
+   "level": 9,
+   "bulk": 2.82,
+   "peak": 2.84,
+   "coverage": 0.82,
+   "tris": 2066,
+   "parts": 95
+  },
+  {
+   "level": 10,
+   "bulk": 3.08,
+   "peak": 3.08,
+   "coverage": 0.74,
+   "tris": 2318,
+   "parts": 91
+  },
+  {
+   "level": 11,
+   "bulk": 2.91,
+   "peak": 2.91,
+   "coverage": 0.79,
+   "tris": 2108,
+   "parts": 97
+  },
+  {
+   "level": 12,
+   "bulk": 3.29,
+   "peak": 4.09,
+   "coverage": 0.78,
+   "tris": 3144,
+   "parts": 180
+  },
+  {
+   "level": 13,
+   "bulk": 3.58,
+   "peak": 3.58,
+   "coverage": 0.71,
+   "tris": 6928,
+   "parts": 132
+  },
+  {
+   "level": 14,
+   "bulk": 3.35,
+   "peak": 3.35,
+   "coverage": 0.79,
+   "tris": 1756,
+   "parts": 89
+  },
+  {
+   "level": 15,
+   "bulk": 3.26,
+   "peak": 3.26,
+   "coverage": 0.86,
+   "tris": 2672,
+   "parts": 149
+  },
+  {
+   "level": 16,
+   "bulk": 3.55,
+   "peak": 3.55,
+   "coverage": 0.68,
+   "tris": 2948,
+   "parts": 179
+  },
+  {
+   "level": 17,
+   "bulk": 3.19,
+   "peak": 3.19,
+   "coverage": 0.76,
+   "tris": 7580,
+   "parts": 187
+  },
+  {
+   "level": 18,
+   "bulk": 3.16,
+   "peak": 3.45,
+   "coverage": 0.95,
+   "tris": 3176,
+   "parts": 209
+  },
+  {
+   "level": 19,
+   "bulk": 3.27,
+   "peak": 3.27,
+   "coverage": 0.83,
+   "tris": 3552,
+   "parts": 184
+  },
+  {
+   "level": 20,
+   "bulk": 3.31,
+   "peak": 3.82,
+   "coverage": 0.82,
+   "tris": 2720,
+   "parts": 152
+  }
+ ],
+ "workshop": [
+  {
+   "level": 1,
+   "bulk": 0.74,
+   "peak": 1.34,
+   "coverage": 0.14,
+   "tris": 1744,
+   "parts": 98
+  },
+  {
+   "level": 2,
+   "bulk": 1.56,
+   "peak": 1.58,
+   "coverage": 0.41,
+   "tris": 1998,
+   "parts": 103
+  },
+  {
+   "level": 3,
+   "bulk": 1.7,
+   "peak": 1.7,
+   "coverage": 0.58,
+   "tris": 1724,
+   "parts": 101
+  },
+  {
+   "level": 4,
+   "bulk": 1.89,
+   "peak": 1.93,
+   "coverage": 0.7,
+   "tris": 2162,
+   "parts": 100
+  },
+  {
+   "level": 5,
+   "bulk": 1.93,
+   "peak": 2.72,
+   "coverage": 0.66,
+   "tris": 2474,
+   "parts": 96
+  },
+  {
+   "level": 6,
+   "bulk": 2.2,
+   "peak": 2.2,
+   "coverage": 0.68,
+   "tris": 1948,
+   "parts": 91
+  },
+  {
+   "level": 7,
+   "bulk": 2.29,
+   "peak": 2.33,
+   "coverage": 0.71,
+   "tris": 2974,
+   "parts": 105
+  },
+  {
+   "level": 8,
+   "bulk": 3,
+   "peak": 3,
+   "coverage": 0.74,
+   "tris": 1534,
+   "parts": 96
+  },
+  {
+   "level": 9,
+   "bulk": 3.03,
+   "peak": 3.21,
+   "coverage": 0.71,
+   "tris": 2926,
+   "parts": 135
+  },
+  {
+   "level": 10,
+   "bulk": 2.93,
+   "peak": 3.24,
+   "coverage": 0.76,
+   "tris": 2806,
+   "parts": 94
+  },
+  {
+   "level": 11,
+   "bulk": 3.08,
+   "peak": 3.41,
+   "coverage": 0.71,
+   "tris": 3364,
+   "parts": 89
+  },
+  {
+   "level": 12,
+   "bulk": 3.18,
+   "peak": 3.18,
+   "coverage": 0.74,
+   "tris": 1732,
+   "parts": 87
+  },
+  {
+   "level": 13,
+   "bulk": 3.42,
+   "peak": 3.45,
+   "coverage": 0.59,
+   "tris": 2008,
+   "parts": 86
+  },
+  {
+   "level": 14,
+   "bulk": 3.18,
+   "peak": 3.18,
+   "coverage": 0.84,
+   "tris": 2460,
+   "parts": 105
+  },
+  {
+   "level": 15,
+   "bulk": 3.56,
+   "peak": 3.87,
+   "coverage": 0.83,
+   "tris": 1906,
+   "parts": 100
+  },
+  {
+   "level": 16,
+   "bulk": 3.35,
+   "peak": 3.57,
+   "coverage": 0.77,
+   "tris": 3148,
+   "parts": 161
+  },
+  {
+   "level": 17,
+   "bulk": 3.69,
+   "peak": 3.69,
+   "coverage": 0.68,
+   "tris": 3308,
+   "parts": 161
+  },
+  {
+   "level": 18,
+   "bulk": 3.56,
+   "peak": 4.03,
+   "coverage": 0.63,
+   "tris": 3736,
+   "parts": 151
+  },
+  {
+   "level": 19,
+   "bulk": 3.35,
+   "peak": 3.53,
+   "coverage": 0.68,
+   "tris": 3368,
+   "parts": 160
+  },
+  {
+   "level": 20,
+   "bulk": 3.66,
+   "peak": 3.66,
+   "coverage": 0.78,
+   "tris": 3508,
+   "parts": 157
+  }
+ ],
+ "utilities": [
+  {
+   "level": 1,
+   "bulk": 0.51,
+   "peak": 0.79,
+   "coverage": 0.19,
+   "tris": 1172,
+   "parts": 63
+  },
+  {
+   "level": 2,
+   "bulk": 1.54,
+   "peak": 1.54,
+   "coverage": 0.16,
+   "tris": 1364,
+   "parts": 70
+  },
+  {
+   "level": 3,
+   "bulk": 1.69,
+   "peak": 1.69,
+   "coverage": 0.3,
+   "tris": 1546,
+   "parts": 86
+  },
+  {
+   "level": 4,
+   "bulk": 1.51,
+   "peak": 1.77,
+   "coverage": 0.5,
+   "tris": 1734,
+   "parts": 103
+  },
+  {
+   "level": 5,
+   "bulk": 2.12,
+   "peak": 2.12,
+   "coverage": 0.39,
+   "tris": 1578,
+   "parts": 86
+  },
+  {
+   "level": 6,
+   "bulk": 2.45,
+   "peak": 2.48,
+   "coverage": 0.39,
+   "tris": 2064,
+   "parts": 128
+  },
+  {
+   "level": 7,
+   "bulk": 2.77,
+   "peak": 2.87,
+   "coverage": 0.62,
+   "tris": 2670,
+   "parts": 144
+  },
+  {
+   "level": 8,
+   "bulk": 2.72,
+   "peak": 2.72,
+   "coverage": 0.59,
+   "tris": 2038,
+   "parts": 86
+  },
+  {
+   "level": 9,
+   "bulk": 2.69,
+   "peak": 2.69,
+   "coverage": 0.6,
+   "tris": 2370,
+   "parts": 93
+  },
+  {
+   "level": 10,
+   "bulk": 2.91,
+   "peak": 2.91,
+   "coverage": 0.56,
+   "tris": 2102,
+   "parts": 123
+  },
+  {
+   "level": 11,
+   "bulk": 3.15,
+   "peak": 3.29,
+   "coverage": 0.56,
+   "tris": 1900,
+   "parts": 100
+  },
+  {
+   "level": 12,
+   "bulk": 3.15,
+   "peak": 3.29,
+   "coverage": 0.53,
+   "tris": 2016,
+   "parts": 119
+  },
+  {
+   "level": 13,
+   "bulk": 3.06,
+   "peak": 3.08,
+   "coverage": 0.63,
+   "tris": 2900,
+   "parts": 80
+  },
+  {
+   "level": 14,
+   "bulk": 3.15,
+   "peak": 3.29,
+   "coverage": 0.66,
+   "tris": 2420,
+   "parts": 120
+  },
+  {
+   "level": 15,
+   "bulk": 3.23,
+   "peak": 3.53,
+   "coverage": 0.69,
+   "tris": 1768,
+   "parts": 82
+  },
+  {
+   "level": 16,
+   "bulk": 3.2,
+   "peak": 3.77,
+   "coverage": 0.61,
+   "tris": 3402,
+   "parts": 165
+  },
+  {
+   "level": 17,
+   "bulk": 3.41,
+   "peak": 3.41,
+   "coverage": 0.52,
+   "tris": 7012,
+   "parts": 239
+  },
+  {
+   "level": 18,
+   "bulk": 3.01,
+   "peak": 3.01,
+   "coverage": 0.51,
+   "tris": 2916,
+   "parts": 147
+  },
+  {
+   "level": 19,
+   "bulk": 3.45,
+   "peak": 3.45,
+   "coverage": 0.7,
+   "tris": 2272,
+   "parts": 127
+  },
+  {
+   "level": 20,
+   "bulk": 3.6,
+   "peak": 3.6,
+   "coverage": 0.66,
+   "tris": 3284,
+   "parts": 139
+  }
+ ],
+ "mamashop": [
+  {
+   "level": 1,
+   "bulk": 0.84,
+   "peak": 1.13,
+   "coverage": 0.21,
+   "tris": 1468,
+   "parts": 68
+  },
+  {
+   "level": 2,
+   "bulk": 0.99,
+   "peak": 0.99,
+   "coverage": 0.48,
+   "tris": 1904,
+   "parts": 85
+  },
+  {
+   "level": 3,
+   "bulk": 1.32,
+   "peak": 1.32,
+   "coverage": 0.7,
+   "tris": 1926,
+   "parts": 114
+  },
+  {
+   "level": 4,
+   "bulk": 1.72,
+   "peak": 1.72,
+   "coverage": 0.76,
+   "tris": 2310,
+   "parts": 141
+  },
+  {
+   "level": 5,
+   "bulk": 1.85,
+   "peak": 1.88,
+   "coverage": 0.78,
+   "tris": 2370,
+   "parts": 150
+  },
+  {
+   "level": 6,
+   "bulk": 2.35,
+   "peak": 2.38,
+   "coverage": 0.8,
+   "tris": 2106,
+   "parts": 104
+  },
+  {
+   "level": 7,
+   "bulk": 2.27,
+   "peak": 2.27,
+   "coverage": 0.86,
+   "tris": 1724,
+   "parts": 90
+  },
+  {
+   "level": 8,
+   "bulk": 2.29,
+   "peak": 3.14,
+   "coverage": 0.74,
+   "tris": 2028,
+   "parts": 121
+  },
+  {
+   "level": 9,
+   "bulk": 2.74,
+   "peak": 2.74,
+   "coverage": 0.86,
+   "tris": 3056,
+   "parts": 136
+  },
+  {
+   "level": 10,
+   "bulk": 3.08,
+   "peak": 3.08,
+   "coverage": 0.76,
+   "tris": 2992,
+   "parts": 126
+  },
+  {
+   "level": 11,
+   "bulk": 2.69,
+   "peak": 2.69,
+   "coverage": 0.82,
+   "tris": 3028,
+   "parts": 100
+  },
+  {
+   "level": 12,
+   "bulk": 2.58,
+   "peak": 2.8,
+   "coverage": 0.76,
+   "tris": 1604,
+   "parts": 73
+  },
+  {
+   "level": 13,
+   "bulk": 2.72,
+   "peak": 2.72,
+   "coverage": 0.73,
+   "tris": 3212,
+   "parts": 146
+  },
+  {
+   "level": 14,
+   "bulk": 2.48,
+   "peak": 2.48,
+   "coverage": 0.76,
+   "tris": 3708,
+   "parts": 189
+  },
+  {
+   "level": 15,
+   "bulk": 3.16,
+   "peak": 3.16,
+   "coverage": 0.92,
+   "tris": 1762,
+   "parts": 89
+  },
+  {
+   "level": 16,
+   "bulk": 3.08,
+   "peak": 3.08,
+   "coverage": 0.91,
+   "tris": 1960,
+   "parts": 84
+  },
+  {
+   "level": 17,
+   "bulk": 3.14,
+   "peak": 3.2,
+   "coverage": 0.9,
+   "tris": 2760,
+   "parts": 134
+  },
+  {
+   "level": 18,
+   "bulk": 3.15,
+   "peak": 3.15,
+   "coverage": 0.87,
+   "tris": 2548,
+   "parts": 109
+  },
+  {
+   "level": 19,
+   "bulk": 3.29,
+   "peak": 3.29,
+   "coverage": 0.82,
+   "tris": 1916,
+   "parts": 97
+  },
+  {
+   "level": 20,
+   "bulk": 3.08,
+   "peak": 3.12,
+   "coverage": 0.76,
+   "tris": 3108,
+   "parts": 130
+  }
+ ],
+ "admin": [
+  {
+   "level": 1,
+   "bulk": 1.14,
+   "peak": 1.2,
+   "coverage": 0.44,
+   "tris": 1386,
+   "parts": 93
+  },
+  {
+   "level": 2,
+   "bulk": 1.51,
+   "peak": 1.51,
+   "coverage": 0.39,
+   "tris": 1866,
+   "parts": 108
+  },
+  {
+   "level": 3,
+   "bulk": 1.66,
+   "peak": 1.69,
+   "coverage": 0.74,
+   "tris": 1374,
+   "parts": 115
+  },
+  {
+   "level": 4,
+   "bulk": 1.72,
+   "peak": 1.75,
+   "coverage": 0.78,
+   "tris": 2226,
+   "parts": 139
+  },
+  {
+   "level": 5,
+   "bulk": 2.61,
+   "peak": 2.61,
+   "coverage": 0.63,
+   "tris": 2348,
+   "parts": 128
+  },
+  {
+   "level": 6,
+   "bulk": 2.61,
+   "peak": 2.64,
+   "coverage": 0.69,
+   "tris": 2882,
+   "parts": 172
+  },
+  {
+   "level": 7,
+   "bulk": 2.96,
+   "peak": 2.96,
+   "coverage": 0.56,
+   "tris": 3272,
+   "parts": 182
+  },
+  {
+   "level": 8,
+   "bulk": 2.72,
+   "peak": 2.75,
+   "coverage": 0.73,
+   "tris": 2620,
+   "parts": 149
+  },
+  {
+   "level": 9,
+   "bulk": 3.61,
+   "peak": 3.64,
+   "coverage": 0.66,
+   "tris": 2882,
+   "parts": 172
+  },
+  {
+   "level": 10,
+   "bulk": 3.66,
+   "peak": 3.69,
+   "coverage": 0.84,
+   "tris": 3236,
+   "parts": 202
+  },
+  {
+   "level": 11,
+   "bulk": 3.66,
+   "peak": 3.66,
+   "coverage": 0.79,
+   "tris": 2744,
+   "parts": 116
+  },
+  {
+   "level": 12,
+   "bulk": 3.79,
+   "peak": 3.79,
+   "coverage": 0.66,
+   "tris": 2720,
+   "parts": 158
+  },
+  {
+   "level": 13,
+   "bulk": 3.46,
+   "peak": 3.46,
+   "coverage": 0.71,
+   "tris": 2000,
+   "parts": 98
+  },
+  {
+   "level": 14,
+   "bulk": 3.72,
+   "peak": 3.72,
+   "coverage": 0.67,
+   "tris": 2720,
+   "parts": 157
+  },
+  {
+   "level": 15,
+   "bulk": 3.66,
+   "peak": 3.69,
+   "coverage": 0.73,
+   "tris": 2748,
+   "parts": 188
+  },
+  {
+   "level": 16,
+   "bulk": 3.45,
+   "peak": 3.7,
+   "coverage": 0.71,
+   "tris": 2812,
+   "parts": 178
+  },
+  {
+   "level": 17,
+   "bulk": 3.53,
+   "peak": 3.71,
+   "coverage": 0.63,
+   "tris": 2792,
+   "parts": 162
+  },
+  {
+   "level": 18,
+   "bulk": 3.56,
+   "peak": 3.56,
+   "coverage": 0.63,
+   "tris": 3352,
+   "parts": 159
+  },
+  {
+   "level": 19,
+   "bulk": 3.86,
+   "peak": 3.86,
+   "coverage": 0.67,
+   "tris": 2586,
+   "parts": 138
+  },
+  {
+   "level": 20,
+   "bulk": 3.93,
+   "peak": 3.93,
+   "coverage": 0.64,
+   "tris": 3572,
+   "parts": 174
+  }
+ ],
+ "reccentre": [
+  {
+   "level": 1,
+   "bulk": 1.24,
+   "peak": 1.24,
+   "coverage": 0.14,
+   "tris": 1238,
+   "parts": 87
+  },
+  {
+   "level": 2,
+   "bulk": 1.42,
+   "peak": 1.42,
+   "coverage": 0.14,
+   "tris": 2114,
+   "parts": 104
+  },
+  {
+   "level": 3,
+   "bulk": 1.51,
+   "peak": 1.53,
+   "coverage": 0.4,
+   "tris": 1366,
+   "parts": 92
+  },
+  {
+   "level": 4,
+   "bulk": 1.93,
+   "peak": 1.96,
+   "coverage": 0.41,
+   "tris": 2886,
+   "parts": 135
+  },
+  {
+   "level": 5,
+   "bulk": 1.87,
+   "peak": 1.89,
+   "coverage": 0.46,
+   "tris": 3098,
+   "parts": 152
+  },
+  {
+   "level": 6,
+   "bulk": 2.24,
+   "peak": 2.24,
+   "coverage": 0.65,
+   "tris": 1816,
+   "parts": 95
+  },
+  {
+   "level": 7,
+   "bulk": 2.77,
+   "peak": 2.8,
+   "coverage": 0.55,
+   "tris": 2506,
+   "parts": 149
+  },
+  {
+   "level": 8,
+   "bulk": 2.65,
+   "peak": 2.65,
+   "coverage": 0.56,
+   "tris": 4856,
+   "parts": 241
+  },
+  {
+   "level": 9,
+   "bulk": 2.61,
+   "peak": 2.64,
+   "coverage": 0.63,
+   "tris": 2134,
+   "parts": 142
+  },
+  {
+   "level": 10,
+   "bulk": 2.98,
+   "peak": 3,
+   "coverage": 0.49,
+   "tris": 1670,
+   "parts": 94
+  },
+  {
+   "level": 11,
+   "bulk": 3.29,
+   "peak": 3.29,
+   "coverage": 0.56,
+   "tris": 3476,
+   "parts": 181
+  },
+  {
+   "level": 12,
+   "bulk": 3.29,
+   "peak": 3.78,
+   "coverage": 0.72,
+   "tris": 3088,
+   "parts": 199
+  },
+  {
+   "level": 13,
+   "bulk": 3.06,
+   "peak": 3.06,
+   "coverage": 0.8,
+   "tris": 2044,
+   "parts": 92
+  },
+  {
+   "level": 14,
+   "bulk": 3.2,
+   "peak": 3.51,
+   "coverage": 0.76,
+   "tris": 1664,
+   "parts": 86
+  },
+  {
+   "level": 15,
+   "bulk": 2.83,
+   "peak": 3.26,
+   "coverage": 0.79,
+   "tris": 10156,
+   "parts": 449
+  },
+  {
+   "level": 16,
+   "bulk": 3.29,
+   "peak": 3.29,
+   "coverage": 0.62,
+   "tris": 4104,
+   "parts": 226
+  },
+  {
+   "level": 17,
+   "bulk": 3.45,
+   "peak": 3.65,
+   "coverage": 0.78,
+   "tris": 2700,
+   "parts": 140
+  },
+  {
+   "level": 18,
+   "bulk": 3.45,
+   "peak": 4.31,
+   "coverage": 0.75,
+   "tris": 4080,
+   "parts": 171
+  },
+  {
+   "level": 19,
+   "bulk": 3.38,
+   "peak": 3.38,
+   "coverage": 0.78,
+   "tris": 3912,
+   "parts": 139
+  },
+  {
+   "level": 20,
+   "bulk": 3.19,
+   "peak": 3.19,
+   "coverage": 0.84,
+   "tris": 3348,
+   "parts": 167
+  }
+ ],
+ "medical": [
+  {
+   "level": 1,
+   "bulk": 1.14,
+   "peak": 1.31,
+   "coverage": 0.43,
+   "tris": 1418,
+   "parts": 94
+  },
+  {
+   "level": 2,
+   "bulk": 1.14,
+   "peak": 1.2,
+   "coverage": 0.65,
+   "tris": 2604,
+   "parts": 114
+  },
+  {
+   "level": 3,
+   "bulk": 1.61,
+   "peak": 1.63,
+   "coverage": 0.61,
+   "tris": 1666,
+   "parts": 112
+  },
+  {
+   "level": 4,
+   "bulk": 1.61,
+   "peak": 1.64,
+   "coverage": 0.61,
+   "tris": 2022,
+   "parts": 108
+  },
+  {
+   "level": 5,
+   "bulk": 1.56,
+   "peak": 1.59,
+   "coverage": 0.75,
+   "tris": 2600,
+   "parts": 134
+  },
+  {
+   "level": 6,
+   "bulk": 2.61,
+   "peak": 2.81,
+   "coverage": 0.66,
+   "tris": 2366,
+   "parts": 165
+  },
+  {
+   "level": 7,
+   "bulk": 2.29,
+   "peak": 2.67,
+   "coverage": 0.65,
+   "tris": 3164,
+   "parts": 178
+  },
+  {
+   "level": 8,
+   "bulk": 3.38,
+   "peak": 3.41,
+   "coverage": 0.63,
+   "tris": 2890,
+   "parts": 181
+  },
+  {
+   "level": 9,
+   "bulk": 3.71,
+   "peak": 3.71,
+   "coverage": 0.68,
+   "tris": 3942,
+   "parts": 202
+  },
+  {
+   "level": 10,
+   "bulk": 3.56,
+   "peak": 3.59,
+   "coverage": 0.73,
+   "tris": 3382,
+   "parts": 197
+  },
+  {
+   "level": 11,
+   "bulk": 3.19,
+   "peak": 3.87,
+   "coverage": 0.81,
+   "tris": 1912,
+   "parts": 101
+  },
+  {
+   "level": 12,
+   "bulk": 3.42,
+   "peak": 3.42,
+   "coverage": 0.66,
+   "tris": 3312,
+   "parts": 169
+  },
+  {
+   "level": 13,
+   "bulk": 3.29,
+   "peak": 3.77,
+   "coverage": 0.67,
+   "tris": 3196,
+   "parts": 165
+  },
+  {
+   "level": 14,
+   "bulk": 3.29,
+   "peak": 3.29,
+   "coverage": 0.58,
+   "tris": 3832,
+   "parts": 219
+  },
+  {
+   "level": 15,
+   "bulk": 3.51,
+   "peak": 3.54,
+   "coverage": 0.85,
+   "tris": 4660,
+   "parts": 276
+  },
+  {
+   "level": 16,
+   "bulk": 3.55,
+   "peak": 3.55,
+   "coverage": 0.74,
+   "tris": 3584,
+   "parts": 185
+  },
+  {
+   "level": 17,
+   "bulk": 3.29,
+   "peak": 3.73,
+   "coverage": 0.72,
+   "tris": 5324,
+   "parts": 197
+  },
+  {
+   "level": 18,
+   "bulk": 3.17,
+   "peak": 3.51,
+   "coverage": 0.67,
+   "tris": 3668,
+   "parts": 199
+  },
+  {
+   "level": 19,
+   "bulk": 3.29,
+   "peak": 3.73,
+   "coverage": 0.7,
+   "tris": 4080,
+   "parts": 194
+  },
+  {
+   "level": 20,
+   "bulk": 3.38,
+   "peak": 4.15,
+   "coverage": 0.79,
+   "tris": 4680,
+   "parts": 252
+  }
+ ],
+ "motorpool": [
+  {
+   "level": 1,
+   "bulk": 1.03,
+   "peak": 1.03,
+   "coverage": 0.3,
+   "tris": 2304,
+   "parts": 120
+  },
+  {
+   "level": 2,
+   "bulk": 1.27,
+   "peak": 1.27,
+   "coverage": 0.34,
+   "tris": 3060,
+   "parts": 134
+  },
+  {
+   "level": 3,
+   "bulk": 1.35,
+   "peak": 1.37,
+   "coverage": 0.51,
+   "tris": 2558,
+   "parts": 127
+  },
+  {
+   "level": 4,
+   "bulk": 1.75,
+   "peak": 1.78,
+   "coverage": 0.45,
+   "tris": 4194,
+   "parts": 177
+  },
+  {
+   "level": 5,
+   "bulk": 1.83,
+   "peak": 1.86,
+   "coverage": 0.56,
+   "tris": 4402,
+   "parts": 187
+  },
+  {
+   "level": 6,
+   "bulk": 1.91,
+   "peak": 1.94,
+   "coverage": 0.47,
+   "tris": 4538,
+   "parts": 196
+  },
+  {
+   "level": 7,
+   "bulk": 1.98,
+   "peak": 2.01,
+   "coverage": 0.44,
+   "tris": 4692,
+   "parts": 191
+  },
+  {
+   "level": 8,
+   "bulk": 2.45,
+   "peak": 3.29,
+   "coverage": 0.57,
+   "tris": 4494,
+   "parts": 212
+  },
+  {
+   "level": 9,
+   "bulk": 2.58,
+   "peak": 2.58,
+   "coverage": 0.53,
+   "tris": 5136,
+   "parts": 155
+  },
+  {
+   "level": 10,
+   "bulk": 2.45,
+   "peak": 2.48,
+   "coverage": 0.61,
+   "tris": 4710,
+   "parts": 222
+  },
+  {
+   "level": 11,
+   "bulk": 2.12,
+   "peak": 2.26,
+   "coverage": 0.61,
+   "tris": 5768,
+   "parts": 230
+  },
+  {
+   "level": 12,
+   "bulk": 2.67,
+   "peak": 3.08,
+   "coverage": 0.66,
+   "tris": 4236,
+   "parts": 164
+  },
+  {
+   "level": 13,
+   "bulk": 3.29,
+   "peak": 3.29,
+   "coverage": 0.61,
+   "tris": 4452,
+   "parts": 230
+  },
+  {
+   "level": 14,
+   "bulk": 2.8,
+   "peak": 2.8,
+   "coverage": 0.66,
+   "tris": 4446,
+   "parts": 178
+  },
+  {
+   "level": 15,
+   "bulk": 2.91,
+   "peak": 2.99,
+   "coverage": 0.72,
+   "tris": 6016,
+   "parts": 219
+  },
+  {
+   "level": 16,
+   "bulk": 3.28,
+   "peak": 3.28,
+   "coverage": 0.67,
+   "tris": 3852,
+   "parts": 194
+  },
+  {
+   "level": 17,
+   "bulk": 3.35,
+   "peak": 3.35,
+   "coverage": 0.59,
+   "tris": 4532,
+   "parts": 214
+  },
+  {
+   "level": 18,
+   "bulk": 2.97,
+   "peak": 3.71,
+   "coverage": 0.67,
+   "tris": 6044,
+   "parts": 261
+  },
+  {
+   "level": 19,
+   "bulk": 3.42,
+   "peak": 3.42,
+   "coverage": 0.58,
+   "tris": 4836,
+   "parts": 187
+  },
+  {
+   "level": 20,
+   "bulk": 3.32,
+   "peak": 3.35,
+   "coverage": 0.67,
+   "tris": 6636,
+   "parts": 293
+  }
+ ],
+ "parade": [
+  {
+   "level": 1,
+   "bulk": 0.44,
+   "peak": 1.82,
+   "coverage": 0.02,
+   "tris": 2640,
+   "parts": 195
+  },
+  {
+   "level": 2,
+   "bulk": 0.46,
+   "peak": 2.14,
+   "coverage": 0.04,
+   "tris": 3636,
+   "parts": 251
+  },
+  {
+   "level": 3,
+   "bulk": 1.63,
+   "peak": 2.35,
+   "coverage": 0.07,
+   "tris": 4012,
+   "parts": 280
+  },
+  {
+   "level": 4,
+   "bulk": 1.87,
+   "peak": 2.56,
+   "coverage": 0.07,
+   "tris": 4162,
+   "parts": 289
+  },
+  {
+   "level": 5,
+   "bulk": 1.87,
+   "peak": 2.56,
+   "coverage": 0.16,
+   "tris": 5330,
+   "parts": 328
+  },
+  {
+   "level": 6,
+   "bulk": 1.98,
+   "peak": 2.66,
+   "coverage": 0.22,
+   "tris": 6328,
+   "parts": 402
+  },
+  {
+   "level": 7,
+   "bulk": 1.95,
+   "peak": 2.87,
+   "coverage": 0.21,
+   "tris": 6504,
+   "parts": 374
+  },
+  {
+   "level": 8,
+   "bulk": 1.73,
+   "peak": 2.87,
+   "coverage": 0.26,
+   "tris": 6620,
+   "parts": 372
+  },
+  {
+   "level": 9,
+   "bulk": 2.08,
+   "peak": 2.87,
+   "coverage": 0.23,
+   "tris": 7454,
+   "parts": 405
+  },
+  {
+   "level": 10,
+   "bulk": 1.86,
+   "peak": 2.98,
+   "coverage": 0.29,
+   "tris": 9480,
+   "parts": 520
+  },
+  {
+   "level": 11,
+   "bulk": 1.85,
+   "peak": 2.98,
+   "coverage": 0.28,
+   "tris": 9250,
+   "parts": 511
+  },
+  {
+   "level": 12,
+   "bulk": 2.06,
+   "peak": 2.98,
+   "coverage": 0.27,
+   "tris": 9754,
+   "parts": 533
+  },
+  {
+   "level": 13,
+   "bulk": 2.01,
+   "peak": 3.42,
+   "coverage": 0.33,
+   "tris": 10900,
+   "parts": 613
+  },
+  {
+   "level": 14,
+   "bulk": 2.22,
+   "peak": 2.98,
+   "coverage": 0.35,
+   "tris": 8486,
+   "parts": 464
+  },
+  {
+   "level": 15,
+   "bulk": 2.41,
+   "peak": 3.19,
+   "coverage": 0.35,
+   "tris": 9892,
+   "parts": 570
+  },
+  {
+   "level": 16,
+   "bulk": 2.04,
+   "peak": 2.98,
+   "coverage": 0.39,
+   "tris": 10920,
+   "parts": 604
+  },
+  {
+   "level": 17,
+   "bulk": 2.04,
+   "peak": 3.08,
+   "coverage": 0.4,
+   "tris": 12384,
+   "parts": 688
+  },
+  {
+   "level": 18,
+   "bulk": 2.13,
+   "peak": 3.19,
+   "coverage": 0.36,
+   "tris": 13172,
+   "parts": 641
+  },
+  {
+   "level": 19,
+   "bulk": 2.28,
+   "peak": 3.42,
+   "coverage": 0.4,
+   "tris": 13192,
+   "parts": 706
+  },
+  {
+   "level": 20,
+   "bulk": 2.24,
+   "peak": 3.29,
+   "coverage": 0.45,
+   "tris": 13908,
+   "parts": 726
+  }
+ ]
+}

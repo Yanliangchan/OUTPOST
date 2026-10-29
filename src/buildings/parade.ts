@@ -238,7 +238,7 @@ function rostrum(k: Kit, x: number, z: number, y: number, w: number, d: number, 
 }
 
 /** Tiered spectator stand facing +z (rows step up toward the back). Returns its top height. */
-function stand(k: Kit, x: number, z: number, w: number, rows: number, y: number, roof: 'none' | 'green' | 'red' | 'canopy' | 'solar' = 'green', seat = '#2bb3a3', rotY = 0) {
+function stand(k: Kit, x: number, z: number, w: number, rows: number, y: number, roof: 'none' | 'green' | 'red' | 'canopy' | 'solar' | 'zinc' | 'steel' = 'green', seat = '#2bb3a3', rotY = 0) {
   const g = new Kit();
   const step = 0.24, rise = 0.17;
   for (let r = 0; r < rows; r++) {
@@ -259,13 +259,26 @@ function stand(k: Kit, x: number, z: number, w: number, rows: number, y: number,
       c.castShadow = true;
       g.group.add(c);
       g.box(w + 0.14, 0.03, 0.05, C.white, 0, top + 0.12, back + rows * step + 0.32);
+    } else if (roof === 'zinc') {
+      // Rustic lean-to: corrugated zinc on timber purlins
+      const zt = top + 0.25;
+      for (const s2 of [-1, 1]) g.box(0.06, 0.25, 0.06, '#7a5a3b', s2 * (w / 2 - 0.05), top, back + 0.04);
+      const c = g.box(w + 0.2, 0.04, rows * step + 0.55, C.zinc, 0, zt, back + (rows * step) / 2 + 0.1);
+      c.rotation.x = 0.2;
+      for (let i = 0; i < 3; i++) g.box(w + 0.1, 0.05, 0.05, '#7a5a3b', 0, zt - 0.06 - i * 0.06, back + 0.15 + i * ((rows * step) / 2));
+    } else if (roof === 'steel') {
+      // Steel cantilever with a yellow fascia and underslung floodlights
+      const c = g.box(w + 0.1, 0.08, rows * step + 0.6, '#4a5258', 0, top, back + (rows * step) / 2 + 0.15);
+      c.rotation.x = 0.06;
+      g.box(w + 0.12, 0.1, 0.05, '#ffc93c', 0, top - 0.02, back + rows * step + 0.44);
+      for (let i = 0; i < 3; i++) g.box(0.14, 0.05, 0.08, '#fff6c8', -w / 3 + (i * w) / 3, top - 0.06, back + rows * step + 0.3);
     } else {
       const roofCol = roof === 'red' ? C.roof : C.roofGreen;
       const c = g.box(w + 0.1, 0.06, rows * step + 0.5, roofCol, 0, top, back + (rows * step) / 2 + 0.1);
       c.rotation.x = 0.14;
       g.box(w + 0.12, 0.04, 0.05, C.trim, 0, top - 0.06, back + rows * step + 0.33);
     }
-    g.box(w, top, 0.06, C.wall, 0, 0, back - 0.02);
+    g.box(w, top, 0.06, roof === 'zinc' ? '#9a7a55' : roof === 'steel' ? '#6b7378' : C.wall, 0, 0, back - 0.02);
   }
   g.group.position.set(x, y, z);
   g.group.rotation.y = rotY;
@@ -513,14 +526,20 @@ function camp(k: Kit, level: number, y: number) {
 function base(k: Kit, level: number, y: number) {
   const { cx, cz, hx, hz } = sqCenter(SQ);
   ground(k, SQ, y, ASPHALT, PAINT, 4);
+  if (level === 10) {
+    // Maroon ceremonial border band framing the release-cap parade ground
+    const w = SQ.x1 - SQ.x0, d = SQ.z1 - SQ.z0, mx = (SQ.x0 + SQ.x1) / 2, mz = (SQ.z0 + SQ.z1) / 2;
+    for (const z of [SQ.z0 + 0.16, SQ.z1 - 0.16]) k.box(w - 0.2, 0.008, 0.14, '#7a2a2a', mx, y + 0.021, z);
+    for (const x of [SQ.x0 + 0.16, SQ.x1 - 0.16]) k.box(0.14, 0.008, d - 0.2, '#7a2a2a', x, y + 0.021, mz);
+  }
   if (level === 7) {
     // Asphalt parade ground: two covered stands, roofed rostrum, ceremonial flag raising
-    rostrum(k, 0.3, -1.6, y, 1.6, 0.9, 0.45, CONCRETE, 'red');
+    rostrum(k, 0.3, -1.6, y, 1.6, 0.9, 0.45, CONCRETE, 'zinc');
     raisedFlag(k, 1.65, -1.65, y, 2.5);
     k.flagpole(-1.4, -1.75, 2.2, y);
-    stand(k, -2.5, 1.15, 2.4, 3, y, 'red', '#e94f37', Math.PI / 2);
+    stand(k, -2.5, 1.15, 2.4, 3, y, 'zinc', '#2bb3a3', Math.PI / 2);
     crowd(k, -2.5, 1.15, 2.4, 3, y, Math.PI / 2, 2);
-    stand(k, -2.25, -1.7, 0.95, 3, y, 'red', '#e94f37');
+    stand(k, -2.25, -1.7, 0.95, 3, y, 'zinc', '#2bb3a3');
     for (const x of [2.75]) k.lamp(x, -0.5, y, 1.5);
     squad(k, y, cx + 0.1, cz, hx - 0.1, hz, 3, 4, 0.45);
     instructor(k, -1.2, 1.8, -0.55, y);
@@ -528,11 +547,14 @@ function base(k: Kit, level: number, y: number) {
   }
   if (level === 8) {
     // Ceremonial gate: a gateway arch on the right edge and a colonnade along the back
-    rostrum(k, 0.3, -1.6, y, 1.6, 0.9, 0.45, CONCRETE, 'red');
+    rostrum(k, 0.3, -1.6, y, 1.6, 0.9, 0.45, CONCRETE, 'glass');
     raisedFlag(k, 1.65, -1.65, y, 2.5);
     colonnade(k, 0.3, -2.45, 4.6, y, 1.3, 9);
-    stand(k, -2.5, 1.15, 2.4, 3, y, 'red', '#e94f37', Math.PI / 2);
+    stand(k, -2.5, 1.15, 2.4, 3, y, 'green', '#ffc93c', Math.PI / 2);
     crowd(k, -2.5, 1.15, 2.4, 3, y, Math.PI / 2, 2);
+    // Red carpet from the gate to the dais
+    k.box(2.3, 0.01, 0.34, '#b8322a', 1.55, y + 0.022, 1.1);
+    k.box(0.34, 0.01, 1.9, '#b8322a', 0.3, y + 0.022, 0.0);
     const g = new Kit();
     g.arch(0, 0, 1.4, 'PARADE', 0);
     g.group.position.set(2.72, y, 1.1);
@@ -548,7 +570,7 @@ function base(k: Kit, level: number, y: number) {
     crowd(k, -0.8, -1.35, 2.6, 4, y, 0, 2);
     rostrum(k, 1.55, -1.5, y, 1.2, 0.9, 0.5, CONCRETE, 'red');
     raisedFlag(k, 2.6, -1.65, y, 2.5);
-    stand(k, -2.5, 1.2, 2.2, 3, y, 'red', '#e94f37', Math.PI / 2);
+    stand(k, -2.5, 1.2, 2.2, 3, y, 'none', '#ffc93c', Math.PI / 2);
     crowd(k, -2.5, 1.2, 2.2, 3, y, Math.PI / 2, 3);
     scoreboard(k, 2.6, 2.7, y, 0.9);
     squad(k, y, cx, cz, hx - 0.1, hz, 3, 4, 0.45);
@@ -558,7 +580,7 @@ function base(k: Kit, level: number, y: number) {
   // 10: Parade Ground (release cap): grandstand, VIP box, colonnade, arch, obelisk, two squads
   stand(k, -0.9, -1.35, 2.4, 4, y, 'red', '#2bb3a3');
   crowd(k, -0.9, -1.35, 2.4, 4, y, 0, 2);
-  rostrum(k, 1.5, -1.5, y, 1.3, 0.95, 0.5, CONCRETE, 'red');
+  rostrum(k, 1.5, -1.5, y, 1.3, 0.95, 0.5, CONCRETE, 'glass');
   k.box(1.3, 0.5, 0.06, C.white, 1.5, y + 0.5, -1.97);
   raisedFlag(k, 2.65, -1.65, y, 2.6);
   stand(k, -2.5, 1.25, 2.2, 3, y, 'red', '#e94f37', Math.PI / 2);
@@ -607,12 +629,12 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level === 13) {
     // Floodlit parade: four light masts, big LED screen, red-roofed two-tier stands
-    ground(k, SQ, y, ASPHALT, '#ffc93c', 5);
-    rostrum(k, 1.1, -1.5, y, 1.6, 1.0, 0.55, CONCRETE, 'red');
+    ground(k, SQ, y, '#34506a', '#ffc93c', 5);
+    rostrum(k, 1.1, -1.5, y, 1.6, 1.0, 0.55, CONCRETE, 'glass');
     raisedFlag(k, 2.6, -1.7, y, 2.6);
-    stand(k, -1.0, -1.35, 2.4, 5, y, 'red', '#e94f37');
+    stand(k, -1.0, -1.35, 2.4, 5, y, 'steel', '#ffc93c');
     crowd(k, -1.0, -1.35, 2.4, 5, y, 0, 2);
-    stand(k, -2.5, 1.15, 2.4, 4, y, 'red', '#e94f37', Math.PI / 2);
+    stand(k, -2.5, 1.15, 2.4, 4, y, 'steel', '#ffc93c', Math.PI / 2);
     crowd(k, -2.5, 1.15, 2.4, 4, y, Math.PI / 2, 2);
     for (const [x, z] of [[-2.7, -2.7], [2.75, -0.6], [2.75, 2.75], [-2.75, 2.75]]) lightMast(k, x, z, y, 2.8);
     ledScreen(k, 2.55, 1.2, y, 1.0, 0.55);
