@@ -1266,6 +1266,10 @@ function base(k: Kit, level: number, y: number) {
     abseil(k, S, ax - 0.2, az + aw / 2 - 0.02, -Math.PI / 2, ah + 0.05, 26);
     abseil(k, S, ax + 0.2, az + aw / 2 - 0.02, -Math.PI / 2, ah + 0.05, 29.5);
     sandTable(k, S, -1.25, 0.95, 0, 9);
+    // Green-roofed lesson shelter over the sand table
+    for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.06, 0.95, 0.06, C.white, -1.25 + dx * 0.55, y, 0.92 + dz * 0.36);
+    k.box(1.25, 0.07, 0.86, C.roofGreen, -1.25, y + 0.95, 0.92);
+    k.box(1.27, 0.03, 0.88, C.white, -1.25, y + 0.93, 0.92);
     monkeyBars(k, S, 0.05, 1.0, 0, 1.2, 0.92, C.trim, 10);
     pushups(k, S, 0.85, 0.45, 0, 11);
     instructor(k, S, 1.15, 0.75, 1.7, 1.2, Math.PI, 12);
@@ -1468,144 +1472,183 @@ function secure(k: Kit, level: number, y: number) {
     sandbagCarry(k, S, 0.75, 1.0, 1.75, 1.0, 16);
     return;
   }
-  // 17+: earth-bermed drill bunker with blast doors (drills inside) and a hardened tactical tower
-  const bx = -0.62, bz = -0.72, bw = 2.5, bd = 1.3, bh = 1.25;
-  k.box(bw, bh, bd, CONCRETE, bx, y, bz);
-  k.hipRoof(bw - 0.1, bd - 0.1, 0.4, bx, y + bh, bz, GRASS, 0.3);
-  for (const s of [-1, 1]) {
-    const berm = k.box(0.5, bh * 0.9, bd + 0.1, GRASS, bx + s * (bw / 2 + 0.05), y, bz);
-    berm.rotation.z = s * 0.45;
-  }
-  // Front opening with sliding hazard-striped blast doors
-  const ow = 1.4, oh = 0.9;
-  const fz = bz + bd / 2;
-  k.box(ow, oh, 0.03, '#2a2f33', bx, y, fz + 0.005);
-  k.box(ow + 0.3, 0.14, 0.12, CONCRETE, bx, y + oh, fz + 0.04);
-  floor(k, ow - 0.1, 0.6, MAT_G, bx, y, fz - 0.32);
-  for (let i = 0; i < 3; i++) jacks(k, S, bx - 0.45 + i * 0.45, fz - 0.25, Math.PI / 2, 1 + i);
-  for (const s of [-1, 1]) {
-    const door = grp(k, bx + s * ow * 0.25, y, fz + 0.09);
-    k.box(ow * 0.5, oh - 0.02, 0.06, '#6b7176', 0, 0, 0, door);
-    for (let i = 0; i < 4; i++) {
-      const st = k.box(0.12, 0.04, 0.065, i % 2 ? HAZ : '#1f2326', 0, 0.08 + i * 0.2, 0, door);
-      st.rotation.z = 0.6;
+  const gold = level === 20;
+  if (level < 20) {
+    // 17–19: wide earth-bermed drill bunker across the back with sliding blast doors, and a low grass mound at front left
+    const bx = 0, bz = -0.62, bw = 3.2, bd = 1.5, bh = 1.85;
+    k.box(bw, bh, bd, CONCRETE, bx, y, bz);
+    k.box(bw + 0.04, 0.3, bd + 0.04, ARMOUR, bx, y, bz);
+    if (level === 18) {
+      k.box(bw + 0.3, 0.12, bd + 0.3, GRASS, bx, y + bh, bz);
+      k.box(bw + 0.34, 0.05, bd + 0.34, CONCRETE, bx, y + bh - 0.05, bz);
+    } else k.hipRoof(bw, bd, 1.0, bx, y + bh, bz, GRASS, 0.25);
+    for (const sgn of [-1, 1]) {
+      const berm = k.box(0.42, bh * 0.92, bd + 0.2, GRASS, bx + sgn * (bw / 2 + 0.02), y, bz);
+      berm.rotation.z = sgn * 0.42;
     }
-    k.anims.push((t) => {
-      const q = fr(t, 12);
-      const open = q < 0.1 ? smooth(q / 0.1) : q < 0.7 ? 1 : q < 0.8 ? 1 - smooth((q - 0.7) / 0.1) : 0;
-      door.position.x = bx + s * (ow * 0.25 + open * ow * 0.5);
-    });
-  }
-  k.blinker(bx - ow / 2 - 0.12, y + oh, fz + 0.06, '#ff8a1f', 0.04, 1.0);
-  // Tactical tower (armoured cab on top)
-  const tx = 1.36, tz = -0.78, tw = 0.95, td = 1.15, th = 2.55;
-  const top = bunkerBlock(k, tx, tz, tw, td, th, y, level === 20);
-  k.box(tw - 0.1, 0.42, td - 0.1, level === 20 ? '#86b7cc' : ARMOUR, tx, top, tz);
-  k.box(tw - 0.12, 0.12, 0.02, level === 20 ? GOLD : '#1f2326', tx, top + 0.22, tz + td / 2 - 0.04);
-  k.box(tw + 0.02, 0.08, td + 0.02, level === 20 ? GOLD : '#4a4f54', tx, top + 0.42, tz);
-  abseil(k, S, tx - 0.2, tz + td / 2, -Math.PI / 2, th, 20);
-  abseil(k, S, tx + 0.2, tz + td / 2, -Math.PI / 2, th, 23.5);
-  const mastY = top + 0.5;
-  cyl(k, 0.03, 0.8, C.metal, tx + 0.3, mastY, tz - 0.3, k.group, 5);
-  const radar = grp(k, tx + 0.3, mastY + 0.8, tz - 0.3);
-  k.box(0.4, 0.06, 0.06, '#f4f4f0', 0, 0, 0, radar);
-  k.anims.push((t) => (radar.rotation.y = t * 1.5));
-  k.blinker(tx - 0.3, mastY, tz - 0.3, '#ff3b30', 0.04);
-  if (level >= 18) {
-    // Drone cage on the bunker roof: black frame, net panels, drones flying inside, operators in front
-    const cy0 = y + bh + 0.05, ch = 1.3, cw = bw - 0.1, cd = bd - 0.1;
-    k.box(cw, 0.08, cd, '#3d4246', bx, cy0, bz);
-    const netMat = new THREE.MeshStandardMaterial({ color: '#1f2326', transparent: true, opacity: 0.3, flatShading: true, depthWrite: false });
-    for (const [pw, pd, px, pz] of [[cw, 0.02, 0, cd / 2], [cw, 0.02, 0, -cd / 2], [0.02, cd, cw / 2, 0], [0.02, cd, -cw / 2, 0]]) {
-      const p = new THREE.Mesh(new THREE.BoxGeometry(pw, ch, pd), netMat);
-      p.position.set(bx + px, cy0 + 0.08 + ch / 2, bz + pz);
-      k.add(p);
-    }
-    const roofNet = new THREE.Mesh(new THREE.BoxGeometry(cw, 0.02, cd), netMat);
-    roofNet.position.set(bx, cy0 + 0.08 + ch, bz);
-    k.add(roofNet);
-    const frame = level === 20 ? GOLD : '#2a2f33';
-    for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1], [0, 1]]) k.box(0.05, ch, 0.05, frame, bx + (dx * cw) / 2, cy0 + 0.08, bz + (dz * cd) / 2);
-    for (const s of [-1, 1]) {
-      k.box(cw, 0.05, 0.05, frame, bx, cy0 + 0.06 + ch, bz + (s * cd) / 2);
-      k.box(0.05, 0.05, cd, frame, bx + (s * cw) / 2, cy0 + 0.06 + ch, bz);
-    }
-    const CS = grp(k, 0, 0, 0);
-    drone(k, CS, bx - 0.4, cy0 + 0.6, bz, 0.5, 1, 1.1);
-    drone(k, CS, bx + 0.4, cy0 + 0.85, bz, 0.45, 3, -0.9);
-    drone(k, CS, bx, cy0 + 0.45, bz + 0.1, 0.3, 5, 1.6);
-    // Drone operators with controllers
-    for (const [i, ox] of [-1.45, -1.1].entries()) {
-      const f = place(k, S, fig(60 + i, 'op'), ox, 0.45, face(0.2, -1));
-      k.box(0.08, 0.03, 0.12, '#2a2f33', 0.12, -0.2, 0.1, f.armL);
+    const ow = 1.5, oh = 1.05;
+    const fz = bz + bd / 2;
+    k.box(ow, oh, 0.03, '#2a2f33', bx - 0.35, y, fz + 0.005);
+    k.box(ow + 0.3, 0.16, 0.12, CONCRETE, bx - 0.35, y + oh, fz + 0.04);
+    for (let i = 0; i < 3; i++) jacks(k, S, bx - 0.8 + i * 0.45, fz - 0.28, Math.PI / 2, 1 + i);
+    for (const sgn of [-1, 1]) {
+      const door = grp(k, bx - 0.35 + sgn * ow * 0.25, y, fz + 0.09);
+      k.box(ow * 0.5, oh - 0.02, 0.06, '#6b7176', 0, 0, 0, door);
+      for (let i = 0; i < 5; i++) {
+        const st = k.box(0.12, 0.04, 0.065, i % 2 ? HAZ : '#1f2326', 0, 0.08 + i * 0.19, 0, door);
+        st.rotation.z = 0.6;
+      }
       k.anims.push((t) => {
-        f.armL.rotation.set(-0.25, 0, 1.0 + Math.sin(t * 2 + i) * 0.05);
-        f.armR.rotation.set(0.25, 0, 1.0 - Math.sin(t * 2.3 + i) * 0.05);
-        f.root.rotation.y = face(0.2, -1) + Math.sin(t * 0.7 + i) * 0.25;
+        const q = fr(t, 12);
+        const open = q < 0.1 ? smooth(q / 0.1) : q < 0.7 ? 1 : q < 0.8 ? 1 - smooth((q - 0.7) / 0.1) : 0;
+        door.position.x = bx - 0.35 + sgn * (ow * 0.25 + open * ow * 0.5);
       });
     }
+    k.blinker(bx - 0.35 - ow / 2 - 0.12, y + oh, fz + 0.06, '#ff8a1f', 0.04, 1.0);
+    board(k, 'DRILL BUNKER', 0.8, 0.16, bx + 1.05, y + 0.7, fz + 0.03, '#2a2f33', HAZ);
+    // Sensor mast and radar on the berm
+    const top = y + bh + (level === 18 ? 0.12 : 1.0);
+    cyl(k, 0.03, 0.9, C.metal, bx + 1.2, y + bh, bz - 0.4, k.group, 5);
+    const radar = grp(k, bx + 1.2, y + bh + 0.9, bz - 0.4);
+    k.box(0.4, 0.06, 0.06, '#f4f4f0', 0, 0, 0, radar);
+    k.anims.push((t) => (radar.rotation.y = t * 1.5));
+    k.blinker(bx + 1.2, y + bh + 0.96, bz - 0.4, '#ff3b30', 0.04);
+    void top;
+    // Grass mound with a crawl tunnel mouth at front left
+    const mx = -1.38, mz = 0.82;
+    k.box(0.95, 0.18, 1.0, CONCRETE, mx, y, mz);
+    k.hipRoof(0.95, 1.0, 0.5, mx, y + 0.18, mz, GRASS, 0.08);
+    k.box(0.04, 0.26, 0.3, '#1f2326', mx + 0.48, y, mz);
+    pushups(k, S, mx + 0.62, mz + 0.35, 0, 70);
+    if (level === 18) {
+      // Bright teal/white drone cage on the flat berm roof, drones flying inside
+      const cy0 = y + bh + 0.12, ch = 1.05, cw = bw - 0.2, cd = bd - 0.1;
+      const netMat = new THREE.MeshStandardMaterial({ color: '#e8fbf8', transparent: true, opacity: 0.32, flatShading: true, depthWrite: false });
+      for (const [pw, pd, px, pz] of [[cw, 0.02, 0, cd / 2], [cw, 0.02, 0, -cd / 2], [0.02, cd, cw / 2, 0], [0.02, cd, -cw / 2, 0]]) {
+        const pn = new THREE.Mesh(new THREE.BoxGeometry(pw, ch, pd), netMat);
+        pn.position.set(bx + px, cy0 + ch / 2, bz + pz);
+        k.add(pn);
+      }
+      const roofNet = new THREE.Mesh(new THREE.BoxGeometry(cw, 0.02, cd), netMat);
+      roofNet.position.set(bx, cy0 + ch, bz);
+      k.add(roofNet);
+      for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1], [0, 1], [-0.5, 1], [0.5, 1], [-0.5, -1], [0.5, -1]]) k.box(0.06, ch, 0.06, C.white, bx + (dx * cw) / 2, cy0, bz + (dz * cd) / 2);
+      for (const sgn of [-1, 1]) {
+        k.box(cw + 0.06, 0.07, 0.07, TEAL, bx, cy0 + ch - 0.03, bz + (sgn * cd) / 2);
+        k.box(0.07, 0.07, cd + 0.06, TEAL, bx + (sgn * cw) / 2, cy0 + ch - 0.03, bz);
+        k.box(cw + 0.06, 0.05, 0.05, TEAL, bx, cy0 + 0.02, bz + (sgn * cd) / 2);
+      }
+      for (let i = 0; i < 3; i++) k.box(0.05, 0.05, cd, C.white, bx - cw / 2 + (cw * (i + 1)) / 4, cy0 + ch - 0.02, bz);
+      const CS = grp(k, 0, 0, 0);
+      drone(k, CS, bx - 0.7, cy0 + 0.45, bz, 0.5, 1, 1.1);
+      drone(k, CS, bx + 0.6, cy0 + 0.65, bz, 0.5, 3, -0.9);
+      drone(k, CS, bx, cy0 + 0.35, bz + 0.1, 0.35, 5, 1.6);
+      for (const [i, ox] of [0.35, 0.75].entries()) {
+        const f = place(k, S, fig(60 + i, 'op'), ox, 0.5, face(-0.3, -1));
+        k.box(0.08, 0.03, 0.12, '#2a2f33', 0.12, -0.2, 0.1, f.armL);
+        k.anims.push((t) => {
+          f.armL.rotation.set(-0.25, 0, 1.0 + Math.sin(t * 2 + i) * 0.05);
+          f.armR.rotation.set(0.25, 0, 1.0 - Math.sin(t * 2.3 + i) * 0.05);
+          f.root.rotation.y = face(-0.3, -1) + Math.sin(t * 0.7 + i) * 0.25;
+        });
+      }
+      crawlLane(k, S, 0.35, 1.1, 1.3, 0, 30, 2, SAND, C.metal, true);
+      sangar(k, 1.6, 0.45, 0.45, y, Math.PI / 2);
+      instructor(k, S, 1.25, 0.4, 1.25, 1.2, Math.PI, 33);
+      return;
+    }
+    if (level === 17) {
+      floor(k, 2.4, 0.7, SAND, 0.55, y, 0.9);
+      crawlLane(k, S, 0.35, 0.95, 1.5, 0, 30, 2, null, C.metal, true);
+      scalingWall(k, S, 1.55, 0.6, -Math.PI / 2, 0.72, CONCRETE, 32, HAZ, 0.55);
+      sangar(k, -0.55, 0.45, 0.5, y);
+      instructor(k, S, -0.35, 1.25, 1.2, 1.25, Math.PI / 2, 33);
+      return;
+    }
+  } else {
+    // 20: Training Citadel: three-storey cream citadel with gold floor bands and merlons, a gold-domed glass crown
+    const cx = 0, cz = -0.68, cw = 3.5, cd = 1.42, ch = 2.45;
+    k.box(cw, ch, cd, C.wall, cx, y, cz);
+    k.box(cw + 0.04, 0.2, cd + 0.04, C.trim, cx, y, cz);
+    for (let f = 1; f < 3; f++) k.box(cw + 0.06, 0.08, cd + 0.06, GOLD, cx, y + f * 0.82, cz);
+    for (let f = 0; f < 3; f++) for (let i = 0; i < 7; i++) {
+      if (f === 0 && i === 3) continue;
+      k.box(0.24, 0.36, 0.02, DARK_GLASS, cx - cw / 2 + 0.3 + i * ((cw - 0.6) / 6), y + 0.3 + f * 0.82, cz + cd / 2 + 0.005);
+    }
+    for (let i = 0; i < 3; i++) k.box(0.02, 0.36, 0.24, DARK_GLASS, cx + cw / 2 + 0.005, y + 0.3 + i * 0.82, cz);
+    // Gold entrance arch
+    k.box(0.6, 0.72, 0.12, GOLD, cx, y, cz + cd / 2 + 0.03);
+    k.box(0.42, 0.6, 0.02, '#86b7cc', cx, y, cz + cd / 2 + 0.1);
+    k.box(cw + 0.12, 0.1, cd + 0.12, GOLD, cx, y + ch, cz);
+    for (let i = 0; i < 12; i++) k.box(0.14, 0.14, 0.14, C.wall, cx - cw / 2 + 0.1 + i * ((cw - 0.2) / 11), y + ch + 0.1, cz + cd / 2);
+    // Glass drum crown with a gold dome and spire
+    cyl(k, 0.5, 0.32, '#86b7cc', cx - 0.6, y + ch + 0.1, cz - 0.1, k.group, 12);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      k.box(0.05, 0.32, 0.05, GOLD, cx - 0.6 + Math.cos(a) * 0.5, y + ch + 0.1, cz - 0.1 + Math.sin(a) * 0.5);
+    }
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.52, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), mat(GOLD));
+    dome.scale.y = 0.5;
+    dome.position.set(cx - 0.6, y + ch + 0.42, cz - 0.1);
+    k.add(dome);
+    cyl(k, 0.03, 0.6, GOLD, cx - 0.6, y + ch + 0.66, cz - 0.1, k.group, 6, 0.005);
+    abseil(k, S, cx + 0.9, cz + cd / 2, -Math.PI / 2, ch + 0.1, 20);
+    abseil(k, S, cx + 1.4, cz + cd / 2, -Math.PI / 2, ch + 0.1, 23.5);
+    const CS = grp(k, 0, 0, 0);
+    drone(k, CS, cx + 0.8, y + ch + 0.6, cz, 0.45, 5, 1.2);
+    k.flagpole(cx + 1.5, cz - 0.4, 0.9, y + ch + 0.1);
+    // Gold holo sand-table pavilion at front left
+    const tx2 = -1.38, tz2 = 0.8;
+    holoTable(k, S, tx2, tz2 - 0.05, 0.22, 70, 2, true);
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      k.box(0.05, 0.95, 0.05, GOLD, tx2 + Math.sin(a) * 0.45, y, tz2 + Math.cos(a) * 0.45);
+    }
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.08, 6), mat(C.wall));
+    ring.position.set(tx2, y + 0.99, tz2);
+    k.add(ring);
+    cyl(k, 0.52, 0.42, GOLD, tx2, y + 1.03, tz2, k.group, 6, 0.05);
   }
-  if (level === 17) {
-    floor(k, 2.6, 0.7, SAND, -0.5, y, 0.85);
-    crawlLane(k, S, -0.85, 0.85, 1.7, 0, 30, 2, null, C.metal, true);
-    jersey(k, 0.55, 0.45, y, 0.55);
-    scalingWall(k, S, 1.0, 0.85, 0, 0.72, CONCRETE, 32, HAZ, 0.65);
-    instructor(k, S, 0.4, 1.15, 1.55, 1.15, Math.PI / 2, 33);
-    sangar(k, -1.6, 0.4, 0.5, y);
-    return;
-  }
-  if (level === 18) {
-    floor(k, 2.2, 0.7, SAND, 0.3, y, 0.85);
-    crawlLane(k, S, 0.0, 0.85, 1.7, 0, 30, 2, null, C.metal, true);
-    jersey(k, 1.4, 0.45, y, 0.55);
-    instructor(k, S, -0.75, 0.5, -0.75, 1.15, Math.PI, 33);
-    sangar(k, -1.6, 1.15, 0.5, y);
-    return;
-  }
-  // 19+: fast-rope gantry with a mock helicopter fuselage; trainees slide down the ropes
-  const gx = 0.55, gz = 0.82, gh = 1.7;
-  const gold = level === 20;
-  for (const s of [-1, 1]) for (const dz of [-0.32, 0.32]) k.box(0.08, gh, 0.08, gold ? GOLD : '#4a4f54', gx + s * 0.6, y, gz + dz);
-  for (const s of [-1, 1]) k.box(0.07, 0.08, 0.72, HAZ, gx + s * 0.6, y + gh - 0.08, gz);
-  k.box(1.28, 0.08, 0.07, '#4a4f54', gx, y + gh - 0.08, gz - 0.32);
-  k.box(1.28, 0.08, 0.07, '#4a4f54', gx, y + gh - 0.08, gz + 0.32);
-  const hy = y + gh;
-  const H = grp(k, gx, hy, gz);
-  k.box(0.95, 0.42, 0.46, '#7f8c4f', 0, 0, 0, H);
-  k.box(0.96, 0.06, 0.47, HAZ, 0, 0.1, 0, H);
-  k.box(0.3, 0.3, 0.42, '#86b7cc', 0.58, 0.06, 0, H);
-  k.box(0.75, 0.12, 0.12, '#7f8c4f', -0.8, 0.22, 0, H);
-  k.box(0.08, 0.3, 0.04, ARMOUR, -1.12, 0.22, 0, H);
-  k.box(0.4, 0.03, 0.47, '#1f2326', -0.05, 0.28, 0, H); // open doors (dark band)
-  k.box(0.3, 0.32, 0.01, '#1f2326', 0.0, 0.02, 0.235, H);
-  cyl(k, 0.04, 0.12, C.dark, 0, 0.42, 0, H, 6);
-  const rotor = grp(k, 0, 0.56, 0, 0, H);
+  // 19–20: yellow helipad pad with a fast-rope gantry and a big front-facing helicopter mock-up
+  const gx = 0.75, gz = 0.82, gh = 1.45;
+  floor(k, 2.0, 1.04, HAZ, gx + 0.05, y, gz, 0.03);
+  floor(k, 1.8, 0.86, '#2a2b2d', gx + 0.05, y + 0.03, gz, 0.004);
+  const hMark = board(k, 'H', 0.34, 0.3, gx - 0.75, y, gz, '#2a2b2d', HAZ);
+  hMark.rotation.x = -Math.PI / 2;
+  hMark.position.y = y + 0.05;
+  const frameC = gold ? GOLD : '#4a4f54';
+  for (const sgn of [-1, 1]) for (const dz of [-0.36, 0.36]) k.box(0.09, gh, 0.09, frameC, gx + sgn * 0.7, y, gz + dz);
+  for (const sgn of [-1, 1]) k.box(0.08, 0.09, 0.8, HAZ, gx + sgn * 0.7, y + gh - 0.09, gz);
+  for (const dz of [-0.36, 0.36]) k.box(1.48, 0.09, 0.08, frameC, gx, y + gh - 0.09, gz + dz);
+  const H = grp(k, gx, y + gh, gz, Math.PI / 4);
+  const body = gold ? C.wall : '#8a9a52';
+  k.box(1.25, 0.55, 0.6, body, 0, 0, 0, H);
+  k.box(1.26, 0.08, 0.61, gold ? GOLD : HAZ, 0, 0.14, 0, H);
+  k.box(0.36, 0.42, 0.56, '#86b7cc', 0.78, 0.06, 0, H);
+  k.box(0.9, 0.16, 0.16, body, -1.05, 0.28, 0, H);
+  k.box(0.1, 0.42, 0.05, body, -1.45, 0.3, 0, H);
+  k.box(0.5, 0.36, 0.01, '#1f2326', -0.05, 0.04, 0.305, H);
+  k.box(0.5, 0.36, 0.01, '#1f2326', -0.05, 0.04, -0.305, H);
+  cyl(k, 0.05, 0.14, C.dark, 0, 0.55, 0, H, 6);
+  const rotor = grp(k, 0, 0.7, 0, 0, H);
   for (const a of [0, Math.PI / 2]) {
-    const b = k.box(1.6, 0.02, 0.07, '#2a2f33', 0, 0, 0, rotor);
+    const b = k.box(2.0, 0.025, 0.09, '#2a2f33', 0, 0, 0, rotor);
     b.rotation.y = a;
   }
-  k.anims.push((t) => (rotor.rotation.y = t * 1.2));
-  fastRope(k, S, gx - 0.1, gz + 0.32, gh + 0.1, 40);
-  fastRope(k, S, gx - 0.1, gz - 0.32, gh + 0.1, 42.5);
-  crawlLane(k, S, -1.2, 0.95, 1.1, 0, 30, 1, SAND, C.metal, true);
-  instructor(k, S, -0.95, 0.42, -0.25, 0.42, -Math.PI / 2, 33);
+  const tailRotor = grp(k, -1.45, 0.45, 0.05, 0, H);
+  k.box(0.02, 0.36, 0.05, '#2a2f33', 0, -0.18, 0, tailRotor);
+  k.anims.push((t) => {
+    rotor.rotation.y = t * 1.4;
+    tailRotor.rotation.z = t * 6;
+  });
+  fastRope(k, S, gx + 0.18, gz + 0.22, gh + 0.05, 40);
+  fastRope(k, S, gx - 0.22, gz - 0.2, gh + 0.05, 42.5);
+  instructor(k, S, -0.25, 0.4, -0.25, 1.2, 0, 33);
   if (level === 19) {
-    sangar(k, -1.6, 1.22, 0.5, y);
+    sangar(k, 1.65, 0.1, 0.4, y, Math.PI / 2);
     return;
   }
-  // 20: training citadel: gold-crowned glass holo pavilion on the bunker front, gold bands throughout
-  k.box(bw + 0.12, 0.08, bd + 0.12, GOLD, bx, y + bh - 0.04, bz);
-  const tx2 = -1.45, tz2 = 0.75;
-  holoTable(k, S, tx2, tz2 - 0.05, 0.22, 70, 2, true);
-  for (let i = 0; i < 6; i++) {
-    const a = (i / 6) * Math.PI * 2;
-    k.box(0.04, 0.95, 0.04, GOLD, tx2 + Math.sin(a) * 0.42, y, tz2 + Math.cos(a) * 0.42);
-  }
-  const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.06, 6), mat(GOLD));
-  ring.position.set(tx2, y + 0.98, tz2);
-  k.add(ring);
-  cyl(k, 0.48, 0.32, GOLD, tx2, y + 1.01, tz2, k.group, 6, 0.05);
-  for (const x of [1.82, 1.6]) k.flagpole(x, 1.27, 2.0, y);
+  for (const x of [1.82, 1.6]) k.flagpole(x, -0.2, 2.0, y);
 }
 
 // ------------------------------------------------------------------ build

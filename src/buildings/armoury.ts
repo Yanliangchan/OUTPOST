@@ -77,7 +77,7 @@ const LAMP = '#ffd36b';
 const BLUE = '#46a8ff';
 const HOLO = '#3fe8d6';
 const WHITE = '#f4f4f0';
-const GRASS = '#5fae34';
+const GRASS = '#6cc244';
 const M = (c: string, o: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color: c, flatShading: true, roughness: 0.8, ...o });
 const glow = (c: string, i = 1) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, flatShading: true });
 const ghost = (c: string, o = 0.45, i = 1.2) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, transparent: true, opacity: o, depthWrite: false, side: THREE.DoubleSide, flatShading: true });
@@ -792,9 +792,13 @@ function steps(k: Kit, x: number, z: number, w: number, y: number, h: number, co
 }
 
 /** White lab block with glass front, fins, teal band and a green roof slab. Returns its height. */
-function labBlock(k: Kit, x: number, z: number, w: number, d: number, floors: number, y: number, o: { fins?: boolean; roof?: string; glassFrom?: number; band?: string; tilt?: number } = {}) {
+function labBlock(k: Kit, x: number, z: number, w: number, d: number, floors: number, y: number, o: { fins?: boolean; roof?: string; glassFrom?: number; band?: string; tilt?: number; wall?: string; hip?: number; windows?: number } = {}) {
   const h = floors * STOREY;
-  k.box(w, h, d, WHITE, x, y, z);
+  k.box(w, h, d, o.wall ?? WHITE, x, y, z);
+  if (o.windows) for (let f = 0; f < floors; f++) {
+    k.windowRow('front', x, z, w, d, o.windows, y + f * STOREY + 0.42, { skip: f === 0 ? [0, 1] : [] });
+    k.windowRow('left', x, z, w, d, 2, y + f * STOREY + 0.42);
+  }
   k.box(w + 0.03, 0.14, d + 0.03, '#d7d3c8', x, y, z);
   const from = o.glassFrom ?? 1;
   for (let f = from; f < floors; f++) {
@@ -804,13 +808,17 @@ function labBlock(k: Kit, x: number, z: number, w: number, d: number, floors: nu
   }
   for (let f = 1; f < floors; f++) k.box(w + 0.05, 0.07, d + 0.05, o.band ?? TEAL, x, y + f * STOREY - 0.03, z);
   if (o.fins !== false) k.fins(w - 0.2, h - STOREY - 0.05, x, y + STOREY, z + d / 2 + 0.06, Math.max(3, Math.round(w / 0.3)));
+  if (o.hip) {
+    k.hipRoof(w, d, o.hip, x, y + h, z, o.roof ?? C.roofGreen, 0.16);
+    return h + o.hip;
+  }
   if (o.tilt) {
     // Mono-pitch roof: a raised wedge wall on the high side and a tilted slab
     const rise = Math.tan(Math.abs(o.tilt)) * (w + 0.22);
     const side = Math.sign(o.tilt);
     const wedge = new THREE.Shape([new THREE.Vector2(-w / 2, 0), new THREE.Vector2(w / 2, 0), new THREE.Vector2(w / 2, side > 0 ? 0 : rise), new THREE.Vector2(-w / 2, side > 0 ? rise : 0)]);
     const wg = new THREE.ExtrudeGeometry(wedge, { depth: d, bevelEnabled: false }).translate(0, 0, -d / 2);
-    k.add(mesh(wg, M(WHITE), x, y + h, z));
+    k.add(mesh(wg, M(o.wall ?? WHITE), x, y + h, z));
     const slab = k.box(w / Math.cos(o.tilt) + 0.24, 0.1, d + 0.22, o.roof ?? C.roofGreen, x, y + h + rise / 2 - 0.05, z);
     slab.rotation.z = -o.tilt;
     return h + rise + 0.1;
@@ -821,15 +829,15 @@ function labBlock(k: Kit, x: number, z: number, w: number, d: number, floors: nu
 }
 
 /** Hardened armoured block: dark concrete, angled armour plates on the sides, hazard band. Returns height. */
-function armourBlock(k: Kit, x: number, z: number, w: number, d: number, h: number, y: number, color = GUNMETAL) {
+function armourBlock(k: Kit, x: number, z: number, w: number, d: number, h: number, y: number, color = GUNMETAL, plateC = ARMOUR) {
   k.box(w, h, d, color, x, y, z);
-  k.box(w + 0.04, 0.2, d + 0.04, ARMOUR, x, y, z);
+  k.box(w + 0.04, 0.2, d + 0.04, plateC, x, y, z);
   hazard(k, w - 0.1, 0.06, x, y + 0.2, z + d / 2 + 0.03, false, 0.14);
   for (const s of [-1, 1]) {
-    const plate = k.box(0.14, h * 0.92, d + 0.06, ARMOUR, x + s * (w / 2 + 0.04), y, z);
+    const plate = k.box(0.14, h * 0.92, d + 0.06, plateC, x + s * (w / 2 + 0.04), y, z);
     plate.rotation.z = -s * 0.07;
   }
-  k.box(w + 0.12, 0.14, d + 0.12, ARMOUR, x, y + h, z);
+  k.box(w + 0.12, 0.14, d + 0.12, plateC, x, y + h, z);
   for (let i = 0; i < Math.round(w / 0.5); i++) k.box(0.08, 0.06, 0.04, '#c9ced2', x - w / 2 + 0.3 + i * 0.5, y + h + 0.04, z + d / 2 + 0.08);
   return h + 0.14;
 }
@@ -1049,7 +1057,17 @@ function base(k: Kit, level: number, y: number) {
   if (level === 8) {
     // Blueprint hall: barrel hall plus a two-storey drawing-office wing with a glowing blueprint wall
     const hx = 0.3, hz = -0.6, hw = 2.3, hd = 1.35;
-    barrelHall(k, hx, hz, hw, hd, 2.05, 0.72, y);
+    // Concrete hall under a stepped terracotta roof: low hip, glowing clerestory, top hip
+    k.box(hw, 2.05, hd, CONCRETE, hx, y, hz);
+    k.box(hw + 0.03, 0.16, hd + 0.03, C.trim, hx, y, hz);
+    k.box(hw + 0.05, 0.06, hd + 0.05, C.trim, hx, y + STOREY - 0.03, hz);
+    for (const sx of [-1, 1]) k.box(0.12, 2.05, 0.12, '#c7c2b7', hx + sx * (hw / 2 - 0.02), y, hz + hd / 2 - 0.02);
+    k.hipRoof(hw, hd, 0.32, hx, y + 2.05, hz, C.roof, 0.16);
+    const cw = hw * 0.62, cd = hd * 0.5, cy = y + 2.05 + 0.2;
+    k.box(cw, 0.36, cd, C.wall, hx, cy, hz);
+    k.box(cw - 0.16, 0.16, 0.02, LAMP, hx, cy + 0.12, hz + cd / 2 + 0.005).material = glow(LAMP, 0.9);
+    k.box(0.02, 0.16, cd - 0.16, LAMP, hx - cw / 2 - 0.005, cy + 0.12, hz).material = glow(LAMP, 0.9);
+    k.hipRoof(cw, cd, 0.3, hx, cy + 0.36, hz, C.roof, 0.12);
     slits(k, 3, 1.4, hx + 0.35, y + STOREY + 0.45, hz + hd / 2 + 0.01);
     const fz = hz + hd / 2 + 0.03;
     strongDoor(k, 'round', 0.45, y + 0.08, fz, 0.84, 0.84, { hinge: -1 });
@@ -1163,7 +1181,7 @@ function command(k: Kit, level: number, y: number) {
   if (level === 11) {
     // Research lab: white three-storey block, glass front with fins, green roof, sliding teal vault door
     const bx = 0, bz = -0.45, bw = 2.65, bd = 1.65;
-    const h = labBlock(k, bx, bz, bw, bd, 3, y);
+    const h = labBlock(k, bx, bz, bw, bd, 3, y, { glassFrom: 99, fins: false, hip: 0.42, windows: 5 });
     const fz = bz + bd / 2 + 0.03;
     strongDoor(k, 'slide', -0.55, y, fz, 0.62, 0.74, { color: '#e8e6e0', inner: HOLO });
     k.box(0.64, 0.05, 0.03, TEAL, -0.55, y + 0.78, fz + 0.06);
@@ -1188,7 +1206,7 @@ function command(k: Kit, level: number, y: number) {
   if (level === 12) {
     // Twin lab: two white towers with green roofs bridged by glass, one research bay each
     const bz = -0.4, tw = 1.12, td = 1.85;
-    for (const s of [-1, 1]) labBlock(k, s * 0.86, bz, tw, td, 3, y, { tilt: s * 0.2 });
+    for (const s of [-1, 1]) labBlock(k, s * 0.86, bz, tw, td, 3, y, { tilt: s * 0.2, wall: C.wall, roof: TEAL, glassFrom: 99, fins: false, windows: 2, band: C.trim });
     // Central strongroom between the towers
     k.box(0.62, STOREY * 2, td - 0.25, CONCRETE, 0, y, bz - 0.1);
     k.box(0.68, 0.1, td - 0.2, C.roofGreen, 0, y + STOREY * 2, bz - 0.1);
@@ -1215,11 +1233,24 @@ function command(k: Kit, level: number, y: number) {
   if (level === 13) {
     // Hologram lab: tall lab with a two-storey wing whose roof carries a big hologram projector
     const ax = -0.55, az = -0.45, aw = 1.75, ad = 1.75;
-    labBlock(k, ax, az, aw, ad, 3, y);
+    labBlock(k, ax, az, aw, ad, 3, y, { wall: DARK_GLASS, glassFrom: 99, band: HOLO });
     const wx = 0.85, wz = -0.25, ww = 1.15, wd = 1.75;
-    const wh = labBlock(k, wx, wz, ww, wd, 2, y, { fins: false });
+    const wh = labBlock(k, wx, wz, ww, wd, 2, y, { fins: false, wall: DARK_GLASS, glassFrom: 99, band: HOLO });
     k.box(ww - 0.2, 0.08, 0.04, HOLO, wx, y + 0.3, wz + wd / 2 + 0.02).material = glow(HOLO, 0.8);
     hologram(k, wx, y + wh, wz, 2.0);
+    // Big glowing halo rings around the hologram dominate the silhouette
+    const halo = new THREE.Group();
+    halo.position.set(wx - 0.05, y + wh + 0.62, wz);
+    halo.add(mesh(new THREE.TorusGeometry(0.82, 0.07, 6, 32).rotateX(Math.PI / 2), glow(HOLO, 1.4)));
+    const inner = mesh(new THREE.TorusGeometry(0.62, 0.04, 6, 28).rotateX(Math.PI / 2), glow(HOLO, 1.2));
+    halo.add(inner);
+    k.add(halo);
+    k.anims.push((t) => {
+      halo.rotation.z = Math.sin(t * 0.6) * 0.12;
+      halo.rotation.x = Math.cos(t * 0.6) * 0.12;
+      inner.rotation.y = t;
+      inner.position.y = Math.sin(t * 1.4) * 0.06;
+    });
     const fz = az + ad / 2 + 0.03;
     strongDoor(k, 'slide', -0.85, y, fz, 0.6, 0.74, { color: '#e8e6e0', inner: HOLO });
     k.box(0.62, 0.05, 0.03, TEAL, -0.85, y + 0.78, fz + 0.06);
@@ -1349,10 +1380,18 @@ function secure(k: Kit, level: number, y: number) {
     k.solarPanels(bx - 0.4, y + bh + 0.14, bz, 1.2, 0.8);
     hazard(k, bw + 0.12, 0.1, bx, y + bh + 0.04, bz + bd / 2 + 0.07, false, 0.18);
     // Leaning armour shields either side of the blast door
-    for (const sx of [-1.1, 1.0]) {
-      const sh = k.box(0.42, bh * 0.82, 0.12, ARMOUR, sx, y, fz + 0.22);
+    for (const sx of [-1.05, 0.98]) {
+      const sh = new THREE.Group();
+      sh.position.set(sx, y, fz + 0.24);
       sh.rotation.x = -0.14;
-      k.box(0.44, 0.06, 0.13, HAZ, sx, y + bh * 0.8, fz + 0.1).rotation.x = -0.14;
+      k.box(0.56, bh * 0.85, 0.12, HAZ, 0, 0, 0, sh);
+      for (let i = 0; i < 5; i++) {
+        const st = k.box(0.1, 0.62, 0.02, C.kerbB, 0, 0.3 + i * 0.46, 0.065, sh);
+        st.rotation.z = 0.75;
+        st.scale.y = 1;
+      }
+      k.box(0.6, 0.08, 0.14, C.kerbB, 0, bh * 0.85, 0, sh);
+      k.add(sh);
     }
     sensorMast(k, bx + 0.85, bz - 0.2, y + bh + 0.14, 0.9);
     station(k, 0.75, 1.05, y, 0, { seed: 2, top: '#8b949a', legs: '#4a4f54', lamp: HOLO });
@@ -1417,13 +1456,17 @@ function secure(k: Kit, level: number, y: number) {
     strongDoor(k, 'blast', 0, top, fz, 0.6, 0.8, { inner: HOLO });
     scanBar(k, 0, top, fz + 0.15, 0.6, 0.8);
     statusLight(k, 0, top + 0.92, fz);
-    const pods: [number, number, string][] = [[-0.92, -0.3, '#ff5a4a'], [0.92, -0.3, '#ffb020']];
+    const pods: [number, number, string][] = [[-0.92, -0.3, HOLO], [0.92, -0.3, HOLO]];
     for (const [px, pz, c] of pods) {
       k.cyl(0.5, STOREY * 2.3, ARMOUR, px, top, pz, 10);
       k.cyl(0.52, 0.1, HAZ, px, top + 0.22, pz, 10);
       k.cyl(0.53, 0.14, GUNMETAL, px, top + STOREY * 2.3, pz, 10);
-      k.cyl(0.4, 0.2, c, px, top + STOREY * 2.3 + 0.14, pz, 10).material = glow(c, 0.9);
-      k.cyl(0.44, 0.06, GUNMETAL, px, top + STOREY * 2.3 + 0.34, pz, 10);
+      k.cyl(0.46, 0.3, c, px, top + STOREY * 2.3 + 0.14, pz, 10).material = glow(c, 1.1);
+      k.cyl(0.5, 0.06, GUNMETAL, px, top + STOREY * 2.3 + 0.44, pz, 10);
+      for (let i = 0; i < 4; i++) {
+        const a = Math.PI / 4 + (i * Math.PI) / 2;
+        k.box(0.08, STOREY * 1.6, 0.08, c, px + Math.cos(a) * 0.49, top + 0.45, pz + Math.sin(a) * 0.49).material = glow(c, 1.0);
+      }
       strongDoor(k, 'round', px, top + 0.05, pz + 0.49, 0.46, 0.46, { inner: c, hinge: px < 0 ? -1 : 1, color: '#9aa3a8' });
     }
     // Third pod rides on the rear of the command block's roof as a glowing teal vault drum
@@ -1444,7 +1487,7 @@ function secure(k: Kit, level: number, y: number) {
     const top = podium(k, 2.85, 2.6, y, 0.3, CONCRETE, 0, -0.15);
     steps(k, -0.3, 1.25, 0.8, y, 0.3);
     const bx = 0, bz = -0.55, bw = 2.3, bd = 1.45, bh = STOREY * 2.6;
-    const h = armourBlock(k, bx, bz, bw, bd, bh, top, GUNMETAL);
+    const h = armourBlock(k, bx, bz, bw, bd, bh, top, '#e6e3da', '#c9c6bc');
     slits(k, 4, 1.8, bx, top + STOREY * 2 + 0.25, bz + bd / 2 + 0.01, '#ff5a4a');
     // Sensor ring on stand-offs around the roof, with pods
     const ring = new THREE.Group();
