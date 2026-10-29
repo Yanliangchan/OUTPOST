@@ -16,7 +16,9 @@ export const RELEASE_MAX_LEVEL = 10;
 - **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter; **Workshop** has workbenches, a vehicle on a lift or hoist, oil drums and welding sparks.
 - **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level); add `&only=admin,parade,…` to compare a subset.
 - **Every step is an upgrade:** height rises level by level until it reaches the building's cap (**HQ 5 storeys, Bunk 4.5, Cookhouse 3.5, QM Store 3.5; the other buildings stay at or under 4, and the Parade Square stays mostly flat at about 2**), then holds while coverage and detail keep growing. Checked by measurement: open the browser console and run `__outpost.metrics()` to get the height, peak, coverage and detail of every level. A level fails if height drops by more than half a storey or presence (height × coverage) drops by more than 15%.
-- **Every building is alive:** each has a signature "working" micro-animation at every level, like the Clash of Clans gold-mine cart (see the table below). Each building also gets a random timing offset so a base never moves in lockstep. Checked with `__outpost.animCheck()`, which counts moving parts per level; every level has at least one, on top of flags, blinking lights, steam and sparks.
+- **Every building is alive:** each has a signature "working" micro-animation at every level, like the Clash of Clans gold-mine cart (see the table below). Each building also gets a random timing offset so a base never moves in lockstep. Checked with `__outpost.animCheck()`, which counts moving parts per level; every level has at least one, on top of flags, blinking lights, steam and sparks. **Walls are the one exception:** a base holds hundreds of wall pieces, so they stay static and low-poly for performance.
+- **Defences idle now, fight later:** every defence's weapon is built on a shared combat rig (`src/buildings/turret.ts`). With no target it runs an idle scan (sweeping, sentries looking round); once the Raids phase hands it a target it slews, aims and fires with muzzle flash and recoil, and reports each shot so the combat layer can spawn projectiles and apply damage. Preview it with `?showcase=<id>&combat` (raiders on foot and drones circle each defence).
+- **Walls are placed tile by tile:** each 1×1 piece is a post plus half-segments toward its neighbouring wall tiles, so runs, corners and T-junctions join up automatically (Clash of Clans style).
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
 - **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
 - **Stats live in data:** cost, Reputation, build time, HP and building-specific stats, defined per level in each building's file.
@@ -59,7 +61,12 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 11 | **Motor Pool** | 5×4 | 4 | Vehicles: faster deliveries | ✅ 20/20 designed |
 | 12 | **Parade Square** | 6×6 | 5 | Fall-in events; Cohesion | ✅ 20/20 designed |
 | 13 | **Guardhouse** | 3×2 | 6 | Entrance; first line of defence; spots raiders | ✅ 20/20 designed |
-| 14+ | Defences: Sentry Tower, Sandbag Wall, Mortar Pit, Searchlight, Artillery, Air Defence | various | 6–13 | Raids phase | planned |
+| 14 | **Perimeter Wall** | 1×1 (tile by tile) | 6 | Holds raiders at the line; pieces join up | ✅ 20/20 designed |
+| 15 | Sentry Tower | 2×2 | 6 | Rifle/MG vs ground and air | in progress |
+| 16 | Mortar Pit | 3×3 | 8 | Splash vs ground, lobbed | in progress |
+| 17 | Searchlight | 2×2 | 9 | Locks on, reveals and slows raiders; boosts nearby defences | in progress |
+| 18 | Artillery Emplacement | 3×3 | 11 | Long-range heavy gun vs ground | in progress |
+| 19 | Air Defence | 3×3 | 13 | Flak and missiles vs air | in progress |
 | — | Special plots: Boat Jetty (Cove), Adventure Training Centre (Lakeside), Signal Station (Ridge) | 9×9 sites | 8–9 | Late-game landmarks | planned |
 
 ---
@@ -800,3 +807,57 @@ The camp entrance and first line of defence: puts sentries on duty and spots rai
 | 20 | **Citadel Gate:** fortress portal over the lane with a **rising steel portcullis**, gold crest, gold-finned block with a glass command cab, CCTV |
 
 Review scene: open the game with `?showcase=guardhouse`.
+
+# Perimeter Wall: full specification
+
+Placed **tile by tile** like Clash of Clans walls: each 1×1 piece is a post plus a half-segment toward every neighbouring wall tile, so straight runs, corners and T-junctions join up by themselves. Unlocked at HQ 6. Walls stay low (about knee to chest height) so they never hide the base, and are static and low-poly because a base holds hundreds of pieces. Costs are per piece.
+
+| Lv | Title | Supplies | Reputation | Upgrade time | HP | Height |
+|---|---|---|---|---|---|---|
+| 1 | Sandbag Line | 60 | 20 | instant | 300 | ~350 cm |
+| 2 | Sandbag Wall | 90 | 30 | instant | 390 | ~380 cm |
+| 3 | Timber Palisade | 140 | 30 | instant | 510 | ~400 cm |
+| 4 | Gabion Wall | 200 | 40 | instant | 660 | ~430 cm |
+| 5 | Chain-Link Fence | 300 | 60 | instant | 860 | ~450 cm |
+| 6 | Brick Wall | 460 | 70 | instant | 1,110 | ~480 cm |
+| 7 | Block Wall · Wire | 680 | 100 | instant | 1,450 | ~510 cm |
+| 8 | Precast Panel Wall | 1,030 | 130 | instant | 1,880 | ~530 cm |
+| 9 | HESCO Bastion | 1,540 | 160 | instant | 2,450 | ~560 cm |
+| 10 | Rampart Wall | 2,310 | 210 | instant | 3,180 | ~580 cm |
+| 11 | Steel Palisade | 3,460 | 280 | 1 min | 4,140 | ~610 cm |
+| 12 | Jersey Screen Wall | 5,190 | 360 | 1 min | 5,380 | ~640 cm |
+| 13 | T-Wall Line | 7,780 | 470 | 1 min | 6,990 | ~660 cm |
+| 14 | Anti-Climb Mesh | 11,680 | 610 | 1 min | 9,090 | ~690 cm |
+| 15 | Landmark Wall | 17,520 | 790 | 1 min | 11,810 | ~710 cm |
+| 16 | Armour Plate Wall | 26,270 | 1,020 | 1 min | 15,360 | ~740 cm |
+| 17 | Turf Berm | 39,410 | 1,330 | 1 min | 19,960 | ~770 cm |
+| 18 | Smart Fence | 59,120 | 1,730 | 1 min | 25,950 | ~790 cm |
+| 19 | Laser Fence | 88,670 | 2,250 | 1 min | 33,740 | ~820 cm |
+| 20 | Citadel Rampart | 133,010 | 2,920 | 1 min | 43,860 | ~840 cm |
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Sandbag Line:** two courses of sandbags |
+| 2 | **Sandbag Wall:** three courses held by timber stakes |
+| 3 | **Timber Palisade:** sharpened logs on a rail, lashed corner posts |
+| 4 | **Gabion Wall:** wire baskets of stone |
+| 5 | **Chain-Link Fence:** chain-link mesh on a concrete kerb with barbed-wire strands |
+| 6 | **Brick Wall:** cream brick wall with a green dado and white coping |
+| 7 | **Block Wall · Wire:** grey block wall topped with concertina wire |
+| 8 | **Precast Panel Wall:** precast panels with a yellow/black hazard band and steel H-posts |
+| 9 | **HESCO Bastion:** tan geotextile cubes in a wire frame |
+| 10 | **Rampart Wall:** buttressed concrete with merlons; every post carries a lamp *(release cap)* |
+| 11 | **Steel Palisade:** green steel W-pales with triple points on a concrete plinth |
+| 12 | **Jersey Screen Wall:** jersey barriers with a mesh screen above |
+| 13 | **T-Wall Line:** tall blast panels with yellow tops on wide footings |
+| 14 | **Anti-Climb Mesh:** dense dark-green mesh with a glowing LED strip |
+| 15 | **Landmark Wall:** smooth white wall, green coping, gold studs, base light strip |
+| 16 | **Armour Plate Wall:** riveted olive steel with a raked top and hazard-banded posts |
+| 17 | **Turf Berm:** concrete-faced earth berm with a grassy top |
+| 18 | **Smart Fence:** white rails and mesh with glowing sensor heads on the posts |
+| 19 | **Laser Fence:** black posts and glowing red laser beams over a kerb |
+| 20 | **Citadel Rampart:** thick concrete with a gold band, merlons and gold-capped glass posts |
+
+Review scene: open the game with `?showcase=wall` (each level shown as a short run with a corner at each end).
