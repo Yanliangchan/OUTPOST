@@ -796,7 +796,7 @@ function shedPosts(k: Kit, x: number, z: number, w: number, d: number, h: number
 }
 
 /** Concrete drill hall: portal columns, cream back and end walls, open front, red roof with a ventilated ridge monitor. */
-function drillHall(k: Kit, p: P, x: number, z: number, w: number, d: number, eh: number, rh: number, y: number, roof: string = C.roof) {
+function drillHall(k: Kit, p: P, x: number, z: number, w: number, d: number, eh: number, rh: number, y: number, roof: string = C.roof, barrel = false) {
   floor(k, w - 0.08, d - 0.08, '#c4bfb3', x, y, z);
   floor(k, w - 0.5, d - 0.5, MAT_G, x, y + 0.02, z + 0.05, 0.015);
   const n = Math.max(4, Math.round(w / 0.6) + 1);
@@ -810,6 +810,30 @@ function drillHall(k: Kit, p: P, x: number, z: number, w: number, d: number, eh:
     k.windowRow(s > 0 ? 'right' : 'left', x + s * (w / 2 - 0.06), z, 0.08, d - 0.1, 2, y + eh * 0.5, { ww: 0.34, wh: 0.4, louvre: true });
   }
   k.box(w, 0.18, 0.16, CONCRETE, x, y + eh - 0.18, z + d / 2 - 0.06);
+  if (barrel) {
+    // Curved barrel-vault roof with ribs and half-moon end walls
+    const r = d / 2 + 0.2, sy = rh / r;
+    const shell = new THREE.Mesh(new THREE.CylinderGeometry(r, r, w + 0.3, 18, 1, true, 0, Math.PI).rotateZ(Math.PI / 2), new THREE.MeshStandardMaterial({ color: roof, side: THREE.DoubleSide, flatShading: true, roughness: 0.8 }));
+    shell.scale.set(1, sy, 1);
+    shell.position.set(x, y + eh, z);
+    k.add(shell);
+    for (let i = 0; i <= 5; i++) {
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(r + 0.01, 0.025, 4, 18, Math.PI).rotateY(Math.PI / 2), mat(C.trim));
+      rib.scale.set(1, sy, 1);
+      rib.position.set(x - (w + 0.3) / 2 + ((w + 0.3) * i) / 5, y + eh, z);
+      k.add(rib);
+    }
+    for (const sgn of [-1, 1]) {
+      const end = new THREE.Mesh(new THREE.CircleGeometry(r - 0.2, 14, 0, Math.PI).rotateY(Math.PI / 2), new THREE.MeshStandardMaterial({ color: C.wall, side: THREE.DoubleSide, flatShading: true }));
+      end.scale.set(1, sy, 1);
+      end.position.set(x + sgn * (w / 2 - 0.02), y + eh, z);
+      k.add(end);
+    }
+    k.box(w + 0.32, 0.06, 0.08, C.trim, x, y + eh, z + r - 0.04);
+    k.box(w + 0.32, 0.06, 0.08, C.trim, x, y + eh, z - r + 0.04);
+    void p;
+    return y + eh;
+  }
   k.gableRoof(w, d, rh, x, y + eh, z, roof, 0.2, C.wall);
   // Ridge monitor with louvres
   const my = y + eh + rh - 0.1;
@@ -1158,8 +1182,9 @@ function camp(k: Kit, level: number, y: number) {
 // ------------------------------------------------------------------ base (7–10)
 
 /** Concrete climbing tower: solid store at the base, open frame above, platform and a roof cap. Returns the top. */
-function ropeTower(k: Kit, S: P, tx: number, tz: number, w: number, h: number, y: number, roof: string, seed: number, gold = false) {
+function ropeTower(k: Kit, S: P, tx: number, tz: number, w: number, h: number, y: number, roof: string, seed: number, gold = false, bands = false) {
   k.box(w, 0.9, w, CONCRETE, tx, y, tz);
+  if (bands) for (let i = 0; i < 6; i++) for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.12, 0.2, 0.12, i % 2 ? C.white : '#d8342c', tx + dx * (w / 2 - 0.05), y + 0.9 + 0.1 + i * ((h - 1.2) / 6), tz + dz * (w / 2 - 0.05));
   k.box(w + 0.02, 0.14, w + 0.02, C.trim, tx, y, tz);
   k.door('front', tx, tz, w, w, 0, y, 0.28, 0.55);
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.1, h - 0.9, 0.1, CONCRETE, tx + dx * (w / 2 - 0.05), y + 0.9, tz + dz * (w / 2 - 0.05));
@@ -1197,14 +1222,15 @@ function base(k: Kit, level: number, y: number) {
   }
   if (level === 8) {
     // + concrete rope tower with a scramble net down to the yard
-    const hx = -0.52, hz = -0.62, hw = 2.66, hd = 1.5;
-    drillHall(k, S, hx, hz, hw, hd, 1.6, 0.64, y);
+    // Green barrel-vault hall and a tall red/white banded rope tower rising well above it
+    const hx = -0.58, hz = -0.62, hw = 2.5, hd = 1.5;
+    drillHall(k, S, hx, hz, hw, hd, 1.5, 0.62, y, C.roofGreen, true);
     k.box(0.6, 0.14, 0.3, CONCRETE, hx, y, hz - 0.5);
     instructor(k, S, hx - 0.2, hz - 0.5, hx + 0.2, hz - 0.5, Math.PI / 2, 1, 8, 0.14);
     for (let i = 0; i < 4; i++) jacks(k, S, hx - 0.95 + i * 0.45, hz + 0.25, Math.PI / 2, 2 + i);
-    const tx = 1.4, tz = -0.95;
-    ropeTower(k, S, tx, tz, 0.78, 2.3, y, C.roofGreen, 7);
-    scrambleNet(k, S, tx, tz + 0.45, 0.45, 1.72, 0.66, 8);
+    const tx = 1.35, tz = -0.88;
+    ropeTower(k, S, tx, tz, 1.0, 2.6, y, C.roof, 7, false, true);
+    scrambleNet(k, S, tx, tz + 0.56, 0.45, 1.72, 0.8, 8);
     tyreRun(k, S, -1.0, 0.95, 0, 1.6, 9, 2);
     scalingWall(k, S, 0.55, 0.85, 0, 0.7, C.trim, 11, HAZ, 0.6);
     instructor(k, S, 0.95, 1.2, 1.6, 1.2, Math.PI / 2, 12);
@@ -1213,28 +1239,37 @@ function base(k: Kit, level: number, y: number) {
     return;
   }
   if (level === 9) {
-    // + two-storey classroom wing with a green roof; open ground-floor classroom with a sand-table lesson
-    const hx = -0.52, hz = -0.68, hw = 2.66, hd = 1.42;
-    drillHall(k, S, hx, hz, hw, hd, 1.7, 0.66, y);
-    for (let i = 0; i < 4; i++) jacks(k, S, hx - 0.95 + i * 0.45, hz + 0.22, Math.PI / 2, 2 + i);
-    watcher(k, S, hx, hz - 0.45, Math.PI / 2, 1, 'instructor');
-    const tx = 1.4, tz = -0.95;
-    ropeTower(k, S, tx, tz, 0.78, 2.48, y, C.roofGreen, 7);
-    scrambleNet(k, S, tx, tz + 0.45, 0.45, 1.72, 0.66, 8);
-    const wx = -1.4, wz = 0.82, ww = 0.92, wd = 1.04;
-    floor(k, ww, wd, '#c4bfb3', wx, y, wz);
-    k.box(ww, STOREY, 0.08, C.wall, wx, y, wz - wd / 2 + 0.04);
-    k.box(0.08, STOREY, wd, C.wall, wx - ww / 2 + 0.04, y, wz);
-    for (const [cx, cz] of [[ww / 2 - 0.05, wd / 2 - 0.05], [-ww / 2 + 0.05, wd / 2 - 0.05], [ww / 2 - 0.05, -wd / 2 + 0.05]]) k.box(0.1, STOREY, 0.1, C.wall, wx + cx, y, wz + cz);
-    const uh = k.block(ww, wd, 1, wx, y + STOREY, wz);
-    k.windowRow('front', wx, wz, ww, wd, 2, y + STOREY + 0.42, { louvre: true });
-    k.windowRow('right', wx, wz, ww, wd, 2, y + STOREY + 0.42, { louvre: true });
-    k.hipRoof(ww, wd, 0.36, wx, y + STOREY + uh, wz, C.roofGreen, 0.15);
-    sandTable(k, S, wx + 0.05, wz, Math.PI / 2, 9);
-    monkeyBars(k, S, 0.15, 0.95, 0, 1.3, 0.92, C.trim, 10);
+    // Two-storey cream classroom block with a flat roof and a big red/white abseil frame
+    const cx = -0.65, cz = -0.78, cw = 2.4, cd = 1.15;
+    const h = k.block(cw, cd, 2, cx, y, cz);
+    k.flatRoof(cw, cd, cx, y + h, cz, 0.16);
+    k.windowRow('front', cx, cz, cw, cd, 5, y + STOREY + 0.42, { louvre: true });
+    k.windowRow('front', cx, cz, cw, cd, 5, y + 0.42, { skip: [2] });
+    k.door('front', cx, cz, cw, cd, 0, y);
+    k.windowRow('left', cx, cz, cw, cd, 2, y + STOREY + 0.42);
+    board(k, 'CLASSROOMS', 0.9, 0.16, cx, y + STOREY - 0.08, cz + cd / 2 + 0.03, C.trim);
+    k.waterTank(cx - 0.8, y + h, cz - 0.2);
+    k.porch(cx, cz + cd / 2 + 0.22, cw - 0.2, 0.42, 0.85, y, 5);
+    for (let i = 0; i < 3; i++) watcher(k, S, cx - 0.7 + i * 0.5, cz + cd / 2 + 0.2, Math.PI / 2 - 0.3, 20 + i);
+    // Abseil frame: red/white banded posts, white face board with red stripes, platform on top
+    const ax = 1.36, az = -0.85, aw = 0.95, ah = 2.85;
+    for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) for (let i = 0; i < 7; i++) k.box(0.09, ah / 7, 0.09, i % 2 ? C.white : '#d8342c', ax + dx * (aw / 2 - 0.05), y + (i * ah) / 7, az + dz * (aw / 2 - 0.05));
+    k.box(aw - 0.1, ah - 0.3, 0.05, C.white, ax, y + 0.25, az + aw / 2 - 0.05);
+    for (let i = 0; i < 4; i++) k.box(aw - 0.1, 0.12, 0.06, '#d8342c', ax, y + 0.55 + i * 0.6, az + aw / 2 - 0.05);
+    k.box(aw + 0.15, 0.08, aw + 0.15, '#9aa3a6', ax, y + ah, az);
+    for (const sgn of [-1, 1]) {
+      k.box(aw + 0.15, 0.04, 0.03, HAZ, ax, y + ah + 0.25, az + sgn * (aw / 2 + 0.06));
+      k.box(0.03, 0.04, aw + 0.15, HAZ, ax + sgn * (aw / 2 + 0.06), y + ah + 0.25, az);
+    }
+    for (let i = 1; i < 12; i++) k.box(0.3, 0.025, 0.025, C.metal, ax + aw / 2 + 0.02, y + i * 0.24, az - 0.25);
+    watcher(k, S, ax + 0.2, az - 0.15, Math.PI / 2, 25, 'instructor', ah + 0.08);
+    abseil(k, S, ax - 0.2, az + aw / 2 - 0.02, -Math.PI / 2, ah + 0.05, 26);
+    abseil(k, S, ax + 0.2, az + aw / 2 - 0.02, -Math.PI / 2, ah + 0.05, 29.5);
+    sandTable(k, S, -1.25, 0.95, 0, 9);
+    monkeyBars(k, S, 0.05, 1.0, 0, 1.2, 0.92, C.trim, 10);
     pushups(k, S, 0.85, 0.45, 0, 11);
-    instructor(k, S, 1.15, 0.7, 1.7, 1.2, Math.PI, 12);
-    k.lamp(-0.82, 1.25, y, 1.3);
+    instructor(k, S, 1.15, 0.75, 1.7, 1.2, Math.PI, 12);
+    k.flagpole(-1.82, 0.25, 2.0, y);
     return;
   }
   // 10: Training Wing (release cap): taller hall with a name fascia, gold-banded rope tower with a pyramid roof and a flag,

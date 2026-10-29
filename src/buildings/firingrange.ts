@@ -620,7 +620,8 @@ function laneFloor(k: Kit, y: number, n: number, f: Floor) {
     for (let i = 0; i <= n; i++) k.box(x1 - x0, 0.02, 0.025, line, (x0 + x1) / 2, y, Z0 + w * i);
     const tuft = new THREE.ConeGeometry(0.05, 0.1, 5);
     for (let j = 0; j < 22; j++) {
-      const tx = XB + 0.35 + ((j * 0.618) % 1) * 2.4, tz = Z0 + 0.08 + ((j * 0.377 + 0.21) % 1) * (Z1 - Z0 - 0.16);
+      const h1 = Math.abs(Math.sin(j * 12.9898) * 43758.5453) % 1, h2 = Math.abs(Math.sin(j * 78.233 + 1.3) * 12345.678) % 1;
+      const tx = XB + 0.35 + h1 * 2.4, tz = Z0 + 0.08 + h2 * (Z1 - Z0 - 0.16);
       part(k.group, tuft, mat(j % 3 ? '#6f9e3a' : '#8fb84a'), tx, y + 0.05, tz).scale.set(1, 0.7 + (j % 4) * 0.2, 1);
     }
   } else {
