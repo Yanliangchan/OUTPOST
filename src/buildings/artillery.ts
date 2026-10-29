@@ -1404,9 +1404,12 @@ function command(k: Kit, level: number, y: number) {
   if (level === 12) {
     // Fire Direction Centre: two-storey white FDC with fins and glass, rooftop met mast, conveyor from the magazine
     const top = whiteBlock(k, -0.95, -1.0, y, 1.05, 0.75, 2, true);
-    metMast(k, -1.25, top, -1.2, 0.8);
-    k.antenna(-0.7, top, -1.25, 0.8);
-    k.aircon(-0.95, top, -0.85);
+    // Big green mono-pitch roof rising toward the back corner, on white struts
+    const mono = k.box(1.3, 0.07, 1.02, C.roofGreen, -0.95, top + 0.2, -1.0);
+    mono.rotation.x = -0.32;
+    k.box(1.32, 0.03, 0.05, TEAL, -0.95, top + 0.05, -0.5);
+    for (const sx of [-0.5, 0.5]) k.box(0.05, 0.36, 0.05, C.white, -0.95 + sx, top - 0.04, -1.3);
+    metMast(k, -1.45, top - 0.5, -0.55, 1.2);
     board(k, 'FIRE DIRECTION', 0.7, 0.11, -0.95, y + 0.68, -1.0 + 0.4, TEAL, '#ffffff', 0, 30);
     const g = whiteBlock(k, -1.15, 0.45, y, 0.5, 0.75, 1);
     void g;
@@ -1421,10 +1424,22 @@ function command(k: Kit, level: number, y: number) {
   void feed;
   if (level === 13) {
     // Turret Battery: first enclosed turret; glass control pod; conveyor tunnel from the magazine
-    const top = whiteBlock(k, mx, mz, y, 0.85, 0.8, 2);
-    k.shutter('right', mx, mz, 0.85, 0.8, 0, 0.4, 0.5);
-    metMast(k, mx - 0.2, top, mz - 0.2, 0.7);
-    k.antenna(mx + 0.25, top, mz - 0.25, 0.8);
+    // Round white fire-control tower: teal glass ring at the top and a green dome
+    const R = 0.46, th = 2 * STOREY;
+    k.cyl(R + 0.03, 0.12, MODERN_D, mx, y, mz, 16);
+    k.cyl(R, th, MODERN, mx, y, mz, 16);
+    k.cyl(R + 0.01, 0.3, '#3d8a8a', mx, y + th - 0.48, mz, 16);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      k.box(0.03, 0.3, 0.03, MODERN, mx + Math.cos(a) * (R + 0.01), y + th - 0.48, mz + Math.sin(a) * (R + 0.01));
+    }
+    k.cyl(R + 0.02, 0.04, TEAL, mx, y + 0.95, mz, 16);
+    k.cyl(R + 0.08, 0.06, TEAL, mx, y + th, mz, 16);
+    const dome = mesh(k, new THREE.SphereGeometry(R + 0.04, 14, 5, 0, Math.PI * 2, 0, Math.PI / 2), C.roofGreen, mx, y + th + 0.06, mz);
+    dome.scale.y = 0.45;
+    k.box(0.36, 0.5, 0.03, '#2a2b2d', mx + 0.1, y, mz + R - 0.01);
+    const top = y + th + 0.25;
+    k.antenna(mx, top, mz, 0.7);
     conveyor(k, mx + 0.45, mz + 0.15, GX - 0.75, GZ - 0.35, y + 0.02, 4, MODERN_D, '#2a2b2d', 5);
     pod(k, -1.05, 0.85, y, 0.36);
     floodlight(k, 1.35, -1.35, y, 1.4, Math.PI * 0.75);
@@ -1435,7 +1450,12 @@ function command(k: Kit, level: number, y: number) {
   if (level === 14) {
     // Elevated Turret: turret on a tall plinth with a glass band; glass ammunition lift; spotter drone circling
     k.box(0.02, 0.12, 0.5, DARK_GLASS, GX + pr * 0.86, y + 0.3, GZ);
-    const top = whiteBlock(k, mx, mz, y, 0.8, 0.8, 2, true);
+    // Blue glass curtain-wall ops tower on a white base
+    k.box(0.86, 0.2, 0.86, MODERN, mx, y, mz);
+    k.glassBox(0.8, 2 * STOREY - 0.2, 0.8, mx, y + 0.2, mz);
+    k.box(0.94, 0.08, 0.94, C.roofGreen, mx, y + 2 * STOREY + 0.06, mz);
+    k.box(0.95, 0.03, 0.95, TEAL, mx, y + 2 * STOREY + 0.04, mz);
+    const top = y + 2 * STOREY + 0.14;
     metMast(k, mx - 0.2, top, mz - 0.2, 0.7);
     // Glass lift shaft carrying rounds up to the plinth deck
     const lx = -1.15, lz = 0.35;
@@ -1516,8 +1536,8 @@ function turretTech(k: Kit, x: number, z: number, y: number) {
 // ------------------------------------------------------------------ secure (16–20)
 
 /** Octagonal hardened concrete gun bunker; returns its deck height. */
-function hardBase(k: Kit, y: number, r: number, h: number, gold = false) {
-  const b = mesh(k, new THREE.CylinderGeometry(r, r + 0.08, h, 8), CONCRETE, GX, y + h / 2, GZ);
+function hardBase(k: Kit, y: number, r: number, h: number, gold = false, color = CONCRETE) {
+  const b = mesh(k, new THREE.CylinderGeometry(r, r + 0.08, h, 8), color, GX, y + h / 2, GZ);
   b.rotation.y = Math.PI / 8;
   const band = mesh(k, new THREE.CylinderGeometry(r + 0.045, r + 0.075, 0.08, 8), gold ? GOLD : HAZ, GX, y + h - 0.16, GZ);
   band.rotation.y = Math.PI / 8;
@@ -1538,8 +1558,8 @@ function secure(k: Kit, level: number, y: number) {
   const twin = level >= 19;
   const gold = level === 20;
   const bh = level >= 19 ? 0.66 : level >= 17 ? 0.58 : 0.5;
-  const deck = hardBase(k, y, 1.12, bh, gold);
-  const body = gold ? '#6d756a' : level >= 17 ? ARMOUR : '#717a6e';
+  const deck = hardBase(k, y, 1.12, bh, gold, level === 19 ? '#6a7075' : CONCRETE);
+  const body = gold ? '#6d756a' : level === 16 ? '#b3a27a' : level === 19 ? '#556052' : level === 18 ? '#7b847a' : ARMOUR;
   const spec: GunSpec = {
     carriage: 'turret', shield: 'none', len: twin ? 1.45 : level >= 18 ? 1.58 : 1.48, r: twin ? 0.055 : 0.062, trunH: 0.4,
     color: body, barrel: '#4f5650', brake: true, evac: true, twin, band: gold ? GOLD : HAZ,
@@ -1589,10 +1609,19 @@ function secure(k: Kit, level: number, y: number) {
   }
   if (level === 17) {
     // Auto-Loader Battery: the magazine wears a rotating ammunition carousel; an armoured feed gallery slopes to the gun
-    const top = magBlock(1.85);
-    carousel(k, mx, top, mz, 0.32);
-    strut(k, undefined, V(mx + 0.3, top - 0.35, mz + 0.4), V(feedX - 0.05, deck - 0.05, feedZ - 0.05), 0.2, 0.18, STEEL_D);
-    strut(k, undefined, V(mx + 0.3, top - 0.25, mz + 0.4), V(feedX - 0.05, deck + 0.05, feedZ - 0.05), 0.22, 0.03, HAZ);
+    // Earth-covered magazine mound with a concrete portal, the carousel on top
+    const mound = mesh(k, new THREE.CylinderGeometry(0.42, 0.78, 1.55, 4), GRASS, mx - 0.05, y + 0.775, mz - 0.05);
+    mound.rotation.y = Math.PI / 4;
+    const soil = mesh(k, new THREE.CylinderGeometry(0.8, 0.82, 0.12, 4), EARTH, mx - 0.05, y + 0.06, mz - 0.05);
+    soil.rotation.y = Math.PI / 4;
+    for (let i = 0; i < 4; i++) mesh(k, new THREE.IcosahedronGeometry(0.09, 0), '#4f8a2e', mx - 0.4 + (i % 2) * 0.55, y + 0.5 + (i > 1 ? 0.5 : 0), mz + 0.25 - (i > 1 ? 0.3 : 0)).scale.y = 0.6;
+    k.box(0.3, 0.75, 0.62, CONCRETE, mx + 0.48, y, mz - 0.05);
+    k.box(0.32, 0.06, 0.66, HAZ, mx + 0.48, y + 0.75, mz - 0.05);
+    slidingDoor(k, mx + 0.64, y, mz - 0.05, 0.38, 0.55, Math.PI / 2, STEEL, 10, 3);
+    conveyor(k, mx + 0.64, mz + 0.3, feedX, feedZ, y + 0.02, 3, STEEL, '#2a2b2d', 5);
+    k.cyl(0.42, 0.1, CONCRETE, mx - 0.05, y + 1.55, mz - 0.05, 12);
+    const top = y + 1.65;
+    carousel(k, mx - 0.05, top, mz - 0.05, 0.32);
     for (const [x, z, r] of [[0.6, 1.36, 0], [1.2, 1.32, 0], [1.32, 0.75, Math.PI / 2]] as const) tWall(k, x, z, y, r, 0.8);
     turretTech(k, -0.55, 1.3, y);
     return;

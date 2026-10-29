@@ -1264,14 +1264,23 @@ function baseBand(k: Kit, level: number, y0: number, rate: number) {
   wallSide(k, e, cz - e, e, cz + e, D, 0.26, 0.08, CONCRETE, C.trim);
   wallSide(k, -e, cz + e, e, cz + e, D, 0.26, 0.08, CONCRETE, C.trim);
   bags(k, -0.2, cz + e - 0.1, 0.9, 0, D, 1);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(0.15, 0.62, 0.15, CONCRETE, sx * 0.68, D, cz + sz * 0.68);
-  k.hipRoof(1.5, 1.5, 0.44, 0, D + 0.62, cz, C.roof, 0.12);
-  pennant(k, 0, D + 1.02, cz, 0.55, '#d8342c');
+  // Castle crown: round corner bartizans with red cone caps around a central gun canopy
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+    const x = sx * 0.74, z = cz + sz * 0.74;
+    k.cyl(0.11, 0.2, CONCRETE, x, D - 0.36, z, 10, 0.2);
+    k.cyl(0.22, 0.62, CONCRETE, x, D - 0.16, z, 10);
+    k.cyl(0.235, 0.05, C.trim, x, D + 0.42, z, 10);
+    k.box(0.05, 0.14, 0.03, '#1f2326', x + sx * 0.0, D + 0.18, z + sz * 0.215);
+    k.cyl(0.27, 0.42, C.roof, x, D + 0.46, z, 10, 0.02);
+  }
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(0.1, 0.62, 0.1, CONCRETE, sx * 0.42, D, cz + sz * 0.42);
+  k.hipRoof(0.9, 0.9, 0.4, 0, D + 0.62, cz, C.roofDark, 0.14);
+  pennant(k, 0, D + 1.0, cz, 0.55, '#d8342c');
   ladder(k, w / 2 + 0.03, cz - 0.25, y0, D, Math.PI / 2, 0.22, C.trim, 0.02, 0.018, true);
   k.aircon(-w / 2 - 0.08, y0 + 0.3, cz - 0.2, -Math.PI / 2);
   k.lamp(0.45, cz + w / 2 + 0.02, y0 + 0.9, 0.2);
   cctv(k, 0.3, y0 + 0.54, pe, 0.2, Math.PI / 2);
-  spotter(k, 0.45, D, cz + 0.45, -Math.PI / 4, 9, 'helmet');
+  spotter(k, 0.32, D, cz + 0.5, -Math.PI / 4, 9, 'helmet');
   patrol(k, y0, -0.62, 0.62, 0.62, 0.62, 10, 9, 'beret');
   gpmg(k, -0.12, D, cz - 0.1, { rate, seed: 9, pintle: 0.42, shield: true });
 }
