@@ -808,14 +808,17 @@ function arm(k: Kit, L: Lamp, o: ArmOpts): Turret {
       L.shutter(lock ? open : flick);
     }
     const shine = L.shutter ? Math.max(0.1, flick) : 1;
-    let len = o.len ?? 3;
+    // Idle beams stay short, narrow and dim so they don't wash over neighbouring buildings;
+    // the full bright beam is saved for a lock, which makes the lock read clearly.
+    let len = (o.len ?? 3) * 0.6;
     if (lock && L.muzzles[0]) {
       L.muzzles[0].getWorldPosition(tmp);
       len = THREE.MathUtils.clamp(tmp.distanceTo(tur.target!) + 0.15, 0.6, 7);
     }
     L.muzzles.forEach((_, i) => {
-      beamMeshes[i].scale.set(len, 1, 1);
-      beams[i].opacity = ((lock ? 0.42 : 0.28) + pulse * 0.45) * shine;
+      const girth = lock ? 1 : 0.7;
+      beamMeshes[i].scale.set(len, girth, girth);
+      beams[i].opacity = ((lock ? 0.42 : 0.17) + pulse * 0.45) * shine;
       halos[i].scale.setScalar(1 + pulse * 1.6);
       (halos[i].material as THREE.MeshBasicMaterial).opacity = (0.25 + pulse * 0.7) * shine;
     });

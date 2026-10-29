@@ -33,6 +33,11 @@ export interface TurretSpec {
   turnRate?: number;
   /** Lobbing weapons (mortar, howitzer) hold this elevation instead of pointing straight at the target. */
   lob?: number;
+  /**
+   * Minimum elevation for a given yaw: lets a weapon raise its barrel over its
+   * own structures on some bearings instead of swinging through them.
+   */
+  minPitch?(yaw: number): number;
   /** How far recoil parts kick back. */
   kick?: number;
   /** Idle behaviour (no target): set yaw/pitch rotations for a scanning sweep. */
@@ -92,7 +97,9 @@ export class Turret {
       const turn = (s.turnRate ?? 2.5) * dt;
       const [yaw, pitch] = this.solve();
       s.yaw.rotation.y += THREE.MathUtils.clamp(wrap(yaw - s.yaw.rotation.y), -turn, turn);
-      if (s.pitch) s.pitch.rotation.z += THREE.MathUtils.clamp(pitch - s.pitch.rotation.z, -turn, turn);
+      // While slewing, also respect the clearance at the bearing the barrel is passing through.
+      const clear = s.minPitch ? Math.max(pitch, s.minPitch(s.yaw.rotation.y)) : pitch;
+      if (s.pitch) s.pitch.rotation.z += THREE.MathUtils.clamp(clear - s.pitch.rotation.z, -turn, turn);
       this.cooldown -= dt;
       if (this.cooldown <= 0 && this.onTarget) {
         this.cooldown = 1 / s.rate;
@@ -128,10 +135,13 @@ export class Turret {
     parent.worldToLocal(tmp);
     const dx = tmp.x - s.yaw.position.x, dz = tmp.z - s.yaw.position.z;
     const yaw = Math.atan2(-dz, dx);
-    if (s.lob !== undefined) return [yaw, s.lob];
-    const piv = (s.pitch ?? s.yaw).getWorldPosition(tmp2);
-    const h = this.target!.y - piv.y;
-    return [yaw, Math.atan2(h, Math.hypot(this.target!.x - piv.x, this.target!.z - piv.z))];
+    let pitch: number;
+    if (s.lob !== undefined) pitch = s.lob;
+    else {
+      const piv = (s.pitch ?? s.yaw).getWorldPosition(tmp2);
+      pitch = Math.atan2(this.target!.y - piv.y, Math.hypot(this.target!.x - piv.x, this.target!.z - piv.z));
+    }
+    return [yaw, s.minPitch ? Math.max(pitch, s.minPitch(yaw)) : pitch];
   }
 
   private aimError() {

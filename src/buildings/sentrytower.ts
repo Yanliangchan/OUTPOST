@@ -1232,7 +1232,7 @@ function baseBand(k: Kit, level: number, y0: number, rate: number) {
     return;
   }
   // 10: Keep tower (release cap): perimeter blast wall, big concrete keep, corbelled gun deck, red hip roof, gunner and spotter
-  const cz = -0.12, w = 1.22, D = 2.2;
+  const cz = -0.12, w = 1.22, D = 2.5;
   // Perimeter wall with sandbag cap and a front gateway
   const pe = 0.86;
   for (const [x0, z0, x1, z1] of [[-pe, -pe, pe, -pe], [-pe, -pe, -pe, pe], [pe, -pe, pe, pe], [-pe, pe, -0.3, pe], [0.3, pe, pe, pe]]) {
@@ -1247,7 +1247,7 @@ function baseBand(k: Kit, level: number, y0: number, rate: number) {
   // Keep shaft
   k.box(w, D - 0.1 - y0, w, CONCRETE, 0, y0, cz);
   k.box(w + 0.03, 0.16, w + 0.03, C.trim, 0, y0, cz);
-  for (const yy of [0.98, 1.72]) k.box(w + 0.05, 0.05, w + 0.05, C.trim, 0, yy, cz);
+  for (const yy of [0.98, 1.72, 2.2]) k.box(w + 0.05, 0.05, w + 0.05, C.trim, 0, yy, cz);
   for (const yy of [1.2, 1.9]) for (const x of [-0.22, 0.22]) {
     k.box(0.06, 0.24, 0.03, '#1f2326', x, yy - 0.12, cz + w / 2 + 0.005);
     k.box(0.03, 0.24, 0.06, '#1f2326', w / 2 + 0.005, yy - 0.12, cz + x);

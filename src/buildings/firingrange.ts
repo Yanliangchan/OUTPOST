@@ -61,8 +61,8 @@ const EARTH_D = '#9a6a42';
 const GRASS = '#5f9e38';
 const TEAL = '#2bb3a3';
 const CYAN = '#3fd1ff';
-const STEEL = '#7d868c';
-const STEEL_D = '#5c656b';
+const STEEL = '#929ba0';
+const STEEL_D = '#6f787d';
 const TIMBER = '#8a6040';
 const M = (c: string, o: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color: c, flatShading: true, roughness: 0.8, ...o });
 const glow = (c: string, i = 1, o: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, flatShading: true, ...o });
@@ -902,11 +902,11 @@ function sensorMast(k: Kit, x: number, z: number, y: number, h: number, c = CYAN
 function bunker(k: Kit, y: number, z0: number, z1: number, h = STOREY * 1.4, gold = false) {
   const d = z1 - z0, zc = (z0 + z1) / 2;
   const bx = 2.14, bw = 0.56;
-  k.box(bw, h, d, '#6b7378', bx, y, zc);
+  k.box(bw, h, d, '#a3abaf', bx, y, zc);
   for (let i = 0; i < 4; i++) k.box(0.03, 0.06, d / 5, '#1f2428', bx + bw / 2 + 0.01, y + h * 0.62, z0 + (d / 4) * (i + 0.5));
   k.box(bw + 0.06, 0.08, d + 0.06, gold ? GOLD : HAZ, bx, y + h - 0.08, zc);
   // Armoured canopy over the walkway, plates angled
-  k.box(2.46 - XS, 0.1, d + 0.08, STEEL, (2.46 + XS) / 2, y + h, zc);
+  k.box(2.46 - XS, 0.1, d + 0.08, gold ? GOLD : STEEL, (2.46 + XS) / 2, y + h, zc);
   const p = k.box(0.08, 0.36, d + 0.08, STEEL_D, XS + 0.02, y + h - 0.3, zc);
   p.rotation.z = 0.25;
   for (let i = 0; i < 3; i++) k.box(0.08, h, 0.08, STEEL_D, XS + 0.05, y, z0 + 0.1 + ((d - 0.2) / 2) * i);
@@ -918,7 +918,7 @@ function bunker(k: Kit, y: number, z0: number, z1: number, h = STOREY * 1.4, gol
 
 /** Armoured secure tower: dark shaft, slit cab with a cyan band, rotating sensor; optional gold crown. */
 function secureTower(k: Kit, y: number, sh: number, gold = false) {
-  k.box(TW - 0.1, sh, TD - 0.1, '#6b7378', TX, y, TZ);
+  k.box(TW - 0.1, sh, TD - 0.1, '#a3abaf', TX, y, TZ);
   for (let f = 0; f < Math.round(sh / STOREY); f++) k.box(TW - 0.06, 0.05, TD - 0.06, gold ? GOLD : HAZ, TX, y + f * STOREY + 0.05, TZ);
   const cy = y + sh;
   k.box(TW + 0.1, 0.5, TD + 0.1, STEEL, TX, cy, TZ);
@@ -1275,7 +1275,7 @@ function secure(k: Kit, level: number, y: number) {
     armourWall(k, y, wx0, wx1, level === 16 ? 0.6 : 0.75, band);
   } else {
     // 18+: Armoured hall: continuous louvred roof, tall armour wall with sensor pods
-    louvreRoof(k, y, -1.65, XS - 0.05, 1.5, STEEL, STEEL_D, 0.36);
+    louvreRoof(k, y, -1.65, XS - 0.05, 1.5, STEEL, gold ? GOLD : STEEL_D, 0.36);
     armourWall(k, y, wx0, wx1, 1.3, band);
     for (let x = wx0 + 0.4; x < wx1; x += 0.9) {
       const pod = part(k.group, new THREE.SphereGeometry(0.06, 8, 6), glow(gold ? '#ffd86a' : CYAN, 1), x, y + 1.42, Z0 - 0.1);

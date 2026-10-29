@@ -662,6 +662,8 @@ function arm(k: Kit, rig: Rig, base = Math.PI / 4, amp = 0.65, turnRate = 1.2): 
   const tur = k.turret({
     yaw: rig.yaw, pitch: rig.pitch, muzzles: rig.muzzles, recoil: rig.slides,
     weapon: 'howitzer', targets: 'ground', rate: RATE, lob: rig.lob, turnRate, kick: 0.25,
+    // Fire high-angle over the magazines and towers at the back-left instead of swinging through them.
+    minPitch: (y) => (Math.abs(Math.atan2(Math.sin(y - (3 * Math.PI) / 4), Math.cos(y - (3 * Math.PI) / 4))) < 1.0 ? 1.1 : 0),
     idle: (t) => {
       const c = t / 9, n = Math.floor(c), f = c - n;
       const m = ramp(f, 0.05, 0.4);
