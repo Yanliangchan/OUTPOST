@@ -12,6 +12,9 @@ import { MOTOR_POOL } from './motorpool';
 import { PARADE_SQUARE } from './parade';
 import { GUARDHOUSE } from './guardhouse';
 import { WALL } from './wall';
+import { TRAINING_SHED } from './trainingshed';
+import { ARMOURY } from './armoury';
+import { FIRING_RANGE } from './firingrange';
 import { SENTRY_TOWER } from './sentrytower';
 import { MORTAR_PIT } from './mortarpit';
 import { SEARCHLIGHT } from './searchlight';
@@ -23,4 +26,4 @@ import type { BuildingDef } from './types';
  * Building catalogue. Each building lives in its own file with 20 designed
  * levels (10 at release, 11–15 planned, 16–20 reserve). See docs/BUILDINGS_PLAN.md.
  */
-export const BUILDINGS: BuildingDef[] = [HQ, BUNK, COOKHOUSE, QM_STORE, WORKSHOP, UTILITIES, MAMA_SHOP, ADMIN_OFFICE, REC_CENTRE, MEDICAL_CENTRE, MOTOR_POOL, PARADE_SQUARE, GUARDHOUSE, WALL, SENTRY_TOWER, MORTAR_PIT, SEARCHLIGHT, ARTILLERY, AIR_DEFENCE];
+export const BUILDINGS: BuildingDef[] = [HQ, BUNK, COOKHOUSE, QM_STORE, WORKSHOP, UTILITIES, MAMA_SHOP, ADMIN_OFFICE, REC_CENTRE, MEDICAL_CENTRE, MOTOR_POOL, PARADE_SQUARE, GUARDHOUSE, WALL, SENTRY_TOWER, MORTAR_PIT, SEARCHLIGHT, ARTILLERY, AIR_DEFENCE, TRAINING_SHED, ARMOURY, FIRING_RANGE];
