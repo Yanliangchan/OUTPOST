@@ -55,7 +55,6 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const OLIVE = '#5b6b3a';
 const OLIVE_D = '#46542c';
 const SKIN = ['#e0ac7e', '#c68b5f', '#a8714b', '#f0c39a'];
-const DIRT = '#a97c50';
 const DIRT_D = '#8a6440';
 const EARTH = '#b08a5c';
 const GRASS = '#6fb24a';
@@ -552,8 +551,8 @@ type FieldKind = 'light' | 'sight' | 'medium' | 'twin' | 'heavy' | 'heavyPlus';
 function fieldMortar(k: Kit, x: number, y: number, z: number, kind: FieldKind) {
   const heavy = kind === 'heavy' || kind === 'heavyPlus';
   const twin = kind === 'twin' || heavy;
-  const len = kind === 'light' || kind === 'sight' ? 0.6 : heavy ? 0.84 : 0.7;
-  const r = kind === 'light' || kind === 'sight' ? 0.03 : heavy ? 0.056 : 0.042;
+  const len = kind === 'light' || kind === 'sight' ? 0.6 : heavy ? 0.88 : 0.74;
+  const r = kind === 'light' || kind === 'sight' ? 0.045 : heavy ? 0.068 : 0.055;
   const px = heavy ? -0.32 : -0.24, py = heavy ? 0.09 : 0.055;
   const rig = newRig(k, x, y, z, px, py);
   const zs = twin ? [-(heavy ? 0.17 : 0.15), heavy ? 0.17 : 0.15] : [0];
@@ -601,20 +600,27 @@ function fieldMortar(k: Kit, x: number, y: number, z: number, kind: FieldKind) {
 
 /** Loader(s) for an open tube: placed beside the muzzle (outside each tube of a twin), with ready rounds. */
 function tubeLoaders(k: Kit, rig: Rig, look: Look, seed: number, ready = true, period = 4.4) {
+  const field = rig.tubes[0].r < 0.05;
   rig.tubes.forEach((t, i) => {
     const m = mouth(rig, t, 0.06);
     const s = t.z < 0 ? -1 : 1;
     const target = m.y + 0.07;
-    let th = 1.85, feet = target - (0.45 - 0.2 * Math.cos(th));
-    if (feet < 0) {
+    // Reach up (arms as high as ~2.5 rad) before resorting to a loading step.
+    let th = 2.5, feet = target - (0.45 - 0.2 * Math.cos(th));
+    if (feet < 0.03) {
       th = Math.acos(Math.max(-1, Math.min(1, (0.45 - target) / 0.2)));
       feet = 0;
     }
     const lz = t.z + s * 0.2 * Math.sin(th);
     if (feet > 0.01) {
       // Loading step
-      k.box(0.3, feet, 0.24, '#7a6a4a', m.x - 0.02, 0, lz + s * 0.03, rig.yaw);
-      k.box(0.31, 0.015, 0.25, '#5c5040', m.x - 0.02, feet - 0.012, lz + s * 0.03, rig.yaw);
+      if (field) {
+        // He stands on an ammo box
+        ammoBox(k, m.x - 0.02, 0, lz + s * 0.03, 0, OLIVE, 0.3, feet, 0.22, 'HE', rig.yaw);
+      } else {
+        k.box(0.3, feet, 0.24, STEEL, m.x - 0.02, 0, lz + s * 0.03, rig.yaw);
+        for (let i = 0; i < 3; i++) k.box(0.1, 0.02, 0.25, i % 2 ? C.kerbB : HAZ, m.x - 0.12 + i * 0.1, feet - 0.012, lz + s * 0.03, rig.yaw);
+      }
     }
     loader(k, rig.yaw, V(m.x, feet, lz), s > 0 ? Math.PI / 2 : -Math.PI / 2, th, look, seed + i, { parent: t.g, from: V(t.len + 0.06, 0, 0), to: V(t.len - 0.24, 0, 0), rot: -Math.PI / 2 }, period, i * period * 0.5, s * 1.25);
     if (ready) {
@@ -1426,6 +1432,24 @@ function davit(k: Kit, x: number, z: number, y: number, h: number, jib: number, 
   });
 }
 
+/** Concrete crew shelter with a sandbag parapet on the roof and a dark doorway facing the pit. */
+function shelter(k: Kit, x: number, z: number, y: number, ry: number, w: number, d: number, h: number, seed: number) {
+  sub(k, x, y, z, ry, (s) => {
+    s.box(w, h, d, CONCRETE, 0, 0, 0);
+    s.box(w + 0.08, 0.06, d + 0.08, '#bdb8ad', 0, h, 0);
+    s.box(0.3, 0.5, 0.02, '#1d2326', 0, 0, d / 2 + 0.005);
+    s.box(0.36, 0.05, 0.05, C.trim, 0, 0.5, d / 2 + 0.02);
+    s.box(w - 0.16, 0.05, 0.02, '#1d2326', 0, h - 0.22, -d / 2 - 0.005);
+    board(s, 'CREW', 0.22, 0.08, 0.3, 0.3, d / 2 + 0.02, C.trim);
+    const b = new Bags(seed);
+    b.line(0, -d / 2 + 0.1, w - 0.05, 0, h + 0.06, 2);
+    b.line(-w / 2 + 0.1, 0, d - 0.25, Math.PI / 2, h + 0.06, 2);
+    b.line(w / 2 - 0.1, 0, d - 0.25, Math.PI / 2, h + 0.06, 2);
+    b.flush(s);
+    s.antenna(w / 2 - 0.1, h + 0.06, d / 2 - 0.12, 0.6);
+  });
+}
+
 /** Concrete fire-direction bunker with slit windows and a rotating periscope. */
 function fdcBunker(k: Kit, x: number, z: number, y: number, ry: number, w = 0.9, d = 0.66, h = 0.66) {
   sub(k, x, y, z, ry, (s) => {
@@ -1490,7 +1514,8 @@ function base(k: Kit, level: number, y: number) {
     const rig = fieldMortar(k, 0.05, py, 0.1, 'twin');
     tubeLoaders(k, rig, BASE, 16, true, 4.6);
     registerRig(k, rig, level, 7, 0.7, 0.3);
-    readyBunker(k, -0.25, -1.12, fl, 0.12);
+    readyBunker(k, 0.15, -1.12, fl, -0.12);
+    shelter(k, -1.0, -1.0, fl, Math.PI / 4, 0.66, 0.52, 1.0, 71);
     rangefinder(k, -0.8, 0.45, fl + 0.014, 1);
     spotter(k, -0.9, fl + 0.014, 0.18, face(0.5, 1), BASE, 17, false);
     bombRack(k, 0.82, fl + 0.014, -0.45, 1.2, 6, '#4b6b3a');
@@ -1510,6 +1535,7 @@ function base(k: Kit, level: number, y: number) {
     tubeLoaders(k, rig, BASE, 18, true, 4.6);
     registerRig(k, rig, level, 8, 0.7, 0.3);
     davit(k, 0.95, -0.95, fl + 0.3, 1.2, 0.6, face(-1, 1));
+    shelter(k, -1.0, -1.0, fl, Math.PI / 4, 0.7, 0.56, 1.06, 72);
     k.box(0.34, 0.3, 0.34, CONCRETE, 0.95, fl, -0.95);
     for (let i = 0; i < 3; i++) {
       const a = 3.4 + i * 0.45;
@@ -1538,7 +1564,7 @@ function base(k: Kit, level: number, y: number) {
     const rig = fieldMortar(k, 0.1, py, 0.12, 'heavy');
     tubeLoaders(k, rig, BASE, 20, true, 4.6);
     registerRig(k, rig, level, 9, 0.7, 0.3);
-    fdcBunker(k, -0.92, -0.92, fl + 0.18, Math.PI / 4, 0.86, 0.6, 0.62);
+    fdcBunker(k, -0.92, -0.92, fl + 0.18, Math.PI / 4, 0.86, 0.6, 1.07);
     davit(k, 1.0, -0.9, fl + 0.32, 1.2, 0.58, face(-1, 1), 11);
     k.box(0.34, 0.32, 0.34, CONCRETE, 1.0, fl, -0.9);
     bombRack(k, 0.86, fl + 0.014, -0.05, 1.5, 6, '#4b6b3a');
@@ -1571,7 +1597,7 @@ function base(k: Kit, level: number, y: number) {
   board(k, 'MORTAR BATTERY', 0.86, 0.15, 0, fl + 1.08, 1.505, C.trim, '#ffffff');
   for (let i = 0; i < 8; i++) k.box(0.13, 0.05, 0.37, i % 2 ? C.kerbB : HAZ, -0.455 + i * 0.13, fl + 1.27, 1.32);
   // Magazine + rail
-  fdcBunker(k, -1.0, -0.95, fl + 0.2, Math.PI / 4, 0.84, 0.58, 0.6);
+  fdcBunker(k, -1.0, -0.95, fl + 0.2, Math.PI / 4, 0.84, 0.58, 1.12);
   readyBunker(k, 0.98, -0.98, fl + 0.22, -Math.PI / 4, 0.78, 0.5, 0.48, 9);
   ammoRail(k, 0.82, -0.82, 0.42, -0.42, fl + 0.014, 9);
   bombRack(k, 0.88, fl + 0.014, 0.2, 1.75, 6, '#4b6b3a');
@@ -1626,7 +1652,7 @@ function command(k: Kit, level: number, y: number) {
     disc(k, 1.06, 0.014, '#dcdedd', 0, fl, 0);
     ring(k, 0.6, 0.66, 0.006, fl + 0.014, TEAL);
     turretMortar(k, 0.05, fl + 0.014, 0.0, level, CMD, 23);
-    kiosk(k, -1.0, -1.0, fl, Math.PI / 4, 0.62, 0.5, 0.5);
+    kiosk(k, -1.0, -1.0, fl, Math.PI / 4, 0.62, 0.5, 0.68, 2);
     bombRack(k, 0.75, fl + 0.014, -0.6, 0.9, 6, C.metal);
     k.flagpole(1.25, -1.25, 1.9, fl);
     k.lamp(1.3, 1.25, fl, 1.2);
@@ -1638,7 +1664,7 @@ function command(k: Kit, level: number, y: number) {
     disc(k, 1.08, 0.014, '#dcdedd', 0, fl, 0);
     ring(k, 0.86, 0.9, 0.006, fl + 0.014, TEAL);
     turretMortar(k, 0.12, fl + 0.014, 0.08, level, CMD, 24);
-    kiosk(k, -0.98, -0.98, fl, Math.PI / 4, 0.7, 0.52, 0.48, 2);
+    kiosk(k, -0.98, -0.98, fl, Math.PI / 4, 0.7, 0.52, 0.7, 2);
     // Magazine pavilion: green canopy on white posts over bomb racks
     sub(k, 1.02, fl, -1.02, -Math.PI / 4, (s) => {
       for (const sx of [-1, 1]) for (const sz of [-1, 1]) s.box(0.05, 0.62, 0.05, C.white, sx * 0.28, 0, sz * 0.18);
@@ -1659,12 +1685,13 @@ function command(k: Kit, level: number, y: number) {
     sub(k, -0.98, fl, -0.98, Math.PI / 4, (s) => {
       // Two-storey control block with a roof garden
       s.box(0.78, 0.12, 0.56, C.white, 0, 0, 0);
-      s.glassBox(0.72, 0.5, 0.5, 0, 0.12, 0);
-      s.box(0.82, 0.08, 0.6, C.white, 0, 0.62, 0);
-      s.box(0.78, 0.4, 0.56, C.white, 0, 0.7, 0);
-      s.fins(0.66, 0.4, 0, 0.7, 0.32, 6);
-      s.box(0.84, 0.06, 0.62, C.roofGreen, 0, 1.1, 0);
-      for (let i = 0; i < 4; i++) s.hedge(-0.25 + i * 0.17, 0, 0.12, 0.4, 1.16);
+      s.glassBox(0.72, 0.64, 0.5, 0, 0.12, 0);
+      s.box(0.82, 0.08, 0.6, C.white, 0, 0.76, 0);
+      s.box(0.78, 0.56, 0.56, C.white, 0, 0.84, 0);
+      s.box(0.6, 0.2, 0.02, DARK_GLASS, 0, 1.02, 0.285);
+      s.fins(0.66, 0.56, 0, 0.84, 0.32, 6);
+      s.box(0.84, 0.06, 0.62, C.roofGreen, 0, 1.4, 0);
+      for (let i = 0; i < 4; i++) s.hedge(-0.25 + i * 0.17, 0, 0.12, 0.4, 1.46);
       pulse(s, 0.4, 0.14, 0.02, '#5fe0d0', 0, 0.3, -0.22, 1.7);
     });
     metMast(k, 1.25, -1.25, fl, 1.3);
@@ -1678,7 +1705,7 @@ function command(k: Kit, level: number, y: number) {
     whiteRing(k, 1.1, 1.3, 0.5, fl, 0.6, 0.4);
     disc(k, 1.1, 0.014, '#dcdedd', 0, fl, 0);
     turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 2, deck: '#e2e5e7', rim: TEAL, accent: TEAL, seed: 26, crewLook: CMD });
-    kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.62, 0.48, 0.56, 2);
+    kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.62, 0.48, 0.74, 2);
     metMast(k, 1.25, -1.25, fl, 1.2);
     k.flagpole(1.3, 0.35, 1.9, fl);
     k.lamp(1.3, 1.25, fl, 1.2);
@@ -1693,14 +1720,14 @@ function command(k: Kit, level: number, y: number) {
   for (let i = 0; i < cols; i++) {
     const phi = (i / cols) * Math.PI * 2 + 0.13;
     const [px, pz] = P(phi, 1.2);
-    k.cyl(0.05, 0.92, C.white, px, fl + 0.42, pz, 8);
+    k.cyl(0.05, 1.03, C.white, px, fl + 0.42, pz, 8);
   }
-  ring(k, 1.0, 1.4, 0.08, fl + 1.34, C.roofGreen, 0, 0, 'wall', 36);
-  ring(k, 0.98, 1.42, 0.04, fl + 1.3, C.white, 0, 0, 'wall', 36);
-  ring(k, 1.0, 1.02, 0.12, fl + 1.42, TEAL, 0, 0, 'wall', 36);
+  ring(k, 1.0, 1.4, 0.08, fl + 1.45, C.roofGreen, 0, 0, 'wall', 36);
+  ring(k, 0.98, 1.42, 0.04, fl + 1.41, C.white, 0, 0, 'wall', 36);
+  ring(k, 1.0, 1.02, 0.12, fl + 1.53, TEAL, 0, 0, 'wall', 36);
   for (let i = 0; i < 6; i++) {
     const [lx, lz] = P((i / 6) * Math.PI * 2, 1.0);
-    pulse(k, 0.06, 0.04, 0.06, '#5fe0d0', lx, fl + 1.26, lz, 1.5);
+    pulse(k, 0.06, 0.04, 0.06, '#5fe0d0', lx, fl + 1.37, lz, 1.5);
   }
   // Crest plinth and twin flags at the entry
   k.box(0.3, 0.28, 0.12, C.white, -0.6, fl, 1.32);
@@ -1819,7 +1846,7 @@ function secure(k: Kit, level: number, y: number) {
     casemateDrum(k, 1.0, 1.34, 0.66, fl, 0.5, 0.4, CONCRETE, '#9a968d');
     disc(k, 1.0, 0.014, '#a9a59c', 0, fl, 0);
     turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 2, deck: '#6b7075', rim: HAZ, armour: ARMOUR, accent: HAZ, seed: 28, crewLook: SEC });
-    magazine(k, -1.0, -1.0, fl, 0.78, 0.7, 0.86, Math.PI / 4, CONCRETE, ARMOUR, 7);
+    magazine(k, -1.0, -1.0, fl, 0.78, 0.7, 1.32, Math.PI / 4, CONCRETE, ARMOUR, 7);
     cctv(k, 1.25, -1.25, fl, 1.2, Math.PI * 0.75);
     beacon(k, 0.95, fl + 0.72, -0.95);
     k.lamp(1.3, 1.25, fl + 0.2, 1.1);
@@ -1833,7 +1860,7 @@ function secure(k: Kit, level: number, y: number) {
     riveted(k, 1.35, 0.56, fl + 0.06, 18, 0.5, 0.4);
     disc(k, 1.0, 0.014, '#a9a59c', 0, fl, 0);
     turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 4, deck: '#5c6166', rim: HAZ, armour: ARMOUR, accent: HAZ, seed: 29, crewLook: SEC });
-    magazine(k, -1.0, -1.0, fl, 0.8, 0.72, 0.9, Math.PI / 4, ARMOUR_D, ARMOUR, 7);
+    magazine(k, -1.0, -1.0, fl, 0.8, 0.72, 1.38, Math.PI / 4, ARMOUR_D, ARMOUR, 7);
     acousticMast(k, 1.22, -1.22, fl, 1.4);
     acousticMast(k, -1.3, 0.75, fl, 1.2);
     beacon(k, 0.95, fl + 0.77, -0.95);
@@ -1847,7 +1874,7 @@ function secure(k: Kit, level: number, y: number) {
     riveted(k, 1.33, 0.6, fl + 0.06, 18, 0.5, 0.4);
     disc(k, 0.98, 0.014, '#a9a59c', 0, fl, 0);
     turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 4, deck: '#5c6166', rim: HAZ, armour: ARMOUR, accent: HAZ, seed: 30, crewLook: SEC });
-    magazine(k, -1.0, -1.0, fl, 0.82, 0.74, 0.96, Math.PI / 4, ARMOUR_D, ARMOUR, 7);
+    magazine(k, -1.0, -1.0, fl, 0.82, 0.74, 1.44, Math.PI / 4, ARMOUR_D, ARMOUR, 7);
     sub(k, 1.0, fl, -1.0, -Math.PI / 4, (s) => {
       s.box(0.7, 0.9, 0.62, CONCRETE, 0, 0, 0);
       s.box(0.72, 0.05, 0.64, '#7f7b72', 0, 0.9, 0);
@@ -1892,8 +1919,8 @@ function secure(k: Kit, level: number, y: number) {
     turntable(k, sd * 0.56, fl + 0.05, -0.05, level, { tubes: 2, deck: '#5c6166', rim: gold ? GOLD : HAZ, armour: ARMOUR, accent: gold ? GOLD : HAZ, seed: 31 + sd, crewLook: SEC, scale: 0.64, gold });
   }
   // Central magazine spine between the turntables
-  magazine(k, 0, -1.02, fl, 0.8, 0.5, 0.98, 0, ARMOUR_D, gold ? GOLD : ARMOUR, 7, 0, gold);
-  drone(k, 0, -1.0, fl + 1.1, 1.05, gold);
+  magazine(k, 0, -1.0, fl, 1.0, 0.62, gold ? 1.66 : 1.56, 0, ARMOUR_D, gold ? GOLD : ARMOUR, 7, 0, gold);
+  drone(k, 0, -1.0, fl + (gold ? 1.84 : 1.74), 0.9, gold);
   sensorBall(k, 1.2, -1.2, fl + 0.4, 1.0, gold);
   if (!gold) {
     acousticMast(k, -1.2, -1.2, fl + 0.4, 1.0);
@@ -1903,7 +1930,7 @@ function secure(k: Kit, level: number, y: number) {
     return;
   }
   // 20: citadel: gold-capped bastions at the corners, gold crest over the entry, flags
-  for (const [bx, bz] of [[-1.18, 1.18], [1.18, 1.18], [-1.22, -1.22]] as [number, number][]) {
+  for (const [bx, bz] of [[-1.18, 1.18], [-1.22, -1.22]] as [number, number][]) {
     const bs = k.box(0.42, 1.0, 0.42, CONCRETE, bx, fl, bz);
     bs.rotation.y = Math.PI / 4;
     const cap = k.box(0.48, 0.08, 0.48, GOLD, bx, fl + 1.0, bz);
@@ -1913,8 +1940,8 @@ function secure(k: Kit, level: number, y: number) {
   const crest = mesh(k, new THREE.CylinderGeometry(0.15, 0.15, 0.04, 16).rotateX(Math.PI / 2), GOLD, 0, fl + 1.12, 1.46);
   mesh(k, new THREE.CylinderGeometry(0.1, 0.1, 0.045, 16).rotateX(Math.PI / 2), '#2f5a3a', 0, fl + 1.12, 1.47);
   void crest;
-  beacon(k, -1.18, fl + 1.08, 1.18 - 0.0, '#ffd23f');
-  k.flagpole(1.18, 1.18, 1.4, fl + 1.08);
+  beacon(k, -1.22, fl + 1.08, -1.22, '#ffd23f');
+  k.flagpole(-1.18, 1.18, 1.4, fl + 1.08);
 }
 
 // ------------------------------------------------------------------ build

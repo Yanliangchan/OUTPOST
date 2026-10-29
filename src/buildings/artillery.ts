@@ -654,7 +654,7 @@ function drillU(d: Drill, t: number) {
  * Register the gun with the combat rig. Idle: a laying drill: the gun swings
  * onto a new bearing every few seconds, holds, and adjusts its elevation.
  */
-function arm(k: Kit, rig: Rig, base = Math.PI / 4, amp = 0.65, turnRate = 0.9): Drill {
+function arm(k: Kit, rig: Rig, base = Math.PI / 4, amp = 0.65, turnRate = 1.2): Drill {
   const d: Drill = { now: 0, fired: -99, turret: null };
   k.anims.push((t) => (d.now = t));
   const bearing = (n: number) => base + amp * Math.sin(n * 2.37 + 0.6);
@@ -903,7 +903,7 @@ function field(k: Kit, level: number, y: number) {
     const d = arm(k, rig);
     gunCrew(k, rig, d, 0, OLIVE, 'helmet');
     bagArc(k, GX, GZ, 1.16, -Math.PI * 1.25, Math.PI * 0.58, y, 4);
-    camoNet(k, -1.42, -1.42, 0.1, 0.0, 1.05, y, 2);
+    camoNet(k, -1.42, -1.42, 0.1, 0.0, 0.95, y, 2);
     // Ammunition limber under the net: two-wheeled trailer with an open locker of rounds
     const lb = grp(k, -0.8, y, -0.85, 0.5);
     for (const s of [-1, 1]) {
@@ -944,16 +944,16 @@ function field(k: Kit, level: number, y: number) {
   k.sandbags(0.6, 1.32, 1.4, 0, y + 0.3, 1);
   // Dugout shelter at the back-left: sandbag walls, timber posts, zinc mono-pitch roof, doorway
   const sx = -0.95, sz = -0.85;
-  k.sandbags(sx, sz - 0.42, 0.9, 0, y, 5);
-  k.sandbags(sx - 0.42, sz, 0.8, Math.PI / 2, y, 5);
-  k.sandbags(sx + 0.42, sz - 0.2, 0.42, Math.PI / 2, y, 5);
-  for (const [dx, dz] of [[-0.42, 0.4], [0.42, 0.4]]) k.box(0.06, 0.62, 0.06, LOG, sx + dx, y, sz + dz);
-  const roof = k.box(1.05, 0.04, 1.05, C.zinc, sx, y + 0.66, sz);
+  k.sandbags(sx, sz - 0.42, 0.9, 0, y, 8);
+  k.sandbags(sx - 0.42, sz, 0.8, Math.PI / 2, y, 8);
+  k.sandbags(sx + 0.42, sz - 0.2, 0.42, Math.PI / 2, y, 8);
+  for (const [dx, dz] of [[-0.42, 0.4], [0.42, 0.4]]) k.box(0.06, 0.9, 0.06, LOG, sx + dx, y, sz + dz);
+  const roof = k.box(1.05, 0.04, 1.05, C.zinc, sx, y + 0.92, sz);
   roof.rotation.x = -0.14;
   roof.material = mat(C.zinc, {}, 'zinc');
-  k.box(0.32, 0.4, 0.02, '#2a2b2d', sx + 0.1, y, sz - 0.33);
-  camoNet(k, sx - 0.5, sz - 0.5, sx + 0.55, sz + 0.5, 0.74, y, 4, false);
-  lantern(k, sx + 0.3, y + 0.62, sz + 0.44, 2);
+  k.box(0.32, 0.55, 0.02, '#2a2b2d', sx + 0.1, y, sz - 0.33);
+  camoNet(k, sx - 0.5, sz - 0.5, sx + 0.55, sz + 0.5, 1.0, y, 4, false);
+  lantern(k, sx + 0.3, y + 0.86, sz + 0.44, 2);
   shellRack(k, -1.12, 0.05, y, 4, 2, Math.PI / 2);
   shellRack(k, -0.3, -1.12, y, 3, 2, 0);
   ammoBox(k, -1.15, 0.65, y, 1.5);
@@ -961,7 +961,7 @@ function field(k: Kit, level: number, y: number) {
   postSign(k, 'No.1 GUN', -0.75, 1.32, y, 0, C.trim, 0.5);
   aimingPost(k, 1.3, 1.3, y);
   bearer(k, -0.9, -0.3, -0.55, 0.5, y, 9, 6);
-  spotter(k, -0.95, -0.85, y + 0.7, Math.PI * 0.6, 3); // up on the dugout roof
+  spotter(k, -0.6, -0.45, y, Math.PI * 0.6, 3); // at the dugout door
 }
 
 // ------------------------------------------------------------------ camp (4–6)
@@ -1039,7 +1039,7 @@ function camp(k: Kit, level: number, y: number) {
   if (level === 5) {
     // Shell Gantry Battery: gable-roofed magazine and a green steel gantry whose hoist trolley carries rounds out
     ammoStore(k, -1.0, -0.95, y, 0.8, 0.85, 1, true, 'front');
-    gantry(k, y, 1.55);
+    gantry(k, y, 1.3);
     shellRack(k, -1.25, 0.35, y, 4, 2, Math.PI / 2, C.trim);
     trolley(k, -0.45, -0.5, -0.65, 0.65, y, 11);
     k.flagpole(1.3, -1.3, 1.6, y);
@@ -1047,18 +1047,18 @@ function camp(k: Kit, level: number, y: number) {
   }
   // 6 · Range-Finder Battery: two-storey battery office with a range-finder platform on the roof, gantry, roofed shield
   const bx = -1.0, bz = -0.95, bw = 0.85, bd = 0.85;
-  const h = k.block(bw, bd, 2, bx, y, bz);
-  k.door('front', bx, bz, bw, bd, 0, y, 0.3, 0.55);
-  k.window('right', bx, bz, bw, bd, 0, y + 1.3, 0.3, 0.28, true);
-  k.window('front', bx, bz, bw, bd, 0, y + 1.3, 0.3, 0.28, true);
-  board(k, 'AMMO', 0.3, 0.1, bx, y + 0.66, bz + bd / 2 + 0.025, '#d8342c');
+  const h = k.block(bw, bd, 1, bx, y, bz);
+  k.door('front', bx, bz, bw, bd, -0.15, y, 0.3, 0.55);
+  k.window('right', bx, bz, bw, bd, 0, y + 0.42, 0.3, 0.28, true);
+  k.window('front', bx, bz, bw, bd, 0.22, y + 0.42, 0.22, 0.28, true);
+  board(k, 'AMMO', 0.3, 0.1, bx - 0.15, y + 0.66, bz + bd / 2 + 0.025, '#d8342c');
   // Roof platform: railing, small red canopy on posts over the range-finder
   k.flatRoof(bw, bd, bx, y + h, bz, 0.12);
-  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.04, 0.5, 0.04, C.trim, bx + dx * (bw / 2 - 0.05), y + h, bz + dz * (bd / 2 - 0.05));
-  k.hipRoof(bw - 0.05, bd - 0.05, 0.22, bx, y + h + 0.5, bz, C.roof, 0.08);
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.04, 0.42, 0.04, C.trim, bx + dx * (bw / 2 - 0.05), y + h, bz + dz * (bd / 2 - 0.05));
+  k.hipRoof(bw - 0.05, bd - 0.05, 0.22, bx, y + h + 0.42, bz, C.roof, 0.08);
   rangeFinder(k, bx, y + h + 0.06, bz, 0.62, OLIVE_D, 1);
   spotter(k, bx + 0.22, bz + 0.25, y + h + 0.06, Math.PI * 0.25, 5, OLIVE, 'beret');
-  gantry(k, y, 1.55);
+  gantry(k, y, 1.3);
   shellRack(k, -1.25, 0.35, y, 4, 2, Math.PI / 2, C.trim);
   trolley(k, -0.45, -0.45, -0.65, 0.65, y, 11);
   k.flagpole(1.3, -1.3, 1.8, y);
@@ -1188,6 +1188,12 @@ function observationPost(k: Kit, x: number, z: number, y: number, w: number, sto
   k.box(0.08, 0.04, w + 0.1, '#bdb8ad', x + w / 2 + 0.04, y + h - 0.22, z);
   k.door('front', x, z, w, w, 0, y, 0.26, 0.5, C.trim);
   k.flatRoof(w, w, x, y + h, z, 0.1);
+  // Observation deck: sandbagged parapet and a concrete sun-roof on posts
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.06, 0.42, 0.06, '#bdb8ad', x + dx * (w / 2 - 0.03), y + h + 0.06, z + dz * (w / 2 - 0.03));
+  k.box(w + 0.22, 0.07, w + 0.22, CONCRETE, x, y + h + 0.48, z);
+  k.box(w + 0.24, 0.03, w + 0.24, C.trim, x, y + h + 0.47, z);
+  k.sandbags(x, z + w / 2 - 0.08, w - 0.1, 0, y + h + 0.06, 1);
+  k.sandbags(x + w / 2 - 0.08, z, w - 0.1, Math.PI / 2, y + h + 0.06, 1);
   return y + h + 0.06;
 }
 
@@ -1202,7 +1208,7 @@ function base(k: Kit, level: number, y: number) {
           : { carriage: 'pedestal', shield: 'drum', len: 1.5, r: 0.064, trunH: 0.52, color: '#6a7468', brake: true, recup: true, evac: true };
   const rig = buildGun(k, GX, deck, GZ, spec);
   deckPlate(k, rig, 0.95, '#a9a395');
-  const d = arm(k, rig, Math.PI / 4, 0.65, 0.8);
+  const d = arm(k, rig, Math.PI / 4, 0.65, 1.1);
   if (level < 10) gunCrew(k, rig, d, 0.04, OLIVE, 'helmet', level !== 8);
   else {
     // Enclosed turret: crew inside; a rammer arm shows at the open rear hatch as rounds go in
@@ -1229,7 +1235,7 @@ function base(k: Kit, level: number, y: number) {
 
   if (level === 7) {
     // Concrete Emplacement: barbette, ammunition niches, deck hoist, earth-covered magazine
-    magazine(k, -1.05, -1.05, y, 0.7, 0.7, 0.5);
+    magazine(k, -1.02, -1.02, y, 0.8, 0.8, 1.0);
     k.lamp(-1.38, 0.5, y, 1.25);
     postSign(k, 'No.1 GUN', 1.05, 1.38, y, -0.2, C.trim, 0.5, '#bdb8ad');
     bearer(k, -1.3, 0.2, -0.9, 1.25, y, 9, 2);
@@ -1238,9 +1244,9 @@ function base(k: Kit, level: number, y: number) {
   }
   if (level === 8) {
     // Coastal Battery: open-backed gunhouse, concrete observation post with a spotter on the roof
-    const top = observationPost(k, -1.05, -1.05, y, 0.68, 2);
+    const top = observationPost(k, -1.0, -1.0, y, 0.8, 1.5);
     spotter(k, -1.05, -1.05, top, Math.PI * 0.25, 2, OLIVE, 'cap');
-    k.antenna(-1.32, top, -1.3, 0.6);
+    k.antenna(-1.3, top + 0.45, -1.3, 0.6);
     magazine(k, -1.15, 0.0, y, 0.45, 0.6, 0.45, true);
     postSign(k, 'BATTERY', 1.05, 1.38, y, -0.2, C.trim, 0.5, '#bdb8ad');
     bearer(k, -1.3, 0.55, -0.9, 1.25, y, 9, 2);
@@ -1250,10 +1256,14 @@ function base(k: Kit, level: number, y: number) {
   if (level === 9) {
     // Casemate Battery: heavy concrete casemate roof over the rear half, grassed on top, camo fringe
     const cy = deck + 1.18;
-    for (const [px, pz] of [[-1.15, -1.15], [-1.15, 0.45], [0.45, -1.15]]) {
-      k.box(0.32, cy - y, 0.32, CONCRETE, px, y, pz);
-      k.box(0.34, 0.05, 0.34, '#bdb8ad', px, cy - 0.05, pz);
+    // Solid rear walls (the casemate's back and flank) with piers on the open side
+    k.box(1.85, cy - y, 0.22, CONCRETE, -0.45, y, -1.3);
+    k.box(0.22, cy - y, 1.35, CONCRETE, -1.3, y, -0.08);
+    for (const [px, pz] of [[0.42, -1.1], [-1.1, 0.5]]) {
+      k.box(0.3, cy - y, 0.3, CONCRETE, px, y, pz);
+      k.box(0.32, 0.05, 0.32, '#bdb8ad', px, cy - 0.05, pz);
     }
+    for (let i = 0; i < 4; i++) k.box(0.03, cy - y - 0.2, 0.012, '#bdb8ad', -1.2 + i * 0.45, y + 0.1, -1.18);
     const slab = (w: number, d: number, x: number, z: number) => {
       k.box(w, 0.2, d, CONCRETE, x, cy, z);
       k.box(w + 0.04, 0.06, d + 0.04, '#bdb8ad', x, cy, z);
@@ -1351,7 +1361,7 @@ function command(k: Kit, level: number, y: number) {
     ? { carriage: 'turret', shield: 'none', len: level === 13 ? 1.3 : 1.42, r: 0.058, trunH: 0.38, color: MODERN, barrel: '#7c8a84', brake: true, evac: level >= 14, band: TEAL }
     : { carriage: 'modern', shield: level === 12 ? 'wrap' : 'flat', len: level === 11 ? 1.3 : 1.36, r: 0.055, trunH: 0.46, color: MODERN, barrel: '#7c8a84', brake: true, recup: true, band: TEAL };
   const rig = buildGun(k, GX, deck, GZ, spec);
-  const d = arm(k, rig, Math.PI / 4, 0.7, 1.0);
+  const d = arm(k, rig, Math.PI / 4, 0.7, 1.3);
   // Auto-loader: rounds ride a conveyor from the magazine into the mount centre
   if (!turreted) {
     // Hydraulic loading arm swings a round up to the breech in time with the drill
@@ -1381,7 +1391,7 @@ function command(k: Kit, level: number, y: number) {
   const mx = -1.0, mz = -1.0;
   if (level === 11) {
     // Modern Gun Station: open mount with a loading arm, white magazine block, conveyor and a glass fire-control cabin
-    const top = whiteBlock(k, mx, mz, y, 0.8, 0.8, 1);
+    const top = whiteBlock(k, mx, mz, y, 0.8, 0.8, 2);
     k.shutter('right', mx, mz, 0.8, 0.8, 0, 0.4, 0.5);
     conveyor(k, mx + 0.42, mz + 0.1, GX - 0.5, GZ - 0.1, y + 0.02, 4, MODERN_D, '#2a2b2d', 5);
     metMast(k, mx + 0.2, top, mz - 0.2, 0.6);
@@ -1404,7 +1414,6 @@ function command(k: Kit, level: number, y: number) {
     conveyor(k, -0.88, 0.45, GX - 0.5, GZ + 0.05, y + 0.02, 4, MODERN_D, '#2a2b2d', 5);
     floodlight(k, 1.35, -1.35, y, 1.4, Math.PI * 0.75);
     shellRack(k, 1.0, 1.32, y, 4, 2, 0, STEEL);
-    k.planter(0.6, 1.32, 0.6, y);
     return;
   }
   // Turreted gun: rounds disappear into the turret base through a feed chute
@@ -1451,7 +1460,7 @@ function command(k: Kit, level: number, y: number) {
     if (Math.abs(x) > 1.42 || Math.abs(z) > 1.42) continue;
     k.box(0.07, ch, 0.07, C.white, x, y, z);
   }
-  arcWall(k, GX, GZ, cr, -Math.PI * 1.2, Math.PI * 0.55, y + ch, 0.08, 0.26, C.roofGreen, TEAL);
+  arcWall(k, GX, GZ, cr, -Math.PI * 1.2, Math.PI * 0.55, y + ch, 0.06, 0.24, TEAL, C.roofGreen);
   const top = whiteBlock(k, mx, mz, y, 0.75, 0.75, 2, true);
   metMast(k, mx - 0.18, top, mz - 0.2, 0.7);
   k.antenna(mx + 0.2, top, mz - 0.2, 0.9);
@@ -1528,84 +1537,126 @@ function hardBase(k: Kit, y: number, r: number, h: number, gold = false) {
 function secure(k: Kit, level: number, y: number) {
   const twin = level >= 19;
   const gold = level === 20;
-  const bh = level >= 18 ? 0.62 : level === 17 ? 0.55 : 0.5;
+  const bh = level >= 19 ? 0.66 : level >= 17 ? 0.58 : 0.5;
   const deck = hardBase(k, y, 1.12, bh, gold);
   const body = gold ? '#6d756a' : level >= 17 ? ARMOUR : '#717a6e';
   const spec: GunSpec = {
-    carriage: 'turret', shield: 'none', len: twin ? 1.42 : level >= 18 ? 1.55 : 1.45, r: twin ? 0.055 : 0.062, trunH: 0.4,
+    carriage: 'turret', shield: 'none', len: twin ? 1.45 : level >= 18 ? 1.58 : 1.48, r: twin ? 0.055 : 0.062, trunH: 0.4,
     color: body, barrel: '#4f5650', brake: true, evac: true, twin, band: gold ? GOLD : HAZ,
   };
   const rig = buildGun(k, GX, deck, GZ, spec);
-  // Armour skirts and hazard chevrons on the turret
+  // Armour skirts on the turret flanks
   for (const sz of [-1, 1]) k.box(0.7, 0.14, 0.03, STEEL_D, -0.15, 0.08, sz * ((twin ? 0.43 : 0.37) + 0.11), rig.yaw);
+  if (level >= 18) {
+    // Slat armour cage round the bustle
+    for (const sz of [-1, 1]) for (let i = 0; i < 5; i++) k.box(0.025, 0.26, 0.02, STEEL_D, -0.92 + i * 0.07, 0.12, sz * ((twin ? 0.43 : 0.37) - 0.02), rig.yaw);
+    k.box(0.04, 0.03, (twin ? 0.86 : 0.74), STEEL_D, -0.95, 0.4, 0, rig.yaw);
+  }
   if (gold) {
     for (const sz of [-1, 1]) k.box(0.6, 0.03, 0.035, GOLD, -0.15, 0.45, sz * 0.555, rig.yaw);
-    crest(k, -0.2, 0.36, 0.56, 0.09, 0, rig.yaw);
+    crest(k, -0.2, 0.3, 0.56, 0.09, 0, rig.yaw);
   }
-  const d = arm(k, rig, Math.PI / 4, 0.7, twin ? 0.8 : 0.9);
-  void d;
-  // Rounds feed up into the turret bustle
-  const mx = -1.0, mz = -1.0;
-  // Hardened magazine bunker at the back-left with a sliding blast door
-  const mw = 0.8, md = 0.8;
-  const mh = level >= 18 ? 1.5 : level === 17 ? 1.35 : 1.15;
-  k.box(mw, mh, md, CONCRETE, mx, y, mz);
-  k.box(mw + 0.05, 0.08, md + 0.05, gold ? GOLD : HAZ, mx, y + mh - 0.18, mz);
-  k.box(mw + 0.06, 0.06, md + 0.06, '#bdb8ad', mx, y + mh, mz);
-  slidingDoor(k, mx + mw / 2 + 0.02, y, mz, 0.38, 0.55, Math.PI / 2, STEEL, 10, 3);
-  board(k, 'MAGAZINE', 0.42, 0.1, mx, y + 0.7, mz + md / 2 + 0.02, '#d8342c', '#ffffff', 0, 34);
-  const mtop = y + mh + 0.06;
-  conveyor(k, mx + 0.42, mz + 0.3, GX - 0.85, GZ - 0.4, y + 0.02, 4, STEEL, '#2a2b2d', 5);
-  hoist(k, GX - 0.85, GZ - 0.4, y + 0.1, deck - 0.12, 5, 2.5);
+  arm(k, rig, Math.PI / 4, 0.7, twin ? 1.1 : 1.2);
+  // Rounds ride a conveyor to a hoist that lifts them into the turret ring
+  const feedX = GX - 0.85, feedZ = GZ - 0.4;
+  hoist(k, feedX, feedZ, y + 0.1, deck - 0.12, 5, 2.5);
   cctv(k, 1.35, -1.35, y, 1.4, Math.PI * 0.75);
   floodlight(k, -1.38, 0.9, y, 1.5, -Math.PI * 0.25);
-  tWall(k, 1.2, 1.32, y, 0, 0.8);
-  tWall(k, 1.32, 0.75, y, Math.PI / 2, 0.8);
   shellRack(k, -1.25, 0.3, y, 4, 2, Math.PI / 2, STEEL);
+  const mx = -1.0, mz = -1.0;
+
+  /** Square hardened magazine with a sliding blast door; returns its roof height. */
+  const magBlock = (mh: number, w = 0.8) => {
+    k.box(w, mh, w, CONCRETE, mx, y, mz);
+    k.box(w + 0.05, 0.08, w + 0.05, gold ? GOLD : HAZ, mx, y + mh - 0.18, mz);
+    k.box(w + 0.06, 0.06, w + 0.06, '#bdb8ad', mx, y + mh, mz);
+    k.box(w + 0.04, 0.05, w + 0.04, '#bdb8ad', mx, y + STOREY, mz);
+    for (const s of [-1, 1]) k.box(0.02, 0.06, 0.24, '#2a2b2d', mx + w / 2 + 0.01, y + mh - 0.55, mz + s * 0.18);
+    slidingDoor(k, mx + w / 2 + 0.02, y, mz, 0.38, 0.55, Math.PI / 2, STEEL, 10, 3);
+    board(k, 'MAGAZINE', 0.42, 0.1, mx, y + 0.7, mz + w / 2 + 0.02, '#d8342c', '#ffffff', 0, 34);
+    conveyor(k, mx + w / 2 + 0.02, mz + 0.3, feedX, feedZ, y + 0.02, 3, STEEL, '#2a2b2d', 5);
+    return y + mh + 0.06;
+  };
 
   if (level === 16) {
-    // Hardened Gun Bunker: armoured turret on an octagonal bunker, blast-door magazine, T-walls, CCTV
-    tWall(k, 0.6, 1.36, y, 0, 0.8);
-    k.antenna(mx + 0.25, mtop, mz - 0.25, 0.8);
+    // Hardened Gun Bunker: armoured turret on an octagonal bunker, square blast-door magazine, T-wall screen
+    const top = magBlock(1.95);
+    k.antenna(mx + 0.25, top, mz - 0.25, 0.8);
+    k.blinker(mx - 0.25, top, mz + 0.25, '#ff3b30', 0.04, 1.2);
+    for (const [x, z, r] of [[0.6, 1.36, 0], [1.2, 1.32, 0], [1.32, 0.75, Math.PI / 2], [1.32, 0.15, Math.PI / 2]] as const) tWall(k, x, z, y, r, 0.8);
     turretTech(k, -0.55, 1.3, y);
     return;
   }
   if (level === 17) {
-    // Auto-Loader Battery: exposed rotating ammunition carousel in a cage feeding the conveyor
-    carousel(k, mx + 0.05, mtop, mz + 0.0, 0.32);
-    k.antenna(mx + 0.3, mtop, mz - 0.3, 0.8);
-    tWall(k, 0.6, 1.36, y, 0, 0.8);
+    // Auto-Loader Battery: the magazine wears a rotating ammunition carousel; an armoured feed gallery slopes to the gun
+    const top = magBlock(1.85);
+    carousel(k, mx, top, mz, 0.32);
+    strut(k, undefined, V(mx + 0.3, top - 0.35, mz + 0.4), V(feedX - 0.05, deck - 0.05, feedZ - 0.05), 0.2, 0.18, STEEL_D);
+    strut(k, undefined, V(mx + 0.3, top - 0.25, mz + 0.4), V(feedX - 0.05, deck + 0.05, feedZ - 0.05), 0.22, 0.03, HAZ);
+    for (const [x, z, r] of [[0.6, 1.36, 0], [1.2, 1.32, 0], [1.32, 0.75, Math.PI / 2]] as const) tWall(k, x, z, y, r, 0.8);
     turretTech(k, -0.55, 1.3, y);
     return;
   }
   if (level === 18) {
-    // Sensor Battery: electro-optical sensor ball on a mast and a spotter drone
-    carousel(k, mx + 0.05, mtop, mz, 0.32);
-    sensorMast(k, -0.6, -1.3, y, 2.0);
-    drone(k, GX, GZ, deck + 1.4, 0.9, 3);
-    tWall(k, 0.6, 1.36, y, 0, 0.8);
+    // Sensor Battery: round hardened sensor tower with a slewing electro-optical turret, sensor mast, armoured slats
+    const tr = 0.42, th = 2.3;
+    k.cyl(tr + 0.04, 0.12, CONCRETE, mx, y, mz, 14);
+    k.cyl(tr, th, CONCRETE, mx, y, mz, 14);
+    k.cyl(tr + 0.02, 0.07, HAZ, mx, y + th - 0.2, mz, 14);
+    for (let i = 0; i < 3; i++) k.cyl(tr + 0.01, 0.04, '#bdb8ad', mx, y + 0.5 + i * 0.5, mz, 14);
+    k.cyl(tr + 0.05, 0.06, '#bdb8ad', mx, y + th, mz, 14);
+    k.box(0.03, 0.5, 0.26, '#2a2b2d', mx + tr - 0.01, y, mz);
+    // EO turret on the roof
+    const eo = grp(k, mx, y + th + 0.06, mz);
+    mesh(k, new THREE.CylinderGeometry(0.16, 0.2, 0.12, 10), STEEL_D, 0, 0.06, 0, eo);
+    const head = grp(k, 0, 0.22, 0, 0, eo);
+    k.box(0.3, 0.18, 0.22, '#e8e6e0', 0, -0.09, 0, head);
+    for (const s of [-1, 1]) k.box(0.02, 0.06, 0.06, '#ff5a3a', 0.16, -0.03, s * 0.06, head).material = glow('#ff5a3a', 0.9);
+    k.anims.push((t) => {
+      eo.rotation.y = Math.sin(t * 0.25) * 2.2;
+      head.rotation.z = Math.sin(t * 0.6) * 0.15;
+    });
+    sensorMast(k, -0.35, -1.3, y, 1.7);
+    conveyor(k, -1.25, -0.35, feedX, feedZ, y + 0.02, 3, STEEL, '#2a2b2d', 5);
+    k.box(0.4, 0.5, 0.35, CONCRETE, -1.25, y, -0.45);
+    for (const [x, z, r] of [[0.6, 1.36, 0], [1.2, 1.32, 0]] as const) tWall(k, x, z, y, r, 0.8);
     return;
   }
-  // 19 · Twin-Gun Turret, 20 · Citadel Battery
-  carousel(k, mx + 0.05, mtop, mz, 0.32);
-  sensorMast(k, -0.55, -1.3, y, 2.1);
-  drone(k, GX, GZ, deck + 1.45, 0.95, 4);
+  // 19 · Twin-Gun Turret / 20 · Citadel Battery: magazine keep with a drone deck; ground-level caged carousel
+  const top = magBlock(2.3, 0.85);
+  k.box(0.6, 0.02, 0.6, '#4a4f54', mx, top, mz);
+  for (const s of [-1, 1]) k.box(0.42, 0.006, 0.05, HAZ, mx, top + 0.02, mz + s * 0.24);
+  // Drone lifts off the deck, patrols, and lands again
+  const dr = grp(k, mx, top + 0.05, mz);
+  k.box(0.18, 0.05, 0.18, '#3a3f44', 0, 0, 0, dr);
+  const props: THREE.Mesh[] = [];
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) props.push(k.box(0.14, 0.008, 0.02, '#c9ced2', dx * 0.12, 0.04, dz * 0.12, dr));
+  k.anims.push((t) => {
+    const p = loop(t, 14);
+    const up = p < 0.1 ? 0 : p < 0.2 ? ramp(p, 0.1, 0.2) : p < 0.8 ? 1 : p < 0.9 ? 1 - ramp(p, 0.8, 0.9) : 0;
+    const a = p > 0.2 && p < 0.8 ? (p - 0.2) / 0.6 * Math.PI * 2 : 0;
+    dr.position.set(mx + Math.sin(a) * 0.9 * up, top + 0.05 + up * 0.9, mz + (1 - Math.cos(a)) * 0.9 * up);
+    for (const pr of props) pr.rotation.y = p > 0.08 && p < 0.92 ? t * 30 : 0;
+  });
+  carousel(k, -1.05, y, 1.0, 0.3);
+  sensorMast(k, -0.35, -1.32, y, 1.8);
   if (level === 19) {
-    tWall(k, 0.6, 1.36, y, 0, 0.8);
+    for (const [x, z, r] of [[0.6, 1.36, 0], [1.2, 1.32, 0], [1.32, 0.75, Math.PI / 2]] as const) tWall(k, x, z, y, r, 0.8);
     k.blinker(GX + 1.0, deck, GZ - 0.4, '#ff3b30', 0.04, 1.0);
     return;
   }
-  // Citadel: gold crest wall, gold-capped bollards, flag, second sensor mast
+  // Citadel: gold crest wall, gold-capped bollards, flag, gold trim on the keep
   k.box(0.9, 0.7, 0.14, CONCRETE, 0.55, y, 1.35);
   k.box(0.92, 0.05, 0.16, GOLD, 0.55, y + 0.7, 1.35);
-  crest(k, 0.55, y + 0.38, 1.43, 0.16);
-  board(k, 'CITADEL BATTERY', 0.75, 0.1, 0.55, y + 0.04, 1.43, '#2a2b2d', GOLD, 0, 30);
-  for (const x of [-0.55, -0.15]) {
-    k.cyl(0.06, 0.32, CONCRETE, x, y, 1.35, 8);
-    k.cyl(0.062, 0.04, GOLD, x, y + 0.32, 1.35, 8);
+  crest(k, 0.55, y + 0.4, 1.43, 0.16);
+  board(k, 'CITADEL BATTERY', 0.75, 0.1, 0.55, y + 0.06, 1.43, '#2a2b2d', GOLD, 0, 30);
+  for (const z of [0.2, 0.6]) {
+    k.cyl(0.06, 0.32, CONCRETE, 1.35, y, z, 8);
+    k.cyl(0.062, 0.04, GOLD, 1.35, y + 0.32, z, 8);
   }
-  k.flagpole(1.32, -0.2, 2.2, y);
-  k.box(mw + 0.08, 0.04, md + 0.08, GOLD, mx, mtop - 0.02, mz);
+  k.flagpole(1.3, -0.55, 2.2, y);
+  k.box(0.91, 0.04, 0.91, GOLD, mx, top - 0.02, mz);
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.08, 0.12, 0.08, GOLD, mx + dx * 0.4, top, mz + dz * 0.4);
 }
 
 /** Rotating ammunition carousel: a ring of rounds turning inside a caged drum. */

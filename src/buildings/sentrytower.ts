@@ -143,7 +143,7 @@ function bags(k: Kit, x: number, z: number, len: number, rotY = 0, y = 0.08, lay
 }
 
 /** Ladder: rails along local y, leaning out toward local +z at the bottom; turned by rotY. */
-function ladder(k: Kit, x: number, z: number, y0: number, y1: number, rotY = 0, w = 0.22, color = LOG_D, lean = 0.15, r = 0.02, cage = false) {
+function ladder(k: Kit, x: number, z: number, y0: number, y1: number, rotY = 0, w = 0.22, color: string = LOG_D, lean = 0.15, r = 0.02, cage = false) {
   const g = new THREE.Group();
   g.position.set(x, y0, z);
   g.rotation.y = rotY;
@@ -168,7 +168,7 @@ function ladder(k: Kit, x: number, z: number, y0: number, y1: number, rotY = 0, 
 }
 
 /** Steel stair flight from (x0,y0,z0) up to (x1,y1,z1) with handrails. */
-function flight(k: Kit, x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, w = 0.26, color = C.trim, tread = '#9aa3a6') {
+function flight(k: Kit, x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, w = 0.26, color: string = C.trim, tread = '#9aa3a6') {
   const dx = x1 - x0, dz = z1 - z0, run = Math.hypot(dx, dz), rise = y1 - y0;
   const g = new THREE.Group();
   g.position.set(x0, y0, z0);
@@ -253,7 +253,7 @@ function board(k: Kit, text: string, w: number, h: number, x: number, y: number,
 // ------------------------------------------------------------------ small animated props
 
 /** Item hanging from (x, top, z) that sways (canteen, lantern, bell, flap). */
-function hang(k: Kit, x: number, top: number, z: number, w: number, h: number, d: number, color: string | THREE.Material, seed = 0, amp = 0.4) {
+function hang(k: Kit, x: number, top: number, z: number, w: number, h: number, d: number, color: string | THREE.MeshStandardMaterial, seed = 0, amp = 0.4) {
   const m = k.box(w, h, d, typeof color === 'string' ? color : '#ffffff', x, top - h, z);
   if (typeof color !== 'string') m.material = color;
   k.swing(m, top, amp, seed);
@@ -395,7 +395,12 @@ function hesco(k: Kit, x: number, z: number, y: number, s = 0.34) {
 function podium(k: Kit, w: number, d: number, h: number, edge: string = C.trim, color: string = C.white) {
   const y = 0.08;
   k.box(w, h, d, color, 0, y, 0);
-  k.box(w + 0.02, 0.04, d + 0.02, edge, 0, y + h - 0.04, 0);
+  k.box(w + 0.02, 0.05, d + 0.02, edge, 0, y + h - 0.1, 0);
+  k.box(w - 0.06, 0.012, d - 0.06, '#e4dfd3', 0, y + h, 0);
+  for (let i = 1; i < 4; i++) {
+    k.box(0.015, 0.014, d - 0.1, '#cfc9bc', -w / 2 + (w / 4) * i, y + h, 0);
+    k.box(w - 0.1, 0.014, 0.015, '#cfc9bc', 0, y + h, -d / 2 + (d / 4) * i);
+  }
   for (let i = 0; i < 2; i++) k.box(0.5, (h * (2 - i)) / 3, 0.1, '#d9d4c8', 0.35, y, d / 2 + 0.05 + (1 - i) * 0.08);
   return y + h;
 }
@@ -1172,6 +1177,20 @@ function baseBand(k: Kit, level: number, y0: number, rate: number) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(0.12, 0.66, 0.12, CONCRETE, tx + sx * 0.52, D + 0.14, tz + sz * 0.52);
     k.box(1.38, 0.1, 1.38, CONCRETE, tx, D + 0.8, tz);
     k.box(1.4, 0.07, 1.4, C.roof, tx, D + 0.79, tz);
+    // Camouflage net draped over the canopy: olive sheet with darker blotches and sagging edges
+    k.box(1.3, 0.03, 1.3, '#6b7a4a', tx, D + 0.9, tz);
+    for (const [bxp, bzp, bw, bd] of [[-0.3, -0.25, 0.4, 0.3], [0.25, 0.2, 0.35, 0.45], [0.3, -0.35, 0.3, 0.25], [-0.25, 0.35, 0.3, 0.3]]) {
+      k.box(bw, 0.035, bd, '#4f5c33', tx + bxp, D + 0.905, tz + bzp);
+    }
+    for (const [x0, z0, rr] of [[0, 0.66, 0], [0.66, 0, Math.PI / 2], [0, -0.66, 0], [-0.66, 0, Math.PI / 2]]) {
+      const flap = rbox(k, 1.2, 0.14, 0.02, '#5d6b3e', tx + x0, D + 0.78, tz + z0, rr);
+      k.anims.push((t) => (flap.rotation.x = Math.sin(t * 1.3 + x0 * 3 + z0) * 0.08));
+    }
+    for (let i = 0; i < 4; i++) {
+      const tuft = new THREE.Mesh(new THREE.IcosahedronGeometry(0.07, 0), mat(i % 2 ? '#4f7a2e' : '#6b8a3a'));
+      tuft.position.set(tx - 0.45 + i * 0.3, D + 0.95, tz + (i % 2 ? 0.4 : -0.42));
+      k.add(tuft);
+    }
     pennant(k, tx - 0.55, D + 0.9, tz - 0.55, 0.45);
     // Stair tower with stepped windows, linked by a bridge
     const sx0 = 0.62, sz0 = 0.05, sw = 0.5;
@@ -1247,7 +1266,7 @@ function baseBand(k: Kit, level: number, y0: number, rate: number) {
   bags(k, -0.2, cz + e - 0.1, 0.9, 0, D, 1);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(0.15, 0.62, 0.15, CONCRETE, sx * 0.68, D, cz + sz * 0.68);
   k.hipRoof(1.5, 1.5, 0.44, 0, D + 0.62, cz, C.roof, 0.12);
-  k.flagpole(0, cz, 0.5, D + 1.0).visible = true;
+  pennant(k, 0, D + 1.02, cz, 0.55, '#d8342c');
   ladder(k, w / 2 + 0.03, cz - 0.25, y0, D, Math.PI / 2, 0.22, C.trim, 0.02, 0.018, true);
   k.aircon(-w / 2 - 0.08, y0 + 0.3, cz - 0.2, -Math.PI / 2);
   k.lamp(0.45, cz + w / 2 + 0.02, y0 + 0.9, 0.2);
@@ -1475,8 +1494,8 @@ function command(k: Kit, level: number, y0: number, rate: number) {
   k.box(0.36, 0.5, 0.03, '#86b7cc', cx, y1, cz + 0.78);
   k.box(0.42, 0.04, 0.05, TEAL, cx, y1 + 0.5, cz + 0.79);
   board(k, 'SENTRY', 0.4, 0.12, cx, y1 + 0.58, cz + 0.79, C.trim, '#ffffff');
-  k.flagpole(-0.72, 0.78, 1.3, y1);
-  k.flagpole(0.72, 0.78, 1.3, y1);
+  k.flagpole(0.8, 0.8, 1.3, y1);
+  k.planter(-0.62, 0.8, 0.5, y1);
   cctv(k, cx - 0.62, 1.31, cz - 0.62, 0.2, Math.PI);
   cctv(k, cx + 0.45, 2.26, cz - 0.45, 0.16, -Math.PI / 2);
   k.antenna(cx - 0.3, yb, cz - 0.3, 0.6);
@@ -1494,6 +1513,12 @@ function secure(k: Kit, level: number, y0: number, rate: number) {
     }
     const tx = 0, tz = -0.15, w = 1.12, top = 2.6;
     k.box(w + 0.2, 0.5, w + 0.2, DCON, tx, y0, tz);
+    // Hardened apron with jersey kerbs across the front
+    for (const [ax, aw] of [[-0.66, 0.4], [0.45, 0.8]]) {
+      k.box(aw, 0.34, 0.5, '#a9a59c', ax, y0, 0.62);
+      k.box(aw + 0.02, 0.04, 0.52, HAZ, ax, y0 + 0.34, 0.62);
+    }
+    for (const x of [0.3, 0.68]) tWall(k, x, 0.68, y0 + 0.34, Math.PI, 0.5);
     k.box(w, top - y0 - 0.5, w, DCON, tx, y0 + 0.5, tz);
     for (const yy of [1.2, 2.0]) k.box(w + 0.04, 0.06, w + 0.04, '#8f8b83', tx, yy, tz);
     for (const x of [-0.25, 0.25]) k.box(0.18, 0.05, 0.03, '#1f2326', tx + x, 1.6, tz + w / 2 + 0.005);
@@ -1517,7 +1542,7 @@ function secure(k: Kit, level: number, y0: number, rate: number) {
     cctv(k, -0.84, y0 + 0.72, 0.64, 0.2, Math.PI / 4, '#d8d4ca');
     cctv(k, tx + 0.5, top + 0.1, tz - 0.5, 0.2, -Math.PI * 0.75, '#d8d4ca');
     k.blinker(tx - 0.55, top + 0.1, tz + 0.3, '#ff3b30', 0.03);
-    patrol(k, y0, -0.5, 0.78, 0.6, 0.78, 9, 15, 'beret', '#4a5a3a');
+    patrol(k, y0, -0.2, 0.5, -0.2, 0.86, 9, 15, 'beret', '#4a5a3a');
     rws(k, tx, top + 0.1, tz, { rate, seed: 15, dome: true, body: ARM, trim: ARM_D, lens: '#ff4a3a', scale: 1.25 });
     return;
   }

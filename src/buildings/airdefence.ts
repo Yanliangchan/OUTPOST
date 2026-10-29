@@ -62,8 +62,8 @@ const DIRT = '#b98a5a';
 const HAZ = '#f2c230';
 const CANVAS = '#b9a878';
 const TEAL = '#2bb3a3';
-const ARMOR = '#5c6870';
-const ARMOR_D = '#4a555c';
+const ARMOR = '#7a878d';
+const ARMOR_D = '#5a666d';
 const STEEL = '#9aa3a6';
 const M = (c: string, o: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color: c, flatShading: true, roughness: 0.8, ...o });
 const glow = (c: string, i = 1) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, flatShading: true });
@@ -122,17 +122,39 @@ function bagRing(k: Kit, cx: number, cz: number, r: number, layers: number, y: n
   }
 }
 
-/** Segmented round parapet wall; cap 'kerb' paints the coping yellow/black. */
+/** Annular sector (ring with an optional gap) as one extruded mesh, base at y. */
+function ringMesh(k: Kit, cx: number, cz: number, rOut: number, rIn: number, h: number, y: number, color: string, gapW = 0, gapA = Math.PI / 2) {
+  const sh = new THREE.Shape();
+  // Shape is drawn in x/y and the extrusion is turned so shape y becomes -z.
+  const g0 = -gapA + gapW / 2, g1 = -gapA - gapW / 2 + Math.PI * 2;
+  if (gapW > 0) {
+    sh.absarc(0, 0, rOut, g0, g1, false);
+    sh.absarc(0, 0, rIn, g1, g0, true);
+  } else {
+    sh.absarc(0, 0, rOut, 0, Math.PI * 2, false);
+    const hole = new THREE.Path();
+    hole.absarc(0, 0, rIn, 0, Math.PI * 2, true);
+    sh.holes.push(hole);
+  }
+  const geo = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: false, curveSegments: 28 }).rotateX(-Math.PI / 2);
+  const m = new THREE.Mesh(geo, mat(color));
+  m.position.set(cx, y, cz);
+  return k.add(m);
+}
+
+/** Round parapet wall with a coping; cap 'kerb' paints the coping in yellow/black blocks. */
 function ringWall(k: Kit, cx: number, cz: number, r: number, h: number, y: number, color: string, cap: string | 'kerb', gapW = 0.7, gapA = Math.PI / 2, thick = 0.14) {
+  ringMesh(k, cx, cz, r + thick / 2, r - thick / 2, h, y, color, gapW, gapA);
+  if (cap !== 'kerb') {
+    ringMesh(k, cx, cz, r + thick / 2 + 0.02, r - thick / 2 - 0.02, 0.04, y + h, cap, gapW, gapA);
+    return;
+  }
   const n = Math.max(12, Math.round((2 * Math.PI * r) / 0.2));
   const seg = ((2 * Math.PI * r) / n) * 1.04;
   for (let i = 0; i < n; i++) {
     const a = ((i + 0.5) / n) * Math.PI * 2;
     if (Math.abs(wrap(a - gapA)) < gapW / 2) continue;
-    const px = cx + Math.cos(a) * r, pz = cz + Math.sin(a) * r;
-    k.box(seg, h, thick, color, px, y, pz).rotation.y = -a - Math.PI / 2;
-    const cc = cap === 'kerb' ? (i % 2 ? C.kerbB : C.kerbY) : cap;
-    k.box(seg, 0.04, thick + 0.03, cc, px, y + h, pz).rotation.y = -a - Math.PI / 2;
+    k.box(seg, 0.04, thick + 0.03, i % 2 ? C.kerbB : C.kerbY, cx + Math.cos(a) * r, y + h, cz + Math.sin(a) * r).rotation.y = -a - Math.PI / 2;
   }
 }
 
@@ -611,6 +633,8 @@ function arm(k: Kit, r: Rig, lv: number, o: { kick?: number; turn?: number; home
   };
   const tur = k.turret({ yaw: r.yaw, pitch: r.pitch, muzzles: r.muzzles, recoil: r.recoil, weapon: 'flak', targets: 'air', rate: RATE[lv - 1], turnRate: o.turn ?? 2.2, kick: o.kick ?? 0.08, idle });
   idle(0);
+  r.yaw.rotation.y = home;
+  r.pitch.rotation.z = base;
   if (r.missiles.length) reload(k, tur, r.missiles);
   return tur;
 }
@@ -641,16 +665,15 @@ function reload(k: Kit, tur: Turret, missiles: Missile[]) {
   });
 }
 
-/** Lids that open while the weapon is raised or engaging and close when it stows. */
-function lidsFollow(k: Kit, lids: THREE.Object3D[], pitch: THREE.Object3D, tur: Turret, maxOpen = 1.9) {
-  let o = 0, last = 0;
+/** Drives armour (lids, doors, hatches) open while the weapon is raised or engaging, shut when it stows. */
+function armourFollow(k: Kit, pitch: THREE.Object3D, tur: Turret, set: (o: number) => void, thresh = 0.1) {
+  let o = 1, last = -1;
   k.anims.push((t) => {
-    const dt = Math.min(0.1, Math.max(0, t - last));
+    const dt = last < 0 ? 1 : Math.min(0.1, Math.max(0, t - last));
     last = t;
-    const want = tur.target || pitch.rotation.z > 0.35 ? 1 : 0;
-    o += THREE.MathUtils.clamp(want - o, -dt * 2.5, dt * 2.5);
-    if (dt === 0) o = want;
-    for (const l of lids) l.rotation.z = smooth(o) * maxOpen;
+    const want = tur.target || pitch.rotation.z > thresh ? 1 : 0;
+    o += THREE.MathUtils.clamp(want - o, -dt * 3, dt * 3);
+    set(smooth(o));
   });
 }
 
@@ -1075,8 +1098,8 @@ function lv6(k: Kit, y: number) {
   ringWall(k, cx, cz, 0.78, 0.05, yd, C.wall, 'kerb', 0.5, Math.PI / 2, 0.1);
   k.stairs(cx, cz + 0.98, 0.42, 0.3, ph + 0.08);
   const r = rig(k, cx, yd, cz, 0.34);
-  cylP(k, r.yaw, 0.6, 0.08, C.trim, 0, 0, 0, 18);
-  cylP(k, r.yaw, 0.61, 0.02, HAZ, 0, 0.06, 0, 18);
+  cylP(k, r.yaw, 0.61, 0.06, HAZ, 0, 0, 0, 18);
+  cylP(k, r.yaw, 0.56, 0.08, C.trim, 0, 0, 0, 18);
   for (const s of [-1, 0, 1]) if (s) for (const o of [-0.09, 0.09]) k.box(0.22, 0.32, 0.03, GUN_OD, 0, 0.08, s * 0.24 + o, r.yaw);
   cannon(k, r, 0.24, 1.05, { clip: 4 });
   cannon(k, r, -0.24, 1.05, { clip: 4 });
@@ -1111,9 +1134,818 @@ function lv6(k: Kit, y: number) {
   postSign(k, 'AIR DEFENCE', -0.75, 1.28, y, C.trim, '#ffffff');
 }
 
+// ================================================================== Base 7–10
+
+/** Enclosed twin-cannon turret body on the yaw (Gepard-style cheeks), returns the hatch-top height. */
+function gunTurret(k: Kit, r: Rig, body: string, o: { w?: number; len?: number; h?: number; stripe?: string } = {}) {
+  const w = o.w ?? 0.62, len = o.len ?? 0.8, h = o.h ?? 0.4;
+  cylP(k, r.yaw, 0.46, 0.06, GUN, 0, 0, 0, 16);
+  k.box(len, h, w, body, -0.06, 0.06, 0, r.yaw);
+  const gl = k.box(0.3, 0.05, w - 0.02, body, len / 2 + 0.0, 0.06 + h - 0.12, 0, r.yaw);
+  gl.rotation.z = -0.5;
+  k.box(0.18, h * 0.6, w + 0.02, body, -0.06 - len / 2 + 0.05, 0.12, 0, r.yaw);
+  if (o.stripe) k.box(len + 0.01, 0.04, w + 0.01, o.stripe, -0.06, 0.06 + h * 0.55, 0, r.yaw);
+  for (const s of [-1, 1]) k.box(0.2, 0.12, 0.05, AMMO, -0.18, 0.12, s * (w / 2 + 0.03), r.yaw);
+  return 0.06 + h;
+}
+
+/** Commander standing in the turret hatch with binoculars. */
+function hatchCommander(k: Kit, r: Rig, x: number, top: number, seed = 4) {
+  cylP(k, r.yaw, 0.11, 0.05, GUN, x, top, 0, 10);
+  const lid = k.box(0.02, 0.18, 0.2, GUN, x - 0.13, top + 0.02, 0, r.yaw);
+  lid.rotation.z = 0.4;
+  const f = spotter(k, x, 0, 0, Math.PI * 0.1, seed, 'beret', r.yaw);
+  f.root.position.y = top - 0.3;
+  return f;
+}
+
+function lv7(k: Kit, y: number) {
+  // Fire-control battery: sloped concrete emplacement, twin cannons on a turntable with a
+  // tracking radar riding on the mount, concrete command post with an orange-peel truss radar, ammo hoist
+  const cx = -0.3, cz = 0.1, ph = 0.36, yd = y + ph;
+  k.cyl(1.02, ph, CONCRETE, cx, y, cz, 6, 0.88).rotation.y = Math.PI / 6;
+  ringWall(k, cx, cz, 0.84, 0.03, yd, CONCRETE, 'kerb', 0.5, Math.PI / 2, 0.1);
+  k.stairs(cx, cz + 1.05, 0.42, 0.34, ph + 0.08);
+  const r = rig(k, cx, yd, cz, 0.36);
+  cylP(k, r.yaw, 0.62, 0.05, HAZ, 0, 0, 0, 18);
+  cylP(k, r.yaw, 0.58, 0.1, GUN_OD, 0, 0, 0, 18);
+  for (const s of [-1, 1]) for (const o of [-0.09, 0.09]) k.box(0.24, 0.34, 0.03, GUN_OD, 0, 0.1, s * 0.25 + o, r.yaw);
+  cannon(k, r, 0.25, 1.15, { clip: 4, jacket: true });
+  cannon(k, r, -0.25, 1.15, { clip: 4, jacket: true });
+  k.box(0.36, 0.3, 0.3, OLIVE, -0.14, 0.1, 0, r.yaw);
+  k.box(0.03, 0.12, 0.28, DARK_GLASS, 0.05, 0.3, 0, r.yaw).rotation.z = -0.3;
+  const g = seated(k, r.yaw, -0.2, 0.34, 0, 0, 0, 'helmet');
+  gunner(k, g, r.pitch, 1.15);
+  k.box(0.05, 0.3, 0.05, GUN, -0.38, 0.1, 0, r.yaw);
+  trackingDish(k, r.yaw, r.pitch, -0.38, 0.5, 0, 0.13);
+  arm(k, r, 7, { kick: 0.1 });
+  // Command post with slit windows and the search radar on its roof
+  const bx = 0.86, bz = -0.86, bw = 1.0, bd = 0.85, bh = 1.35;
+  k.box(bw, bh, bd, CONCRETE, bx, y, bz);
+  k.box(bw + 0.03, 0.12, bd + 0.03, C.trim, bx, y, bz);
+  for (const yy of [0.5, 1.0]) {
+    k.box(bw - 0.3, 0.1, 0.02, DARK_GLASS, bx, y + yy, bz + bd / 2 + 0.005);
+    k.box(0.02, 0.1, bd - 0.3, DARK_GLASS, bx + bw / 2 + 0.005, y + yy, bz);
+  }
+  k.box(0.3, 0.5, 0.03, '#4a4f54', bx - 0.25, y, bz + bd / 2 + 0.01);
+  k.box(0.32, 0.04, 0.035, HAZ, bx - 0.25, y + 0.5, bz + bd / 2 + 0.01);
+  k.flatRoof(bw, bd, bx, y + bh, bz);
+  k.box(0.3, 0.2, 0.3, CONCRETE, bx, y + bh, bz);
+  radar(k, bx, y + bh + 0.2, bz, 'truss', 0.95, 1.0);
+  k.aircon(bx + bw / 2 + 0.08, y + 0.3, bz + 0.15, Math.PI / 2);
+  k.blinker(bx + 0.4, y + bh + 0.08, bz + 0.33, '#ff3b30', 0.03);
+  // Ammo hoist: gantry with a crate that rises and lowers
+  const hx = 1.0, hz = 0.7;
+  for (const dz of [-0.25, 0.25]) k.box(0.06, 1.0, 0.06, HAZ, hx, y, hz + dz);
+  k.box(0.08, 0.06, 0.6, HAZ, hx, y + 1.0, hz);
+  k.box(0.1, 0.08, 0.1, GUN, hx, y + 0.94, hz);
+  const hook = new THREE.Group();
+  k.add(hook);
+  const rope = k.box(0.01, 1, 0.01, '#2a2b2d', 0, 0, 0, hook);
+  const crate = k.box(0.2, 0.16, 0.2, AMMO, 0, -0.16, 0, hook);
+  k.box(0.202, 0.03, 0.202, HAZ, 0, -0.08, 0, hook);
+  k.anims.push((t) => {
+    const u = smooth(0.5 + Math.sin(t * 0.8) * 0.8);
+    const hy = y + 0.2 + u * 0.55;
+    hook.position.set(hx, hy, hz);
+    rope.scale.y = y + 0.94 - hy;
+    rope.position.y = 0;
+    crate.visible = Math.cos(t * 0.8) > -0.2;
+  });
+  ammoBoxes(k, 0.75, 1.1, y, 4, 0.2);
+  carrier(k, y, 0.7, 0.5, 0.25, 0.9, 5.5, 2, 'box');
+  postSign(k, 'DANGER', -1.2, 1.2, y, '#d8342c', '#ffffff');
+}
+
+function lv8(k: Kit, y: number) {
+  // Gun turret drum: enclosed twin-cannon turret on a tall concrete drum, commander in the hatch,
+  // tracking dish on the turret, lattice search-radar tower, magazine feeding shells up a conveyor
+  const cx = -0.3, cz = 0.0, dh = 0.85, yd = y + dh;
+  ringWall(k, cx, cz, 1.0, 0.26, y, CONCRETE, 'kerb', 0.6);
+  k.cyl(0.74, dh, CONCRETE, cx, y, cz, 16);
+  k.cyl(0.76, 0.1, C.trim, cx, y, cz, 16);
+  k.cyl(0.76, 0.06, HAZ, cx, yd - 0.1, cz, 16);
+  k.box(0.28, 0.5, 0.05, '#4a4f54', cx, y, cz + 0.72);
+  k.box(0.3, 0.04, 0.06, HAZ, cx, y + 0.5, cz + 0.72);
+  const r = rig(k, cx, yd, cz, 0.28, 0.12);
+  const top = gunTurret(k, r, GUN_OD);
+  for (const s of [-1, 1]) cannon(k, r, s * 0.42, 1.15, { jacket: true, body: GUN_OD });
+  trackingDish(k, r.yaw, r.pitch, 0.32, 0.5, 0, 0.12);
+  hatchCommander(k, r, -0.2, top);
+  arm(k, r, 8, { kick: 0.1 });
+  // Lattice search-radar tower
+  const tx = 1.0, tz = -1.0;
+  const tt = lattice(k, tx, tz, y, 1.9, 0.55, 0.3);
+  ladder(k, tx, tz + 0.3, y, 1.9, true);
+  radar(k, tx, tt, tz, 'truss', 0.95, 1.05);
+  k.blinker(tx + 0.18, tt, tz + 0.18, '#ff3b30', 0.03);
+  // Magazine with a conveyor feeding shells into the drum
+  const mx = 1.0, mz = 0.75;
+  k.box(0.7, 0.62, 0.9, CONCRETE, mx, y, mz);
+  k.box(0.72, 0.1, 0.92, C.trim, mx, y, mz);
+  k.flatRoof(0.7, 0.9, mx, y + 0.62, mz);
+  k.box(0.32, 0.44, 0.03, '#4a4f54', mx - 0.1, y, mz + 0.46);
+  for (let i = 0; i < 4; i++) k.box(0.05, 0.44, 0.035, i % 2 ? C.kerbB : HAZ, mx - 0.26 + i * 0.105 + (i > 1 ? 0.25 : 0), y, mz + 0.46);
+  board(k, 'MAGAZINE', 0.4, 0.1, mx - 0.1, y + 0.48, mz + 0.47, '#d8342c');
+  const c0 = V(mx - 0.35, y + 0.45, 0.45), c1 = V(cx + 0.68, yd - 0.15, 0.3);
+  strut(k, c0, c1, 0.05, '#4a4f54', k.group, 4);
+  for (const p of [c0, c1]) k.box(0.05, p.y - y, 0.05, GUN, p.x, y, p.z);
+  const shells: THREE.Mesh[] = [];
+  for (let i = 0; i < 4; i++) {
+    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.12, 6), mat(BRASS));
+    k.add(sh);
+    shells.push(sh);
+  }
+  k.anims.push((t) => shells.forEach((sh, i) => {
+    const u = (t * 0.25 + i / 4) % 1;
+    sh.position.copy(c0).lerp(c1, u).add(V(0, 0.09, 0));
+    sh.visible = u > 0.04 && u < 0.96;
+  }));
+  generator(k, 1.05, -0.15, y, '#6b7a45', Math.PI / 2);
+  carrier(k, y, -1.2, 1.2, 0.2, 1.22, 7, 3, 'tablet', 'cap');
+}
+
+function lv9(k: Kit, y: number) {
+  // Radar gun tower: square concrete gun tower with stairs, bigger turret carrying its own
+  // rotating search radar on the back and a tracking dish on the front; cooling plant with a big fan
+  const cx = -0.38, cz = -0.15, th = 1.05, yt = y + th;
+  k.box(1.4, th, 1.4, CONCRETE, cx, y, cz);
+  k.box(1.43, 0.12, 1.43, C.trim, cx, y, cz);
+  k.box(1.46, 0.08, 1.46, C.white, cx, yt - 0.08, cz);
+  for (let i = 0; i < 8; i++) k.box(1.47 / 8, 0.04, 0.02, i % 2 ? C.kerbB : HAZ, cx - 0.64 + i * 0.183, yt - 0.14, cz + 0.735);
+  for (const s of [-1, 1]) {
+    k.box(1.4, 0.03, 0.03, STEEL, cx, yt + 0.22, cz + s * 0.68);
+    k.box(0.03, 0.03, 1.4, STEEL, cx + s * 0.68, yt + 0.22, cz);
+  }
+  for (const sx of [-1, 0, 1]) for (const sz of [-1, 1]) {
+    k.box(0.03, 0.22, 0.03, STEEL, cx + sx * 0.68, yt, cz + sz * 0.68);
+    k.box(0.03, 0.22, 0.03, STEEL, cx + sz * 0.68, yt, cz + sx * 0.68);
+  }
+  k.box(0.35, 0.55, 0.04, '#4a4f54', cx - 0.3, y, cz + 0.71);
+  k.box(0.6, 0.12, 0.02, DARK_GLASS, cx + 0.25, y + 0.6, cz + 0.71);
+  k.stairs(0.5, -0.15, 0.32, 1.25, th + 0.08);
+  const r = rig(k, cx, yt, cz, 0.3, 0.12);
+  const top = gunTurret(k, r, '#6b7a45', { len: 0.9, w: 0.66, h: 0.42, stripe: OLIVE_D });
+  for (const s of [-1, 1]) cannon(k, r, s * 0.44, 1.25, { jacket: true, body: '#6b7a45' });
+  trackingDish(k, r.yaw, r.pitch, 0.36, 0.52, 0, 0.13);
+  k.box(0.08, 0.36, 0.08, GUN, -0.42, top, 0, r.yaw);
+  radar(k, -0.42, top + 0.36, 0, 'truss', 0.7, 1.6, r.yaw, { iff: false });
+  hatchCommander(k, r, -0.12, top, 5);
+  arm(k, r, 9, { kick: 0.11 });
+  // Cooling plant with a big fan, generator
+  const bx = 1.05, bz = -0.75;
+  k.box(0.6, 0.85, 0.9, CONCRETE, bx, y, bz);
+  k.box(0.62, 0.1, 0.92, C.trim, bx, y, bz);
+  for (let i = 0; i < 5; i++) k.box(0.02, 0.4, 0.06, '#8f969b', bx + 0.31, y + 0.25, bz - 0.3 + i * 0.15);
+  roofFan(k, bx, y + 0.85, bz, 0.2);
+  generator(k, 1.05, 0.55, y, '#6b7a45', Math.PI / 2);
+  cable(k, 1.05, 0.35, 0.65, 0.1, y);
+  ammoBoxes(k, 0.8, 1.15, y, 4, 0.1);
+  carrier(k, y, -1.1, 1.05, 0.15, 1.05, 7, 4, 'tablet', 'cap');
+  blastRun(k, -1.38, 1.33, 0.3, 1.33, y, 0.38);
+  blastRun(k, -1.33, -1.0, -1.33, 1.2, y, 0.38);
+}
+
+function lv10(k: Kit, y: number) {
+  // Air defence bastion (release cap): two-tier octagonal concrete bastion, big twin-cannon turret,
+  // elevated radar mast with a platform and IFF, magazine with blast door, flags
+  const cx = -0.3, cz = -0.2, t1 = 0.48, t2 = 0.55;
+  k.cyl(1.15, t1, CONCRETE, cx, y, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(1.17, 0.1, C.trim, cx, y, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(1.17, 0.05, HAZ, cx, y + t1 - 0.05, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(0.82, t2, CONCRETE, cx, y + t1, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(0.84, 0.06, C.white, cx, y + t1 + t2 - 0.06, cz, 8).rotation.y = Math.PI / 8;
+  ringWall(k, cx, cz, 0.98, 0.14, y + t1, CONCRETE, C.trim, 0.5);
+  for (let i = 0; i < 4; i++) {
+    const a = Math.PI / 4 + (i * Math.PI) / 2;
+    k.box(0.3, 0.06, 0.02, DARK_GLASS, cx + Math.cos(a) * 0.82, y + t1 + 0.25, cz + Math.sin(a) * 0.82).rotation.y = -a - Math.PI / 2;
+  }
+  k.stairs(cx, cz + 1.2, 0.42, 0.3, t1 + 0.08);
+  k.stairs(cx + 0.55, cz + 0.6, 0.26, 0.3, t2 + 0.06, true);
+  const yt = y + t1 + t2;
+  const r = rig(k, cx, yt, cz, 0.32, 0.12);
+  const top = gunTurret(k, r, '#6b7a45', { len: 0.95, w: 0.7, h: 0.46, stripe: HAZ });
+  for (const s of [-1, 1]) cannon(k, r, s * 0.46, 1.3, { jacket: true, body: '#6b7a45', rb: 0.038 });
+  trackingDish(k, r.yaw, r.pitch, 0.38, 0.56, 0, 0.15);
+  k.box(0.1, 0.12, 0.1, '#e8e6e0', -0.35, top, 0.18, r.yaw);
+  const eo = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), mat('#e8e6e0'));
+  eo.position.set(-0.35, top + 0.19, 0.18);
+  k.add(eo, r.yaw);
+  k.box(0.05, 0.04, 0.02, DARK_GLASS, 0.06, 0, 0.0, eo);
+  k.anims.push((t) => (eo.rotation.y = Math.sin(t * 0.7) * 1.2));
+  hatchCommander(k, r, -0.12, top, 6);
+  arm(k, r, 10, { kick: 0.12 });
+  spotter(k, cx + 0.62, cz + 0.68, y + t1, -0.7, 2, 'beret');
+  // Elevated radar mast with platform, guy wires and IFF
+  const mx = 1.05, mz = -1.05, mh = 2.5;
+  k.box(0.4, 0.15, 0.4, CONCRETE, mx, y, mz);
+  k.cyl(0.08, mh, STEEL, mx, y + 0.15, mz, 8, 0.06);
+  ladder(k, mx, mz + 0.12, y + 0.15, mh - 0.4, true);
+  k.box(0.5, 0.05, 0.5, STEEL, mx, y + mh - 0.3, mz);
+  for (const s of [-1, 1]) {
+    k.box(0.5, 0.02, 0.02, HAZ, mx, y + mh - 0.1, mz + s * 0.24);
+    k.box(0.02, 0.02, 0.5, HAZ, mx + s * 0.24, y + mh - 0.1, mz);
+  }
+  for (const a of [0.9, 2.6, 4.5]) strut(k, V(mx, y + mh * 0.75, mz), V(mx + Math.cos(a) * 0.5, y, mz + Math.sin(a) * 0.5), 0.005, '#c9ced2', k.group, 3);
+  radar(k, mx, y + mh + 0.15, mz, 'truss', 1.15, 0.95);
+  k.blinker(mx + 0.2, y + mh - 0.25, mz + 0.2, '#ff3b30', 0.035);
+  // Magazine with a blast door
+  const gx = 1.05, gz = 0.85;
+  k.box(0.6, 0.6, 0.65, CONCRETE, gx, y, gz);
+  k.box(0.62, 0.1, 0.67, C.trim, gx, y, gz);
+  k.flatRoof(0.6, 0.65, gx, y + 0.6, gz);
+  k.box(0.3, 0.42, 0.04, '#4a4f54', gx - 0.05, y, gz + 0.33);
+  for (let i = 0; i < 5; i++) k.box(0.06, 0.02, 0.045, i % 2 ? C.kerbB : HAZ, gx - 0.17 + i * 0.06, y + 0.43, gz + 0.33);
+  roofFan(k, gx, y + 0.66, gz - 0.1, 0.1);
+  k.flagpole(-1.25, 1.2, 2.0, y);
+  k.flagpole(0.55, 1.25, 2.0, y);
+  carrier(k, y, 0.8, 0.45, 0.8, -0.35, 6, 3, 'box');
+}
+
+// ================================================================== Command 11–15
+
+/** Low white boundary wall with teal coping between two points. */
+function lowWall(k: Kit, x0: number, z0: number, x1: number, z1: number, y: number, h = 0.32) {
+  const len = Math.hypot(x1 - x0, z1 - z0);
+  const g = new THREE.Group();
+  g.position.set((x0 + x1) / 2, y, (z0 + z1) / 2);
+  g.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
+  k.add(g);
+  k.box(len, h, 0.12, C.white, 0, 0, 0, g);
+  k.box(len + 0.02, 0.04, 0.15, TEAL, 0, h, 0, g);
+  k.box(len, 0.05, 0.125, '#d6d0c2', 0, 0, 0, g);
+}
+
+/** Raised planter bed (white walls, shrubs and a palm-ish tuft). */
+function plantBed(k: Kit, x: number, z: number, y: number, w: number, d: number) {
+  k.box(w, 0.32, d, C.white, x, y, z);
+  k.box(w + 0.03, 0.04, d + 0.03, TEAL, x, y + 0.32, z);
+  k.hedge(x, z, w - 0.1, d - 0.1, y + 0.2);
+  for (let i = 0; i < 3; i++) {
+    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(0.11, 0), mat(i % 2 ? '#e8418f' : '#55a832'));
+    b.position.set(x - w / 2 + 0.15 + (i * (w - 0.3)) / 2, y + 0.5, z + (i % 2 ? 0.08 : -0.06));
+    k.add(b);
+  }
+}
+
+/** Landscaped hedge strip along the left (x = -1.36) and/or back (z = -1.36) pad edges, with white kerbs. */
+function edgeHedges(k: Kit, y: number, left: [number, number] | null, back: [number, number] | null) {
+  if (left) {
+    k.box(0.2, 0.1, left[1] - left[0], C.white, -1.33, y, (left[0] + left[1]) / 2);
+    k.hedge(-1.33, (left[0] + left[1]) / 2, 0.16, left[1] - left[0] - 0.04, y + 0.06);
+  }
+  if (back) {
+    k.box(back[1] - back[0], 0.1, 0.2, C.white, (back[0] + back[1]) / 2, y, -1.33);
+    k.hedge((back[0] + back[1]) / 2, -1.33, back[1] - back[0] - 0.04, 0.16, y + 0.06);
+  }
+}
+
+const GLASS = new THREE.MeshStandardMaterial({ color: '#9fd0e0', transparent: true, opacity: 0.4, roughness: 0.1, flatShading: true });
+
+/** Glass control cab with white posts and a green roof; an operator works the consoles inside. */
+function glassCab(k: Kit, x: number, z: number, y: number, w: number, d: number, h: number, seed = 2, roof: string = C.roofGreen) {
+  k.box(w, 0.08, d, C.white, x, y, z);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(0.05, h, 0.05, C.white, x + sx * (w / 2 - 0.025), y + 0.08, z + sz * (d / 2 - 0.025));
+  for (const [pw, pd, px, pz] of [[w - 0.05, 0.02, 0, d / 2 - 0.02], [w - 0.05, 0.02, 0, -d / 2 + 0.02], [0.02, d - 0.05, w / 2 - 0.02, 0], [0.02, d - 0.05, -w / 2 + 0.02, 0]]) {
+    const g = new THREE.Mesh(new THREE.BoxGeometry(pw, h, pd), GLASS);
+    g.position.set(x + px, y + 0.08 + h / 2, z + pz);
+    k.group.add(g);
+  }
+  k.box(w + 0.12, 0.07, d + 0.12, roof, x, y + 0.08 + h, z);
+  k.box(w + 0.14, 0.03, d + 0.14, C.white, x, y + 0.06 + h, z);
+  k.box(w * 0.6, 0.22, 0.12, '#4a4f54', x, y + 0.08, z - d / 2 + 0.12);
+  screen(k, w * 0.25, 0.12, x - w * 0.15, y + 0.34, z - d / 2 + 0.17, '#3fd1ff', 0.3);
+  screen(k, w * 0.25, 0.12, x + w * 0.15, y + 0.34, z - d / 2 + 0.17, '#3fd16b', -0.3);
+  k.box(0.1, 0.18, 0.1, '#2a2b2d', x, y + 0.08, z + 0.05);
+  operator(k, x, y + 0.27, z + 0.08, Math.PI / 2, seed, 'headset', '#4a6b8a');
+  return y + 0.15 + h;
+}
+
+/** White podium drum with a dark-glass ribbon, teal band and fins; returns its top. */
+function podium(k: Kit, x: number, z: number, y: number, r: number, h: number, sides = 16, fins = 12) {
+  const rot = sides === 8 ? Math.PI / 8 : 0;
+  k.cyl(r, h, C.white, x, y, z, sides).rotation.y = rot;
+  k.cyl(r + 0.01, 0.1, '#d6d0c2', x, y, z, sides).rotation.y = rot;
+  k.cyl(r + 0.015, 0.22, DARK_GLASS, x, y + h * 0.35, z, sides).rotation.y = rot;
+  k.cyl(r + 0.02, 0.05, TEAL, x, y + h - 0.12, z, sides).rotation.y = rot;
+  k.cyl(r + 0.03, 0.05, C.white, x, y + h - 0.02, z, sides).rotation.y = rot;
+  for (let i = 0; i < fins; i++) {
+    const a = ((i + 0.5) / fins) * Math.PI * 2;
+    if (Math.abs(wrap(a - Math.PI / 2)) < 0.3) continue;
+    k.box(0.12, h - 0.15, 0.04, C.white, x + Math.cos(a) * (r + 0.04), y + 0.1, z + Math.sin(a) * (r + 0.04)).rotation.y = -a;
+  }
+  return y + h + 0.03;
+}
+
+/** EO sensor ball on a short stalk that scans independently. */
+function eoBall(k: Kit, parent: THREE.Object3D, x: number, y: number, z: number, r = 0.08) {
+  k.box(0.05, 0.1, 0.05, C.white, x, y, z, parent);
+  const g = new THREE.Group();
+  g.position.set(x, y + 0.1 + r, z);
+  k.add(g, parent);
+  const b = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), mat('#e8e6e0'));
+  k.add(b, g);
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.45, r * 0.45, 0.03, 8).rotateZ(Math.PI / 2), M('#1e2226', { metalness: 0.4, roughness: 0.2 }));
+  lens.position.set(r * 0.9, 0, 0);
+  g.add(lens);
+  k.anims.push((t) => {
+    g.rotation.y = Math.sin(t * 0.6 + x) * 1.4;
+    g.rotation.z = Math.sin(t * 0.4) * 0.3 + 0.2;
+  });
+}
+
+function lv11(k: Kit, y: number) {
+  // Twin-35 pavilion: white modern turret with a teal stripe on a glazed podium; the turret carries
+  // its own planar search radar; glass operator cab with a green roof, planters
+  const cx = -0.3, cz = -0.15;
+  const top = podium(k, cx, cz, y, 1.0, 0.95);
+  k.stairs(cx, cz + 1.2, 0.42, 0.3, 0.3);
+  k.door('front', cx, cz, 2.0, 2.0, 0, y, 0.34, 0.6, DARK_GLASS);
+  const r = rig(k, cx, top, cz, 0.3, 0.12);
+  cylP(k, r.yaw, 0.5, 0.06, '#d6d0c2', 0, 0, 0, 18);
+  k.box(0.9, 0.44, 0.66, C.white, -0.06, 0.06, 0, r.yaw);
+  k.box(0.91, 0.05, 0.67, TEAL, -0.06, 0.3, 0, r.yaw);
+  k.box(0.3, 0.05, 0.64, C.white, 0.39, 0.36, 0, r.yaw).rotation.z = -0.5;
+  k.box(0.04, 0.1, 0.3, DARK_GLASS, 0.39, 0.32, 0, r.yaw);
+  for (const s of [-1, 1]) {
+    cannon(k, r, s * 0.43, 1.3, { body: C.white, rb: 0.038, jacket: true });
+    k.box(0.24, 0.14, 0.06, '#d6d0c2', -0.2, 0.14, s * 0.36, r.yaw);
+  }
+  k.box(0.1, 0.32, 0.1, C.white, -0.38, 0.5, 0, r.yaw);
+  radar(k, -0.38, 0.82, 0, 'planar', 0.75, 1.5, r.yaw);
+  eoBall(k, r.yaw, 0.15, 0.5, 0.2);
+  arm(k, r, 11, { kick: 0.12 });
+  glassCab(k, 0.98, -0.95, y, 0.8, 0.7, 0.62, 2);
+  roofFan(k, 0.98, y + 0.77, -0.95, 0.12, '#e8e6e0');
+  plantBed(k, 0.95, 0.75, y, 0.75, 0.9);
+  lowWall(k, -1.38, 1.33, -0.6, 1.33, y);
+  lowWall(k, 0.0, 1.33, 0.5, 1.33, y);
+  k.bench(-1.0, 1.2, 0.5, y);
+  edgeHedges(k, y, [-1.3, 0.9], [-1.2, 0.5]);
+  carrier(k, y, -1.2, 1.0, 0.4, 1.0, 7, 5, 'tablet', 'beret', '#4a6b8a');
+}
+
+function lv12(k: Kit, y: number) {
+  // Missile pod battery: first missiles: two four-tube pods either side of a sensor head,
+  // missiles slide out on launch and reload; white tubular mast with a planar radar; glass control cab
+  const cx = -0.3, cz = -0.2;
+  const top = podium(k, cx, cz, y, 0.95, 1.5, 8, 8);
+  k.stairs(cx, cz + 1.15, 0.42, 0.3, 0.3);
+  edgeHedges(k, y, [-1.3, 0.7], [-1.25, 0.6]);
+  k.door('front', cx, cz, 1.9, 1.9, 0, y, 0.34, 0.6, DARK_GLASS);
+  const r = rig(k, cx, top, cz, 0.36);
+  cylP(k, r.yaw, 0.5, 0.08, '#d6d0c2', 0, 0, 0, 18);
+  cylP(k, r.yaw, 0.51, 0.03, TEAL, 0, 0.04, 0, 18);
+  k.box(0.46, 0.3, 0.34, C.white, -0.05, 0.08, 0, r.yaw);
+  for (const s of [-1, 1]) k.box(0.12, 0.34, 0.06, '#d6d0c2', 0, 0.16, s * 0.19, r.yaw);
+  for (const s of [-1, 1]) pod(k, r, s * 0.38, 2, 2, { cell: 0.14, len: 0.66, frame: TEAL });
+  k.box(0.2, 0.14, 0.14, C.white, 0.0, -0.07, 0, r.pitch);
+  rodX(k, r.pitch, 0.05, 0.04, '#1e2226', 0.1, 0, 0, 8);
+  eoBall(k, r.yaw, -0.18, 0.38, 0);
+  arm(k, r, 12, { kick: 0.06 });
+  // White tubular mast with planar radar
+  const mx = 1.05, mz = -1.05, mh = 2.4;
+  k.box(0.4, 0.15, 0.4, '#d6d0c2', mx, y, mz);
+  k.cyl(0.08, mh, C.white, mx, y + 0.15, mz, 10, 0.06);
+  k.cyl(0.1, 0.06, TEAL, mx, y + 1.2, mz, 10);
+  k.cyl(0.1, 0.06, TEAL, mx, y + mh - 0.1, mz, 10);
+  radar(k, mx, y + mh + 0.15, mz, 'planar', 1.0, 1.0);
+  k.blinker(mx, y + mh + 0.95, mz, '#ff3b30', 0.035);
+  glassCab(k, 1.0, 0.75, y, 0.72, 0.75, 0.6, 3);
+  // Spare canisters on a rack, technician
+  for (let i = 0; i < 3; i++) {
+    rodX(k, k.group, 0.07, 0.6, C.white, -1.1, y + 0.12 + (i % 2) * 0.14, 1.12 - i * 0.07 + (i === 2 ? 0.3 : 0), 8);
+  }
+  for (const dx of [-1.05, -0.55]) k.box(0.05, 0.3, 0.3, '#4a4f54', dx, y, 1.15);
+  carrier(k, y, -0.2, 1.3, 0.55, 1.3, 6, 6, 'tablet', 'cap', '#4a6b8a');
+  lowWall(k, 1.33, -0.55, 1.33, 0.3, y);
+  lowWall(k, 0.6, 1.36, 1.38, 1.36, y);
+  plantBed(k, 1.1, -0.15, y, 0.35, 0.5);
+}
+
+function lv13(k: Kit, y: number) {
+  // Reload crane battery: square glazed podium, twin six-tube pods, an articulated reload crane
+  // swinging a canister across, white lattice radar tower with a back-to-back planar array
+  const cx = -0.35, cz = -0.25, ph = 1.4;
+  edgeHedges(k, y, [-1.3, 1.3], [-1.3, 0.5]);
+  k.box(1.5, ph, 1.5, C.white, cx, y, cz);
+  k.box(1.52, 0.1, 1.52, '#d6d0c2', cx, y, cz);
+  k.box(1.53, 0.22, 1.53, DARK_GLASS, cx, y + 0.4, cz);
+  k.box(1.54, 0.05, 1.54, TEAL, cx, y + ph - 0.13, cz);
+  k.box(1.56, 0.05, 1.56, C.white, cx, y + ph - 0.03, cz);
+  for (let i = 0; i < 7; i++) {
+    k.box(0.04, ph - 0.15, 0.1, C.white, cx - 0.66 + i * 0.22, y + 0.1, cz + 0.79);
+    k.box(0.1, ph - 0.15, 0.04, C.white, cx + 0.79, y + 0.1, cz - 0.66 + i * 0.22);
+  }
+  k.door('front', cx, cz, 1.5, 1.5, -0.4, y, 0.34, 0.6, DARK_GLASS);
+  const yt = y + ph + 0.02;
+  const r = rig(k, cx, yt, cz, 0.38);
+  cylP(k, r.yaw, 0.55, 0.08, '#d6d0c2', 0, 0, 0, 18);
+  cylP(k, r.yaw, 0.56, 0.03, TEAL, 0, 0.04, 0, 18);
+  k.box(0.5, 0.34, 0.36, C.white, -0.05, 0.08, 0, r.yaw);
+  k.box(0.51, 0.05, 0.37, TEAL, -0.05, 0.26, 0, r.yaw);
+  for (const s of [-1, 1]) pod(k, r, s * 0.43, 2, 3, { cell: 0.13, len: 0.7, frame: TEAL });
+  eoBall(k, r.yaw, -0.15, 0.42, 0, 0.07);
+  arm(k, r, 13, { kick: 0.06 });
+  // Reload crane: slewing base, luffing boom and a hanging canister
+  const kx = 0.65, kz = 0.85;
+  k.box(1.0, 0.36, 1.1, '#d6d0c2', 0.85, y, 0.55);
+  k.box(1.02, 0.05, 1.12, HAZ, 0.85, y + 0.31, 0.55);
+  k.stairs(0.85, 1.22, 0.36, 0.24, 0.36);
+  const slew = new THREE.Group();
+  slew.position.set(kx, y + 0.36, kz);
+  k.add(slew);
+  k.box(0.26, 0.2, 0.26, HAZ, 0, 0, 0, slew);
+  k.box(0.18, 0.18, 0.18, '#3a3f44', -0.12, 0.2, 0, slew);
+  k.box(0.1, 0.1, 0.02, DARK_GLASS, -0.03, 0.26, 0.09, slew);
+  const boom = new THREE.Group();
+  boom.position.set(0.05, 0.3, 0);
+  slew.add(boom);
+  k.box(0.95, 0.07, 0.07, HAZ, 0.45, -0.035, 0, boom);
+  k.box(0.04, 0.04, 0.04, '#2a2b2d', 0.92, -0.06, 0, boom);
+  const hook = new THREE.Group();
+  hook.position.set(0.92, -0.04, 0);
+  boom.add(hook);
+  k.box(0.008, 0.3, 0.008, '#2a2b2d', 0, -0.3, 0, hook);
+  rodX(k, hook, 0.06, 0.5, C.white, -0.25, -0.36, 0, 8);
+  k.box(0.04, 0.03, 0.04, '#d8342c', 0.25, -0.37, 0, hook);
+  k.anims.push((t) => {
+    slew.rotation.y = 1.9 + Math.sin(t * 0.35) * 0.9;
+    boom.rotation.z = 0.55 + Math.sin(t * 0.5) * 0.18;
+    hook.rotation.z = -boom.rotation.z;
+  });
+  for (let i = 0; i < 4; i++) rodX(k, k.group, 0.06, 0.5, C.white, 0.75, y + 0.42 + (i > 1 ? 0.11 : 0), 0.15 + (i % 2) * 0.13 + (i > 1 ? 0.065 : 0), 8);
+  lowWall(k, -1.38, 1.33, -0.3, 1.33, y);
+  plantBed(k, 1.1, -0.25, y, 0.4, 0.5);
+  // White lattice radar tower
+  const tx = 1.02, tz = -1.02;
+  const tt = lattice(k, tx, tz, y, 2.0, 0.55, 0.3, C.white);
+  radar(k, tx, tt, tz, 'planar', 1.05, 1.0);
+  k.blinker(tx + 0.18, tt, tz + 0.18, '#ff3b30', 0.03);
+  carrier(k, y, -1.0, 1.1, 0.15, 1.1, 7, 5, 'tablet', 'cap', '#4a6b8a');
+}
+
+function lv14(k: Kit, y: number) {
+  // Launcher tower: four 2×2 pods on a tall white drum tower with a sensor head between them;
+  // two-storey command block with fins, glass and a green roof, planar radar on top
+  const cx = -0.42, cz = -0.25, th = 1.45;
+  k.cyl(0.66, 0.3, '#d6d0c2', cx, y, cz, 12);
+  const top = podium(k, cx, cz, y + 0.3, 0.56, th - 0.3, 12, 10);
+  k.door('front', cx, cz, 1.32, 1.32, 0, y + 0.3, 0.3, 0.55, DARK_GLASS);
+  k.stairs(cx, cz + 0.85, 0.36, 0.3, 0.38);
+  const r = rig(k, cx, top, cz, 0.42);
+  cylP(k, r.yaw, 0.48, 0.08, '#d6d0c2', 0, 0, 0, 18);
+  k.box(0.42, 0.42, 0.4, C.white, -0.05, 0.08, 0, r.yaw);
+  k.box(0.43, 0.05, 0.41, TEAL, -0.05, 0.3, 0, r.yaw);
+  for (const s of [-1, 1]) {
+    pod(k, r, s * 0.34, 2, 2, { cell: 0.13, len: 0.66, frame: TEAL, yy: 0.16 });
+    pod(k, r, s * 0.34, 2, 2, { cell: 0.13, len: 0.66, frame: TEAL, yy: -0.16 });
+  }
+  k.box(0.22, 0.2, 0.2, C.white, 0.0, -0.1, 0, r.pitch);
+  rodX(k, r.pitch, 0.06, 0.04, '#1e2226', 0.11, 0, 0, 8);
+  eoBall(k, r.yaw, -0.2, 0.5, 0, 0.08);
+  arm(k, r, 14, { kick: 0.06 });
+  // Command block
+  const bx = 0.82, bz = 0.55, bw = 1.05, bd = 1.3;
+  const bh = 2 * STOREY;
+  k.box(bw, bh, bd, C.white, bx, y, bz);
+  k.box(bw + 0.02, 0.1, bd + 0.02, '#d6d0c2', bx, y, bz);
+  k.glassBox(bw - 0.12, 0.6, 0.04, bx, y + 0.12, bz + bd / 2);
+  k.box(bw - 0.2, 0.3, 0.02, DARK_GLASS, bx, y + STOREY + 0.3, bz + bd / 2 + 0.01);
+  k.box(0.02, 0.3, bd - 0.2, DARK_GLASS, bx + bw / 2 + 0.01, y + STOREY + 0.3, bz);
+  k.fins(bw - 0.1, STOREY - 0.1, bx, y + STOREY + 0.05, bz + bd / 2 + 0.07, 7);
+  k.box(bw + 0.03, 0.05, bd + 0.03, TEAL, bx, y + STOREY, bz);
+  k.box(bw + 0.14, 0.08, bd + 0.14, C.roofGreen, bx, y + bh, bz);
+  k.box(bw + 0.16, 0.03, bd + 0.16, C.white, bx, y + bh - 0.02, bz);
+  k.box(0.3, 0.2, 0.3, C.white, bx, y + bh + 0.08, bz - 0.2);
+  radar(k, bx, y + bh + 0.28, bz - 0.2, 'planar', 0.95, 1.0);
+  k.blinker(bx + 0.4, y + bh + 0.08, bz + 0.5, '#ff3b30', 0.03);
+  k.aircon(bx + bw / 2 + 0.08, y + 0.3, bz - 0.3, Math.PI / 2);
+  k.aircon(bx + bw / 2 + 0.08, y + 0.3 + STOREY, bz + 0.2, Math.PI / 2);
+  // Link bridge from the block to the tower
+  k.box(0.5, 0.06, 0.28, C.white, (bx - bw / 2 + cx + 0.56) / 2 + 0.02, y + STOREY + 0.05, 0.0);
+  k.box(0.5, 0.04, 0.02, TEAL, (bx - bw / 2 + cx + 0.56) / 2 + 0.02, y + STOREY + 0.25, 0.13);
+  plantBed(k, -0.95, 1.0, y, 0.75, 0.55);
+  edgeHedges(k, y, [-1.3, 0.6], [-1.3, 0.6]);
+  carrier(k, y, -0.3, 1.25, 0.25, 1.25, 5, 4, 'tablet', 'cap', '#4a6b8a');
+  k.flagpole(1.2, -1.2, 2.2, y);
+}
+
+function lv15(k: Kit, y: number) {
+  // Sky Shield centre: grand glazed drum podium with a roof terrace, launcher with four
+  // 2×3 pods around a sensor mast, tall white radar mast with twin arrays, glass pavilion with a roof garden
+  const cx = -0.25, cz = -0.22;
+  const top = podium(k, cx, cz, y, 1.15, 1.35, 20, 16);
+  k.cyl(1.2, 0.04, TEAL, cx, top - 0.02, cz, 20);
+  ringWall(k, cx, cz, 1.12, 0.12, top, C.white, TEAL, 0.0, 0, 0.06);
+  k.stairs(cx, cz + 1.38, 0.42, 0.3, 0.35);
+  k.door('front', cx, cz, 2.3, 2.3, 0, y, 0.36, 0.62, DARK_GLASS);
+  const r = rig(k, cx, top, cz, 0.46);
+  cylP(k, r.yaw, 0.58, 0.08, '#d6d0c2', 0, 0, 0, 20);
+  cylP(k, r.yaw, 0.59, 0.03, TEAL, 0, 0.04, 0, 20);
+  k.box(0.5, 0.46, 0.42, C.white, -0.05, 0.08, 0, r.yaw);
+  k.box(0.51, 0.05, 0.43, TEAL, -0.05, 0.34, 0, r.yaw);
+  for (const s of [-1, 1]) {
+    pod(k, r, s * 0.42, 2, 3, { cell: 0.12, len: 0.7, frame: TEAL, yy: 0.15 });
+    pod(k, r, s * 0.42, 2, 3, { cell: 0.12, len: 0.7, frame: TEAL, yy: -0.15 });
+  }
+  k.box(0.24, 0.24, 0.2, C.white, 0.0, -0.12, 0, r.pitch);
+  rodX(k, r.pitch, 0.07, 0.04, '#1e2226', 0.12, 0, 0, 8);
+  k.box(0.08, 0.3, 0.08, C.white, -0.25, 0.54, 0, r.yaw);
+  radar(k, -0.25, 0.84, 0, 'planar', 0.55, 1.8, r.yaw, { iff: false });
+  arm(k, r, 15, { kick: 0.06 });
+  // Tall radar mast with two arrays and IFF
+  const mx = 1.12, mz = -1.12, mh = 3.0;
+  k.box(0.4, 0.15, 0.4, '#d6d0c2', mx, y, mz);
+  k.cyl(0.09, mh, C.white, mx, y + 0.15, mz, 10, 0.06);
+  for (const hh of [0.9, 1.7, 2.4]) k.cyl(0.11, 0.06, TEAL, mx, y + hh, mz, 10);
+  radar(k, mx, y + 1.9, mz, 'planar', 0.7, -1.3, k.group, { iff: false });
+  radar(k, mx, y + mh + 0.15, mz, 'planar', 1.05, 0.9);
+  k.blinker(mx, y + mh + 0.95, mz, '#ff3b30', 0.035);
+  // Glass pavilion with a roof garden
+  const gt = glassCab(k, 1.0, 0.85, y, 0.78, 0.8, 0.62, 3);
+  k.hedge(1.0, 0.85, 0.7, 0.7, gt);
+  k.flagpole(-1.25, 1.2, 2.4, y);
+  k.flagpole(0.35, 1.28, 2.4, y);
+  lowWall(k, -1.1, 1.36, -0.6, 1.36, y);
+  lowWall(k, 0.0, 1.36, 0.2, 1.36, y);
+  carrier(k, y, -1.25, -1.25, -1.25, 0.6, 7, 6, 'tablet', 'cap', '#4a6b8a');
+}
+
+// ================================================================== Secure 16–20
+
+/** Run of precast blast wall with a hazard band and joint lines. */
+function blastRun(k: Kit, x0: number, z0: number, x1: number, z1: number, y: number, h = 0.42, color = CONCRETE) {
+  const len = Math.hypot(x1 - x0, z1 - z0);
+  const g = new THREE.Group();
+  g.position.set((x0 + x1) / 2, y, (z0 + z1) / 2);
+  g.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
+  k.add(g);
+  k.box(len, h, 0.16, color, 0, 0, 0, g);
+  k.box(len + 0.02, 0.05, 0.17, HAZ, 0, h - 0.12, 0, g);
+  k.box(len + 0.04, 0.04, 0.2, ARMOR_D, 0, h, 0, g);
+  for (let i = 1; i < len / 0.35; i++) k.box(0.012, h, 0.165, '#b5afa3', -len / 2 + i * 0.35, 0, 0, g);
+}
+
+/** Armoured mast (square section, hazard bands) carrying a rotating AESA. */
+function armouredMast(k: Kit, x: number, z: number, y: number, h: number, s = 0.8, gold = false) {
+  k.box(0.45, 0.18, 0.45, CONCRETE, x, y, z);
+  k.box(0.22, h, 0.22, ARMOR, x, y + 0.18, z);
+  for (const hh of [0.5, h * 0.7]) k.box(0.24, 0.06, 0.24, gold ? GOLD : HAZ, x, y + 0.18 + hh, z);
+  ladder(k, x, z + 0.14, y + 0.18, h - 0.2, true, '#7f878b');
+  k.box(0.42, 0.05, 0.42, ARMOR_D, x, y + 0.18 + h, z);
+  radar(k, x, y + 0.23 + h, z, 'aesa', s, 0.8, k.group, { gold });
+  k.blinker(x + 0.18, y + 0.23 + h, z + 0.18, '#ff3b30', 0.03);
+}
+
+/** Sensor cabinet with blinking status LEDs and a cooling fan. */
+function cabinet(k: Kit, x: number, z: number, y: number, rotY = 0) {
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+  g.rotation.y = rotY;
+  k.add(g);
+  k.box(0.36, 0.5, 0.24, ARMOR, 0, 0, 0, g);
+  k.box(0.37, 0.04, 0.25, HAZ, 0, 0.5, 0, g);
+  k.add(g);
+  const fan = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.02, 0.012), mat('#2a2b2d'));
+  fan.position.set(-0.06, 0.32, 0.13);
+  k.add(fan, g);
+  k.anims.push((t) => (fan.rotation.z = t * 10));
+  for (let i = 0; i < 3; i++) {
+    const led = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.01), glow(['#3fd16b', '#ffb020', '#3fd1ff'][i], 1));
+    led.position.set(0.08, 0.15 + i * 0.07, 0.125);
+    g.add(led);
+    k.anims.push((t) => ((led.material as THREE.MeshStandardMaterial).emissiveIntensity = Math.sin(t * (3 + i) + i) > 0 ? 1.6 : 0.2));
+  }
+}
+
+/** Hardened launcher: armoured body and two lidded pods; returns the rig. */
+function lidLauncher(k: Kit, x: number, y: number, z: number, lv: number, rows: number, cols: number, cell: number, color = ARMOR) {
+  const r = rig(k, x, y, z, 0.4);
+  cylP(k, r.yaw, 0.55, 0.1, ARMOR_D, 0, 0, 0, 8);
+  cylP(k, r.yaw, 0.56, 0.03, HAZ, 0, 0.06, 0, 8);
+  k.box(0.55, 0.4, 0.4, color, -0.05, 0.1, 0, r.yaw);
+  k.box(0.2, 0.12, 0.42, ARMOR_D, -0.25, 0.5, 0, r.yaw);
+  const lids: THREE.Object3D[] = [];
+  const W = cols * cell + 0.05;
+  for (const s of [-1, 1]) {
+    const p = pod(k, r, s * (0.22 + W / 2), rows, cols, { cell, len: 0.7, body: color, frame: ARMOR_D, nose: HAZ });
+    lids.push(podLid(k, p.body, p.H, p.W, p.xf));
+  }
+  const t = arm(k, r, lv, { kick: 0.05, stow: true, pitch: 0.95 });
+  armourFollow(k, r.pitch, t, (o) => lids.forEach((l) => (l.rotation.z = o * 1.9)), 0.3);
+  eoBall(k, r.yaw, -0.25, 0.62, 0, 0.07);
+  return r;
+}
+
+/**
+ * Launcher housed in an armoured box on the yaw: pods rise from inside on a rear pivot and
+ * stow flat under clamshell doors ('clam') or sliding roof hatches ('slide').
+ */
+function housedLauncher(k: Kit, x: number, y: number, z: number, lv: number, rows: number, cols: number, cell: number, kind: 'clam' | 'slide', gold = false) {
+  const W = cols * cell + 0.05, H = rows * cell + 0.05;
+  const ph = 0.2 + H / 2;
+  const d = 2 * W + 0.16, w = 1.0, h = ph + H / 2 - 0.06;
+  const r = rig(k, x, y, z, ph, -0.3);
+  cylP(k, r.yaw, 0.62, 0.1, ARMOR_D, 0, 0, 0, 8);
+  cylP(k, r.yaw, 0.63, 0.03, gold ? GOLD : HAZ, 0, 0.07, 0, 8);
+  k.box(w, 0.08, d, ARMOR, 0, 0.1, 0, r.yaw);
+  for (const s of [-1, 1]) {
+    k.box(w, h - 0.08, 0.06, ARMOR, 0, 0.18, s * (d / 2 - 0.03), r.yaw);
+    k.box(w + 0.02, 0.04, 0.065, gold ? GOLD : HAZ, 0, 0.3, s * (d / 2 - 0.03), r.yaw);
+  }
+  k.box(0.06, h - 0.08, d, ARMOR_D, -w / 2 + 0.03, 0.18, 0, r.yaw);
+  k.box(0.2, 0.25, d * 0.5, ARMOR_D, -w / 2 - 0.08, 0.1, 0, r.yaw);
+  for (const s of [-1, 1]) pod(k, r, s * (W / 2 + 0.04), rows, cols, { cell, len: 0.72, body: ARMOR, frame: gold ? GOLD : ARMOR_D, nose: gold ? GOLD : HAZ, yy: 0.0 });
+  for (const p of r.recoil) p.position.x += 0.2;
+  const doors: THREE.Group[] = [];
+  for (const s of [-1, 1]) {
+    const g = new THREE.Group();
+    g.position.set(0, 0.1 + h, s * (d / 2));
+    r.yaw.add(g);
+    k.box(w, 0.04, d / 2, ARMOR, 0, 0, (-s * d) / 4, g);
+    for (let i = 0; i < 3; i++) k.box(0.04, 0.045, d / 2 - 0.04, ARMOR_D, -w / 2 + 0.2 + i * 0.3, 0, (-s * d) / 4, g);
+    k.box(w, 0.05, 0.04, gold ? GOLD : HAZ, 0, 0, -s * 0.02, g);
+    doors.push(g);
+  }
+  const t = arm(k, r, lv, { kick: 0.05, stow: true, pitch: 0.95 });
+  armourFollow(k, r.pitch, t, (o) => doors.forEach((g, i) => {
+    const s = i ? 1 : -1;
+    if (kind === 'clam') g.rotation.x = s * o * 2.0;
+    else {
+      g.position.z = s * (d / 2 + o * (d / 2 + 0.04));
+      g.position.y = 0.1 + h + o * 0.05;
+    }
+  }), 0.06);
+  return { r, w, d };
+}
+
+function lv16(k: Kit, y: number) {
+  // Hardened launcher: armoured launcher on a sloped concrete bunker, pods with flip-up armour lids
+  // that close when it stows, T-wall blast barriers, armoured mast with an AESA, sensor cabinet
+  const cx = -0.35, cz = -0.25, bh = 1.5;
+  k.box(1.7, bh, 1.7, CONCRETE, cx, y, cz);
+  for (const [dx, dz, ry] of [[0, 0.85, 0], [0.85, 0, Math.PI / 2], [0, -0.85, 0], [-0.85, 0, Math.PI / 2]] as const) {
+    const sl = k.box(ry ? 0.3 : 1.7, bh * 0.6, ry ? 1.7 : 0.3, '#c4beb2', cx + dx, y, cz + dz);
+    if (ry) sl.rotation.z = dx > 0 ? -0.3 : 0.3;
+    else sl.rotation.x = dz > 0 ? 0.3 : -0.3;
+  }
+  for (let i = 0; i < 8; i++) k.box(1.72 / 8, 0.06, 0.03, i % 2 ? C.kerbB : HAZ, cx - 0.75 + i * 0.215, y + bh - 0.12, cz + 0.86);
+  k.box(1.74, 0.06, 1.74, ARMOR_D, cx, y + bh, cz);
+  k.box(0.34, 0.5, 0.05, ARMOR, cx - 0.35, y, cz + 0.98);
+  k.box(0.36, 0.05, 0.06, HAZ, cx - 0.35, y + 0.5, cz + 0.98);
+  ladder(k, cx + 0.5, cz + 0.98, y, bh, true, '#7f878b');
+  lidLauncher(k, cx, y + bh + 0.06, cz, 16, 2, 3, 0.12);
+  for (let i = 0; i < 3; i++) tWall(k, -1.2 + i * 0.34, 1.2, y, 0);
+  blastRun(k, 1.33, -0.55, 1.33, 0.0, y);
+  blastRun(k, 0.3, 1.33, 1.38, 1.33, y);
+  armouredMast(k, 1.05, -1.05, y, 2.1, 0.75);
+  cabinet(k, 1.1, 0.25, y, -Math.PI / 2);
+  cable(k, 1.0, 0.25, cx + 0.85, 0.1, y);
+  generator(k, 1.05, 0.95, y, ARMOR, Math.PI / 2);
+  carrier(k, y, 0.65, -0.3, 0.65, 0.95, 6, 7, 'tablet', 'helmet', '#5d6b55');
+}
+
+function lv17(k: Kit, y: number) {
+  // Phased-array post: tapered concrete sensor block with two glowing phased-array faces whose
+  // scan bars sweep, an AESA on its roof; bigger nine-tube lidded launcher on a round hardened bunker
+  const sx = 0.82, sz = -0.78, sh = 2.15;
+  const blk = k.cyl(0.85, sh, CONCRETE, sx, y, sz, 4, 0.58);
+  blk.rotation.y = Math.PI / 4;
+  const tilt = Math.atan((0.85 - 0.58) * Math.SQRT1_2 / sh);
+  for (const [rotY, dx, dz] of [[0, 0, 1], [Math.PI / 2, 1, 0]] as const) {
+    const off = 0.85 * Math.SQRT1_2 - (0.85 - 0.58) * Math.SQRT1_2 * (0.55 / sh) + 0.03;
+    const f = arrayFace(k, 0.62, 1.15, sx + dx * off, y + 0.55, sz + dz * off, rotY, ARMOR_D, rotY * 2);
+    f.rotation.x = 0;
+    f.rotateX(-tilt);
+  }
+  k.box(0.9, 0.06, 0.9, ARMOR_D, sx, y + sh, sz);
+  radar(k, sx, y + sh + 0.06, sz, 'aesa', 0.6, 1.0);
+  k.blinker(sx + 0.3, y + sh + 0.06, sz + 0.3, '#ff3b30', 0.03);
+  k.box(0.3, 0.5, 0.04, ARMOR, sx - 0.35, y, sz + 0.62).rotation.y = 0;
+  // Round hardened bunker and launcher
+  const cx = -0.45, cz = 0.2, bh = 1.3;
+  k.cyl(0.95, bh, CONCRETE, cx, y, cz, 16, 0.85);
+  k.cyl(0.97, 0.1, ARMOR_D, cx, y, cz, 16);
+  k.cyl(0.87, 0.06, HAZ, cx, y + bh - 0.12, cz, 16);
+  k.cyl(0.86, 0.05, ARMOR_D, cx, y + bh, cz, 16);
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + 0.3;
+    k.box(0.16, 0.08, 0.02, '#232b31', cx + Math.cos(a) * 0.9, y + 0.8, cz + Math.sin(a) * 0.9).rotation.y = -a - Math.PI / 2;
+  }
+  lidLauncher(k, cx, y + bh + 0.05, cz, 17, 3, 3, 0.11);
+  blastRun(k, 0.55, 0.45, 1.38, 0.45, y, 0.5);
+  blastRun(k, 1.33, 0.6, 1.33, 1.38, y);
+  blastRun(k, -1.38, 1.33, 0.5, 1.33, y);
+  cabinet(k, 0.75, 1.1, y, 0);
+  carrier(k, y, -1.25, -1.25, -1.25, -0.4, 6, 8, 'tablet', 'helmet', '#5d6b55');
+}
+
+function lv18(k: Kit, y: number) {
+  // Clamshell launcher: the launcher stows flat inside an armoured housing and its clamshell doors
+  // swing shut over it; octagonal hardened base, big AESA on an armoured mast, phased-array pillars
+  const cx = -0.35, cz = -0.2, bh = 1.35;
+  k.cyl(1.1, bh, CONCRETE, cx, y, cz, 8, 0.98).rotation.y = Math.PI / 8;
+  k.cyl(1.12, 0.1, ARMOR_D, cx, y, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(1.0, 0.07, HAZ, cx, y + bh - 0.1, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(0.99, 0.05, ARMOR_D, cx, y + bh, cz, 8).rotation.y = Math.PI / 8;
+  k.box(0.36, 0.55, 0.05, ARMOR, cx, y, cz + 1.04);
+  k.box(0.38, 0.05, 0.06, HAZ, cx, y + 0.55, cz + 1.04);
+  housedLauncher(k, cx, y + bh + 0.05, cz, 18, 2, 4, 0.11, 'clam');
+  armouredMast(k, 1.05, -1.05, y, 2.3, 0.95);
+  for (const [px, pz, ry] of [[1.05, 0.35, Math.PI / 2], [0.55, 1.1, 0]] as const) {
+    k.box(0.5, 1.3, 0.25, CONCRETE, px - (ry ? 0.08 : 0), y, pz - (ry ? 0 : 0.08)).rotation.y = ry;
+    arrayFace(k, 0.42, 0.9, px + (ry ? 0.05 : 0), y + 0.3, pz + (ry ? 0 : 0.05), ry, ARMOR_D, px);
+  }
+  for (let i = 0; i < 3; i++) tWall(k, -1.25, 0.6 + i * 0.32 - 0.6 + 0.2, y, Math.PI / 2);
+  cabinet(k, 1.1, -0.35, y, -Math.PI / 2);
+  blastRun(k, 1.33, 0.75, 1.33, 1.38, y);
+  carrier(k, y, -1.0, 1.25, 0.1, 1.25, 6, 9, 'tablet', 'helmet', '#5d6b55');
+}
+
+function lv19(k: Kit, y: number) {
+  // Sensor fortress: two-storey armoured sensor block with phased-array faces on three sides,
+  // AESA and a spinning jammer array on the roof; launcher under sliding armoured roof hatches
+  const sx = 0.7, sz = -0.65, sw = 1.2, sd = 1.15, sh = 2.3;
+  k.box(sw, sh, sd, ARMOR, sx, y, sz);
+  k.box(sw + 0.03, 0.12, sd + 0.03, ARMOR_D, sx, y, sz);
+  k.box(sw + 0.04, 0.06, sd + 0.04, HAZ, sx, y + sh - 0.12, sz);
+  k.box(sw + 0.06, 0.06, sd + 0.06, ARMOR_D, sx, y + sh, sz);
+  arrayFace(k, 0.85, 1.2, sx, y + 0.55, sz + sd / 2 + 0.01, 0, ARMOR_D, 0);
+  arrayFace(k, 0.85, 1.2, sx + sw / 2 + 0.01, y + 0.55, sz, Math.PI / 2, ARMOR_D, 2);
+  arrayFace(k, 0.85, 1.2, sx - sw / 2 - 0.01, y + 0.55, sz, -Math.PI / 2, ARMOR_D, 4);
+  k.box(0.3, 0.45, 0.04, ARMOR_D, sx - 0.42, y, sz + sd / 2 + 0.02);
+  radar(k, sx + 0.15, y + sh + 0.06, sz + 0.1, 'aesa', 0.75, 0.85);
+  // Jammer array: ring of small yagis spinning the other way
+  const jam = new THREE.Group();
+  jam.position.set(sx - 0.38, y + sh + 0.06, sz - 0.35);
+  k.add(jam);
+  k.box(0.04, 0.45, 0.04, '#7f878b', 0, 0, 0, jam);
+  for (let i = 0; i < 4; i++) {
+    const a = (i * Math.PI) / 2;
+    const arm2 = new THREE.Group();
+    arm2.position.y = 0.4;
+    arm2.rotation.y = a;
+    jam.add(arm2);
+    k.box(0.2, 0.02, 0.02, '#7f878b', 0.1, 0, 0, arm2);
+    for (let j = 0; j < 3; j++) k.box(0.012, 0.012, 0.1 - j * 0.02, C.white, 0.12 + j * 0.04, 0.0, 0, arm2);
+  }
+  k.anims.push((t) => (jam.rotation.y = -t * 2.2));
+  k.blinker(sx + 0.5, y + sh + 0.06, sz + 0.5, '#ff3b30', 0.03);
+  // Launcher on a hardened plinth with sliding roof hatches
+  const cx = -0.5, cz = 0.4, bh = 1.3;
+  blastRun(k, -1.38, -1.33, -0.15, -1.33, y, 0.5);
+  blastRun(k, -1.33, -1.2, -1.33, -0.45, y, 0.5);
+  blastRun(k, 0.4, 1.33, 1.38, 1.33, y);
+  k.box(1.6, bh, 1.5, CONCRETE, cx, y, cz);
+  k.box(1.62, 0.1, 1.52, ARMOR_D, cx, y, cz);
+  for (let i = 0; i < 8; i++) k.box(0.2, 0.06, 0.03, i % 2 ? C.kerbB : HAZ, cx - 0.7 + i * 0.2, y + bh - 0.12, cz + 0.76);
+  k.box(1.64, 0.05, 1.54, ARMOR_D, cx, y + bh, cz);
+  housedLauncher(k, cx, y + bh + 0.05, cz, 19, 2, 5, 0.1, 'slide');
+  ladder(k, cx + 0.81, cz + 0.2, y, bh, false, '#7f878b');
+  cabinet(k, 1.1, 0.55, y, -Math.PI / 2);
+  cabinet(k, 1.1, 1.0, y, -Math.PI / 2);
+  carrier(k, y, 0.55, 1.25, 0.55, 0.15, 6, 10, 'tablet', 'helmet', '#5d6b55');
+}
+
+function lv20(k: Kit, y: number) {
+  // Sky citadel: gold-banded armoured citadel tower with phased-array faces, gold-rimmed AESA and a
+  // second counter-rotating array; the biggest clamshell launcher with gold-tipped missiles; flags
+  const sx = 0.75, sz = -0.7, sw = 1.15, sd = 1.15, sh = 2.4;
+  k.box(sw + 0.2, 0.3, sd + 0.2, CONCRETE, sx, y, sz);
+  k.box(sw, sh, sd, '#e8e4da', sx, y + 0.3, sz);
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.1, sh, 0.1, ARMOR, sx + dx * (sw / 2), y + 0.3, sz + dz * (sd / 2));
+  for (const hh of [0.3, 1.25, sh + 0.3 - 0.1]) k.box(sw + 0.04, 0.07, sd + 0.04, GOLD, sx, y + hh, sz);
+  arrayFace(k, 0.85, 0.8, sx, y + 0.42, sz + sd / 2 + 0.01, 0, GOLD, 0);
+  arrayFace(k, 0.85, 0.8, sx + sw / 2 + 0.01, y + 0.42, sz, Math.PI / 2, GOLD, 2);
+  arrayFace(k, 0.85, 0.85, sx, y + 1.38, sz + sd / 2 + 0.01, 0, ARMOR_D, 1);
+  arrayFace(k, 0.85, 0.85, sx + sw / 2 + 0.01, y + 1.38, sz, Math.PI / 2, ARMOR_D, 3);
+  k.box(sw + 0.1, 0.06, sd + 0.1, ARMOR_D, sx, y + sh + 0.3, sz);
+  radar(k, sx, y + sh + 0.36, sz, 'aesa', 0.85, 0.8, k.group, { gold: true });
+  radar(k, sx - 0.42, y + sh + 0.36, sz + 0.42, 'planar', 0.42, -1.6, k.group, { dark: true, iff: false });
+  k.blinker(sx + 0.48, y + sh + 0.36, sz - 0.48, GOLD, 0.04);
+  k.flagpole(sx + 0.45, sz + 0.45, 0.9, y + sh + 0.36);
+  // Launcher on a gold-trimmed hardened plinth
+  const cx = -0.5, cz = 0.38, bh = 1.0;
+  k.cyl(1.0, bh, CONCRETE, cx, y, cz, 8, 0.9).rotation.y = Math.PI / 8;
+  k.cyl(1.02, 0.1, ARMOR_D, cx, y, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(0.92, 0.07, GOLD, cx, y + bh - 0.1, cz, 8).rotation.y = Math.PI / 8;
+  k.cyl(0.91, 0.05, ARMOR_D, cx, y + bh, cz, 8).rotation.y = Math.PI / 8;
+  housedLauncher(k, cx, y + bh + 0.05, cz, 20, 3, 4, 0.1, 'clam', true);
+  for (const x of [0.45, 0.85, 1.25]) {
+    k.cyl(0.07, 0.34, CONCRETE, x, y, 1.2, 8);
+    k.cyl(0.072, 0.04, GOLD, x, y + 0.34, 1.2, 8);
+  }
+  cabinet(k, 1.2, 0.4, y, -Math.PI / 2);
+  k.flagpole(-1.25, -1.2, 2.4, y);
+  blastRun(k, 1.33, 0.0, 1.33, 0.75, y, 0.45, ARMOR);
+  blastRun(k, -0.45, -1.33, 0.0, -1.33, y, 0.45, ARMOR);
+  carrier(k, y, 0.4, 0.82, 1.2, 0.82, 6, 11, 'tablet', 'beret', '#5d6b55');
+}
+
 // ------------------------------------------------------------------ assembly
 
-const LEVEL_FNS: ((k: Kit, y: number) => void)[] = [lv1, lv2, lv3, lv4, lv5, lv6];
+const LEVEL_FNS: ((k: Kit, y: number) => void)[] = [lv1, lv2, lv3, lv4, lv5, lv6, lv7, lv8, lv9, lv10, lv11, lv12, lv13, lv14, lv15, lv16, lv17, lv18, lv19, lv20];
 
 export function buildAirDefence(level: number): Kit {
   const k = new Kit();

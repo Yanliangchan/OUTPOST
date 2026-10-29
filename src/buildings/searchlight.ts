@@ -23,27 +23,23 @@ const TITLES = [
 const SUPPLIES = [35_000, 47_000, 62_000, 82_000, 110_000, 145_000, 195_000, 260_000, 345_000, 460_000, 610_000, 810_000, 1_080_000, 1_430_000, 1_900_000, 2_530_000, 3_370_000, 4_480_000, 5_950_000, 7_900_000];
 const REPUTATION = [2_200, 2_500, 2_850, 3_250, 3_700, 4_200, 4_800, 5_450, 6_200, 7_050, 8_000, 9_100, 10_300, 11_700, 13_300, 15_100, 17_100, 19_400, 22_000, 25_000];
 const TIME = [3 * HOUR, 4 * HOUR, 6 * HOUR, 8 * HOUR, 11 * HOUR, 14 * HOUR, 18 * HOUR, 22 * HOUR, 1.25 * DAY, 1.5 * DAY, 2 * DAY, 2.5 * DAY, 3 * DAY, 3.5 * DAY, 4 * DAY, 4.5 * DAY, 5 * DAY, 5.75 * DAY, 6.25 * DAY, 7 * DAY];
-/** Beams (independently locking lamps) per level. */
-const BEAMS = [1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 1, 3, 1, 2, 3, 1, 3, 2, 2, 3];
 
 export const SEARCHLIGHT_LEVELS: LevelStats[] = TITLES.map((title, i) => {
   const level = i + 1;
   const range = 8 + Math.round((i * 4 * 2) / 19) / 2;
   const accuracyBoost = +(5 + 1.5 * i).toFixed(1);
   const slow = 10 + Math.round((i * 20) / 19);
-  const beams = BEAMS[i];
   return {
     level, title,
     supplies: SUPPLIES[i],
     reputation: REPUTATION[i],
     buildTime: TIME[i],
     hp: Math.round((800 * Math.pow(1.2, i)) / 10) * 10,
-    stats: { range, accuracyBoost, boostRadius: 4, slow, beams },
+    stats: { range, accuracyBoost, boostRadius: 4, slow },
     unlocks: [
       `Locks on to raiders ${range} tiles out`,
       `+${accuracyBoost}% accuracy for defences within 4 tiles`,
       `Slows raiders in the beam by ${slow}%`,
-      ...(beams > 1 ? [`${beams} beams lock on at once`] : []),
     ],
   };
 });
@@ -757,7 +753,7 @@ interface ArmOpts { idle: Idle; len?: number; spread?: number; color?: string; r
 function arm(k: Kit, L: Lamp, o: ArmOpts): Turret {
   const tur = k.turret({
     yaw: L.yaw, pitch: L.pitch, muzzles: L.muzzles, weapon: 'light', targets: 'both',
-    rate: o.rate ?? 0.5, turnRate: o.turnRate ?? 1.6,
+    rate: o.rate ?? 0.5, turnRate: o.turnRate ?? 2.4,
     idle: (t) => {
       const [a, b] = o.idle(t);
       L.yaw.rotation.y = a;
@@ -1005,6 +1001,10 @@ function lv3(k: Kit, y: number) {
   reel(k, 0.62, -0.62, y, 0.13, 0.4);
   postSign(k, 'DANGER\nBRIGHT LIGHT', -0.85, 0.75, y, 0.5);
   k.crates(0.55, 0.78, y, 3);
+  // Tarp-covered stores and a battery box by the tailgate
+  k.box(0.5, 0.24, 0.24, '#7d7250', -0.3, y, 0.8);
+  k.box(0.52, 0.03, 0.26, '#6b6142', -0.3, y + 0.24, 0.8);
+  k.box(0.22, 0.24, 0.2, '#3a3f2a', 0.12, y, 0.8);
   k.drum(-0.82, -0.25, '#3f7d4a', y);
   k.drum(-0.82, 0.0, '#2f6fa8', y);
   k.box(0.3, 0.26, 0.2, OLIVE_D, 0.75, y, -0.25);
@@ -1357,6 +1357,8 @@ function lv12(k: Kit, y: number) {
 function lv13(k: Kit, y: number) {
   // Array pavilion: glass pavilion with a roof garden; a slim column carries a giant LED array
   const pw = 1.56, pd = 1.3, ph = 0.62, px = 0, pz = 0.05;
+  y = podium(k, 0, 0, y, 1.82, 1.82, 0.24, '#e8e6e0');
+  k.box(1.84, 0.03, 1.84, TEAL, 0, y - 0.1, 0);
   k.box(pw, 0.08, pd, C.white, px, y, pz);
   const g = new THREE.Mesh(new THREE.BoxGeometry(pw - 0.1, ph, pd - 0.1), M(GLASS, { roughness: 0.3 }));
   g.position.set(px, y + 0.08 + ph / 2, pz);
@@ -1372,18 +1374,18 @@ function lv13(k: Kit, y: number) {
   // Column and the giant array
   const cx = 0.05, cz = -0.2;
   k.cyl(0.2, 0.16, '#d8dcdf', cx, ry + 0.08, cz, 12);
-  k.cyl(0.13, 1.23, C.white, cx, ry + 0.24, cz, 12, 0.1);
+  k.cyl(0.13, 0.99, C.white, cx, ry + 0.24, cz, 12, 0.1);
   k.cyl(0.15, 0.04, TEAL, cx, ry + 0.6, cz, 12);
   k.cyl(0.15, 0.04, TEAL, cx, ry + 0.9, cz, 12);
-  const L = lamp(k, cx, ry + 1.45, cz, { r: 0.38, color: C.white, rim: GUN, yoke: '#d8dcdf', style: 'array', armH: 0.5 });
+  const L = lamp(k, cx, ry + 1.21, cz, { r: 0.38, color: C.white, rim: GUN, yoke: '#d8dcdf', style: 'array', armH: 0.5 });
   arm(k, L, { idle: sector(-Math.PI / 2, 5, 2.6, 2, 0.25), len: 4, spread: 0.6 });
   // Plant, crew, details
   generator(k, -0.5, -0.55, ry + 0.08, 0.6, 'modern', 0.3);
   roofFan(k, 0.55, ry + 0.08, -0.4, 0.12);
-  operator(k, 0.45, 0.85, y, -Math.PI / 2, 13, 'tablet', '#4b6b3a');
+  operator(k, 0.45, 0.82, y, -Math.PI / 2, 13, 'tablet', '#4b6b3a');
   k.door('front', px, pz, pw, pd, -0.3, y + 0.08, 0.3, 0.46, DARK_GLASS);
   beacon(k, cx + 0.35, ry + 0.08, cz + 0.1, TEAL);
-  k.planter(-0.55, 0.88, 0.5, y);
+  k.planter(-0.5, 0.8, 0.5, y);
 }
 
 function lv14(k: Kit, y: number) {
@@ -1576,7 +1578,7 @@ function lv18(k: Kit, y: number) {
   arm(k, L2, { idle: circle(0.3, 0.65, 1), len: 3 });
   sensorBall(k, -0.55, -0.5, y + 0.5, 0.9, 0.09);
   generator(k, -0.55, 0.32, y + 0.42, 0.55, 'armour', 0.4);
-  operator(k, 0.42, -0.6, y + 0.42, Math.PI * 0.75, 18, 'tablet', '#4a5a3a');
+  operator(k, 0.78, -0.62, y, Math.PI * 0.75, 18, 'tablet', '#4a5a3a');
   camera(k, 0.8, 0.8, y, 0.75, -Math.PI / 4, GUN);
   k.blinker(0.4, cy + 0.1, -0.4, '#ff3b30', 0.03);
   sign(k, 'DANGER\nLASER LIGHT', 0.42, y + 0.15, 0.88, 0.22);
