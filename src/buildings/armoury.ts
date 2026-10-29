@@ -67,8 +67,8 @@ const WOOD_D = '#7a5a3b';
 const PLANK = '#b07a4a';
 const STEEL = '#8b949a';
 const STEEL_D = '#5f686e';
-const GUNMETAL = '#56626a';
-const ARMOUR = '#46525a';
+const GUNMETAL = '#9aa5ab';
+const ARMOUR = '#77838a';
 const SLATE = '#4f6577';
 const HAZ = '#f2c230';
 const TEAL = '#2bb3a3';
@@ -540,7 +540,7 @@ function barrelRoof(k: Kit, len: number, d: number, h: number, x: number, y: num
   // Seam ribs over the vault
   const n = Math.max(3, Math.round(len / 0.4));
   for (let i = 0; i <= n; i++) {
-    const rib = mesh(new THREE.TorusGeometry(r + 0.005, 0.018, 4, 16, Math.PI), M('#3c4e5e'), x - len / 2 + 0.04 + ((len - 0.08) / n) * i, y, z);
+    const rib = mesh(new THREE.TorusGeometry(r + 0.005, 0.018, 4, 16, Math.PI), M(color === SLATE ? '#3c4e5e' : C.roofDark), x - len / 2 + 0.04 + ((len - 0.08) / n) * i, y, z);
     rib.rotation.y = Math.PI / 2;
     rib.scale.set(1, h / r, 1);
     k.add(rib);
@@ -792,7 +792,7 @@ function steps(k: Kit, x: number, z: number, w: number, y: number, h: number, co
 }
 
 /** White lab block with glass front, fins, teal band and a green roof slab. Returns its height. */
-function labBlock(k: Kit, x: number, z: number, w: number, d: number, floors: number, y: number, o: { fins?: boolean; roof?: string; glassFrom?: number; band?: string } = {}) {
+function labBlock(k: Kit, x: number, z: number, w: number, d: number, floors: number, y: number, o: { fins?: boolean; roof?: string; glassFrom?: number; band?: string; tilt?: number } = {}) {
   const h = floors * STOREY;
   k.box(w, h, d, WHITE, x, y, z);
   k.box(w + 0.03, 0.14, d + 0.03, '#d7d3c8', x, y, z);
@@ -804,6 +804,17 @@ function labBlock(k: Kit, x: number, z: number, w: number, d: number, floors: nu
   }
   for (let f = 1; f < floors; f++) k.box(w + 0.05, 0.07, d + 0.05, o.band ?? TEAL, x, y + f * STOREY - 0.03, z);
   if (o.fins !== false) k.fins(w - 0.2, h - STOREY - 0.05, x, y + STOREY, z + d / 2 + 0.06, Math.max(3, Math.round(w / 0.3)));
+  if (o.tilt) {
+    // Mono-pitch roof: a raised wedge wall on the high side and a tilted slab
+    const rise = Math.tan(Math.abs(o.tilt)) * (w + 0.22);
+    const side = Math.sign(o.tilt);
+    const wedge = new THREE.Shape([new THREE.Vector2(-w / 2, 0), new THREE.Vector2(w / 2, 0), new THREE.Vector2(w / 2, side > 0 ? 0 : rise), new THREE.Vector2(-w / 2, side > 0 ? rise : 0)]);
+    const wg = new THREE.ExtrudeGeometry(wedge, { depth: d, bevelEnabled: false }).translate(0, 0, -d / 2);
+    k.add(mesh(wg, M(WHITE), x, y + h, z));
+    const slab = k.box(w / Math.cos(o.tilt) + 0.24, 0.1, d + 0.22, o.roof ?? C.roofGreen, x, y + h + rise / 2 - 0.05, z);
+    slab.rotation.z = -o.tilt;
+    return h + rise + 0.1;
+  }
   k.box(w + 0.22, 0.1, d + 0.22, o.roof ?? C.roofGreen, x, y + h, z);
   k.box(w + 0.24, 0.04, d + 0.24, C.white, x, y + h - 0.02, z);
   return h + 0.1;
@@ -842,16 +853,16 @@ function field(k: Kit, level: number, y: number) {
     k.box(0.62, 0.07, 0.12, WOOD_D, cx, top + 0.42, dz + 0.02);
     strongDoor(k, 'timber', cx, top, dz + 0.06, 0.4, 0.42);
     // Log roof, tarp and a row of bags to hold it down
-    for (let i = 0; i < 6; i++) k.cyl(0.04, 1.9, C.wood, cx, top + 0.42, cz - 0.62 + i * 0.25, 6).rotation.z = Math.PI / 2;
+    for (let i = 0; i < 6; i++) k.add(mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.9, 6).rotateZ(Math.PI / 2), M(C.wood), cx, top + 0.46, cz - 0.62 + i * 0.25));
     const tarp = k.box(1.95, 0.05, 1.5, OLIVE, cx, top + 0.5, cz);
     tarp.rotation.x = 0.04;
     k.sandbags(cx, cz - 0.55, 1.6, 0, top + 0.54, 1);
     k.sandbags(cx - 0.3, cz + 0.55, 1.0, 0, top + 0.53, 1);
     lantern(k, cx + 0.2, top + 0.42, dz + 0.1, 1);
     // Awning on poles over the bench
-    for (const [px, pz, ph] of [[0.25, 0.3, 0.92], [1.3, 0.3, 0.92], [0.25, 1.25, 0.78], [1.3, 1.25, 0.78]]) k.box(0.05, ph, 0.05, WOOD_D, px, y, pz);
-    const aw = k.box(1.2, 0.04, 1.1, '#8a8458', 0.78, y + 0.82, 0.77);
-    aw.rotation.x = 0.13;
+    for (const [px, pz, ph] of [[0.3, 0.2, 0.98], [1.28, 0.2, 0.98], [0.3, 0.72, 0.9], [1.28, 0.72, 0.9]]) k.box(0.05, ph, 0.05, WOOD_D, px, y, pz);
+    const aw = k.box(1.15, 0.04, 0.72, '#8a8458', 0.79, y + 0.92, 0.45);
+    aw.rotation.x = 0.12;
     station(k, 0.78, 0.92, y);
     rack(k, 1.12, 0.42, y, -Math.PI / 2, 3);
     k.drum(1.3, -0.85, OLIVE_D, y);
@@ -872,14 +883,14 @@ function field(k: Kit, level: number, y: number) {
     for (const pz of [-1.05, 0.45]) k.box(0.05, 0.78, 0.05, WOOD_D, 1.2, y, pz);
     const aw = k.box(1.55, 0.04, 1.6, '#8a8458', 0.45, y + 0.86, -0.3);
     aw.rotation.z = -0.15;
-    station(k, 0.38, 0.0, y, 0, { seed: 1 });
-    testStand(k, 0.95, -0.7, y, 0.1);
+    station(k, 0.55, 0.85, y, 0, { seed: 1 });
+    testStand(k, 0.75, 0.15, y, 0.1);
     rack(k, 0.3, -0.95, y, 0, 4);
     lantern(k, 0.4, y + 0.8, -0.45, 2);
     porter(k, cx, cz + cl / 2, 1.15, y);
-    sentry(k, 0.0, 0.95, y, face(0, 1));
-    k.drum(1.25, 1.1, OLIVE_D, y);
-    k.sandbags(0.75, 1.25, 0.8, 0, y, 2);
+    sentry(k, -0.05, 0.95, y, face(0, 1));
+    k.drum(1.25, -0.6, OLIVE_D, y);
+    k.drum(1.25, -0.85, OLIVE_D, y);
     return;
   }
   // 3: arms hut: timber hut with a zinc gable roof beside the steel-doored container strongroom
@@ -927,8 +938,8 @@ function camp(k: Kit, level: number, y: number) {
     barredWindow(k, 0.92, y + 0.45, fz, 0.34, 0.28);
     for (const s of [-1, 1]) barredWindow(k, bx + s * (bw / 2 + 0.03), y + 0.45, bz, 0.3, 0.26, C.trim, s * Math.PI / 2);
     board(k, 'ARMOURY', 0.8, 0.18, 0.68, y + 0.72, fz + 0.02, C.trim, '#ffffff', 0, HAZ);
-    k.porch(0.7, 0.85, 1.2, 0.75, 0.72, y, 2);
-    station(k, 0.7, 0.85, y + 0.05, 0, { seed: 1 });
+    k.porch(-0.45, fz + 0.3, 0.85, 0.55, 0.86, y, 2);
+    station(k, 0.65, 0.9, y, 0, { seed: 1 });
     rack(k, -1.0, fz + 0.08, y, 0, 4, C.trim);
     porter(k, -0.45, fz, 1.2, y);
     sentry(k, -1.05, 0.75, y, face(0, 1));
@@ -992,7 +1003,7 @@ function camp(k: Kit, level: number, y: number) {
   k.hipRoof(0.36, 0.34, 0.2, -1.25, y + 0.7, 0.4, C.trim, 0.06);
   sentry(k, -1.25, 0.82, y, face(0, 1));
   station(k, -0.2, 0.85, y, 0, { seed: 2 });
-  rack(k, 0.25, fz + 0.08, y, 0, 4, C.trim);
+  rack(k, 0.56, 0.3, y, Math.PI / 2, 3, C.trim);
   porter(k, -0.85, fz, 1.2, y);
   k.aircon(bx - bw / 2 - 0.08, y + STOREY + 0.25, bz - 0.3, -Math.PI / 2);
   k.antenna(bx + 0.8, y + STOREY * 2 + 0.2, bz - 0.2, 0.6);
@@ -1001,12 +1012,12 @@ function camp(k: Kit, level: number, y: number) {
 // ------------------------------------------------------------------ base (7–10)
 
 /** Concrete hall with a slate barrel-vault roof. Returns its top. */
-function barrelHall(k: Kit, x: number, z: number, w: number, d: number, wallH: number, roofH: number, y: number) {
+function barrelHall(k: Kit, x: number, z: number, w: number, d: number, wallH: number, roofH: number, y: number, roof = SLATE) {
   k.box(w, wallH, d, CONCRETE, x, y, z);
   k.box(w + 0.03, 0.16, d + 0.03, C.trim, x, y, z);
   k.box(w + 0.05, 0.06, d + 0.05, C.trim, x, y + STOREY - 0.03, z);
   for (const s of [-1, 1]) k.box(0.12, wallH, 0.12, '#c7c2b7', x + s * (w / 2 - 0.02), y, z + d / 2 - 0.02);
-  barrelRoof(k, w + 0.12, d + 0.14, roofH, x, y + wallH, z);
+  barrelRoof(k, w + 0.12, d + 0.14, roofH, x, y + wallH, z, roof);
   return y + wallH + roofH;
 }
 
@@ -1090,9 +1101,9 @@ function base(k: Kit, level: number, y: number) {
   }
   // 10: grand complex: barrel hall, white columned portico over the vault door, test chamber, flagpole
   const hx = -0.15, hz = -0.72, hw = 2.7, hd = 1.2;
-  barrelHall(k, hx, hz, hw, hd, 2.25, 0.72, y);
+  barrelHall(k, hx, hz, hw, hd, 2.25, 0.72, y, C.roof);
   slits(k, 2, 0.7, -1.05, y + STOREY + 0.62, hz + hd / 2 + 0.01);
-  testChamber(k, 0.98, -0.3, y, 0.52, 2.85, CONCRETE, '#ff9a3c');
+  testChamber(k, 0.95, -0.72, y, 0.56, 2.85, CONCRETE, '#ff9a3c', C.roof);
   // Portico
   const px = -0.2, pz0 = hz + hd / 2 + 0.02, pd = 0.78, pw = 1.55, ph = 1.45;
   k.box(pw + 0.1, 0.08, pd + 0.1, '#c2bcae', px, y, pz0 + pd / 2);
@@ -1119,8 +1130,10 @@ function testChamber(k: Kit, x: number, z: number, y: number, r: number, h: numb
   hazard(k, r * 1.2, 0.07, x, y + 0.16, z + r + 0.01);
   const by = y + h * band;
   // Glass band: dark inside, glowing ring, spinning part visible through it
-  k.cyl(r - 0.05, 0.4, '#1f2326', x, by, z, 18);
-  const glass = mesh(new THREE.CylinderGeometry(r + 0.01, r + 0.01, 0.38, 18, 1, true), ghost(glowC, 0.35, 0.9), x, by + 0.2, z);
+  k.cyl(r * 0.5, 0.4, glowC, x, by, z, 12).material = glow(glowC, 1.0);
+  k.cyl(r - 0.04, 0.02, '#1f2326', x, by, z, 18);
+  k.cyl(r - 0.04, 0.02, '#1f2326', x, by + 0.38, z, 18);
+  const glass = mesh(new THREE.CylinderGeometry(r + 0.01, r + 0.01, 0.38, 18, 1, true), ghost('#bfe6f2', 0.25, 0.2), x, by + 0.2, z);
   k.add(glass);
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * Math.PI * 2;
@@ -1129,7 +1142,12 @@ function testChamber(k: Kit, x: number, z: number, y: number, r: number, h: numb
   const part = new THREE.Group();
   part.position.set(x, by + 0.2, z);
   k.add(part);
-  gear(k, part, 0, 0, 0, r * 0.5, glowC, 'y', 2.4, 10);
+  for (let i = 0; i < 4; i++) {
+    const vane = mesh(new THREE.BoxGeometry(r * 0.42, 0.3, 0.05), M('#3a3f44'), Math.cos((i * Math.PI) / 2) * r * 0.7, 0, Math.sin((i * Math.PI) / 2) * r * 0.7);
+    vane.rotation.y = -(i * Math.PI) / 2;
+    part.add(vane);
+  }
+  k.anims.push((t) => (part.rotation.y = t * 2.4));
   k.cyl(r + 0.04, 0.06, C.trim, x, by - 0.03, z, 18);
   k.cyl(r + 0.04, 0.06, C.trim, x, by + 0.4, z, 18);
   dome(k, r * 0.98, x, y + h, z, capColor, 0.55);
@@ -1170,7 +1188,7 @@ function command(k: Kit, level: number, y: number) {
   if (level === 12) {
     // Twin lab: two white towers with green roofs bridged by glass, one research bay each
     const bz = -0.4, tw = 1.12, td = 1.85;
-    for (const s of [-1, 1]) labBlock(k, s * 0.86, bz, tw, td, 3, y);
+    for (const s of [-1, 1]) labBlock(k, s * 0.86, bz, tw, td, 3, y, { tilt: s * 0.2 });
     // Central strongroom between the towers
     k.box(0.62, STOREY * 2, td - 0.25, CONCRETE, 0, y, bz - 0.1);
     k.box(0.68, 0.1, td - 0.2, C.roofGreen, 0, y + STOREY * 2, bz - 0.1);
@@ -1188,10 +1206,10 @@ function command(k: Kit, level: number, y: number) {
       station(k, s * 0.86, 1.08, y, 0, { seed: s < 0 ? 1 : 2, top: '#e8e6e0' });
       k.aircon(s * 0.86, y + STOREY * 3 + 0.1, bz - 0.5);
     }
-    testStand(k, 0, 0.95, y, 0.1, HOLO, 0.4);
+    testStand(k, 0.33, 0.82, y, 0.1, HOLO, 0.4);
     porter(k, 0, fz, 0.7, y);
     sentry(k, -0.35, 1.15, y, face(0, 1));
-    rack(k, 0.33, 1.25, y, 0, 3, TEAL);
+    rack(k, 0.33, 1.28, y, 0, 3, TEAL);
     return;
   }
   if (level === 13) {
@@ -1201,7 +1219,7 @@ function command(k: Kit, level: number, y: number) {
     const wx = 0.85, wz = -0.25, ww = 1.15, wd = 1.75;
     const wh = labBlock(k, wx, wz, ww, wd, 2, y, { fins: false });
     k.box(ww - 0.2, 0.08, 0.04, HOLO, wx, y + 0.3, wz + wd / 2 + 0.02).material = glow(HOLO, 0.8);
-    hologram(k, wx, y + wh, wz, 1.5);
+    hologram(k, wx, y + wh, wz, 2.0);
     const fz = az + ad / 2 + 0.03;
     strongDoor(k, 'slide', -0.85, y, fz, 0.6, 0.74, { color: '#e8e6e0', inner: HOLO });
     k.box(0.62, 0.05, 0.03, TEAL, -0.85, y + 0.78, fz + 0.06);
@@ -1261,7 +1279,7 @@ function command(k: Kit, level: number, y: number) {
   // 15: research spire: wide lab block, test dome, glass lobby with a hologram, slim spire with an orbiting ring
   const ax = -0.25, az = -0.75, aw = 2.5, ad = 1.25;
   const ah = labBlock(k, ax, az, aw, ad, 3, y);
-  const dx = 0.85, dz = 0.25, dr = 0.55, dh = 1.4;
+  const dx = 0.85, dz = 0.08, dr = 0.55, dh = 1.4;
   k.cyl(dr, dh, WHITE, dx, y, dz, 20);
   k.cyl(dr + 0.03, 0.08, TEAL, dx, y + dh - 0.08, dz, 20);
   const cap = new THREE.Group();
@@ -1274,36 +1292,42 @@ function command(k: Kit, level: number, y: number) {
   cap.add(slit);
   k.add(cap);
   k.anims.push((t) => (cap.rotation.y = t * 0.25));
-  // Glass lobby on the left front with a hologram on its roof
-  const lx = -0.85, lz = 0.05, lw = 1.1, ld = 0.75;
-  k.glassBox(lw, STOREY * 1.3, ld, lx, y, lz);
-  k.box(lw + 0.2, 0.1, ld + 0.2, C.roofGreen, lx, y + STOREY * 1.3, lz);
-  hologram(k, lx, y + STOREY * 1.3 + 0.1, lz, 1.2);
   const fz = az + ad / 2 + 0.03;
   strongDoor(k, 'round', 0.15, y + 0.06, fz, 0.6, 0.6, { hinge: 1, inner: HOLO, color: '#e8e6e0' });
   k.box(0.75, 0.05, 0.04, TEAL, 0.15, y + 0.76, fz + 0.03);
   statusLight(k, 0.15, y + 0.85, fz);
   board(k, 'ARMOURY R&D', 1.0, 0.18, ax + 0.4, y + STOREY * 3 - 0.36, fz + 0.1, TEAL, '#ffffff');
-  // Spire with a teal ring orbiting it
-  const sx = ax - 0.6, sz = az - 0.1;
-  k.cyl(0.08, 1.0, C.white, sx, y + ah, sz, 8, 0.03);
-  k.cyl(0.12, 0.08, TEAL, sx, y + ah, sz, 8);
+  hologram(k, ax + 0.75, y + ah, az - 0.1, 0.9);
+  // Teal glass rotunda tower on the front left, green dome, spire with an orbiting ring
+  const sx = -0.88, sz = 0.2, sr = 0.5, sh = STOREY * 2.5;
+  k.cyl(sr + 0.04, 0.14, C.white, sx, y, sz, 16);
+  k.cyl(sr, sh, '#5fd6c8', sx, y + 0.14, sz, 16).material = M('#5fd6c8', { emissive: HOLO, emissiveIntensity: 0.3, roughness: 0.3 });
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2;
+    k.box(0.035, sh, 0.035, C.white, sx + Math.cos(a) * (sr + 0.005), y + 0.14, sz + Math.sin(a) * (sr + 0.005));
+  }
+  for (let f = 1; f <= 2; f++) k.cyl(sr + 0.03, 0.06, C.white, sx, y + 0.14 + f * STOREY - 0.03, sz, 16);
+  k.cyl(sr + 0.08, 0.08, C.white, sx, y + 0.14 + sh, sz, 16);
+  dome(k, sr + 0.02, sx, y + 0.22 + sh, sz, C.roofGreen, 0.55);
+  k.box(0.5, 0.65, 0.04, '#e8e6e0', sx + 0.1, y, sz + sr - 0.02); // lobby door
+  k.box(0.04, 0.6, 0.05, TEAL, sx + 0.1, y, sz + sr + 0.0);
+  const sy = y + 0.22 + sh + (sr + 0.02) * 0.55 - 0.04;
+  k.cyl(0.05, 0.85, C.white, sx, sy, sz, 8, 0.015);
   const ring = new THREE.Group();
-  ring.position.set(sx, y + ah + 0.55, sz);
-  ring.add(mesh(new THREE.TorusGeometry(0.22, 0.025, 6, 20), glow(HOLO, 1.3)));
+  ring.position.set(sx, sy + 0.45, sz);
+  ring.add(mesh(new THREE.TorusGeometry(0.2, 0.022, 6, 20), glow(HOLO, 1.3)));
   k.add(ring);
   k.anims.push((t) => {
     ring.rotation.y = t * 1.1;
     ring.rotation.x = 1.2 + Math.sin(t * 0.8) * 0.3;
   });
-  k.blinker(sx, y + ah + 1.0, sz, '#ff3b30', 0.03);
+  k.blinker(sx, sy + 0.85, sz, '#ff3b30', 0.03);
   k.aircon(ax + 0.6, y + ah, az - 0.3);
-  station(k, 0.15, 1.05, y, 0, { seed: 2, top: '#e8e6e0' });
-  blueprintTable(k, -0.85, 1.05, y, 0, 0.5, 0.34, 1);
-  porter(k, 0.15, fz, 0.65, y);
-  sentry(k, 1.35, 1.0, y, face(0, 1));
-  rack(k, -0.3, 0.45, y, Math.PI / 2, 3, TEAL);
-  k.planter(0.9, 1.2, 0.6, y);
+  station(k, 0.78, 1.1, y, 0, { seed: 2, top: '#e8e6e0' });
+  blueprintTable(k, -0.85, 1.08, y, 0, 0.5, 0.34, 1);
+  porter(k, 0.15, fz, 0.6, y);
+  sentry(k, -0.2, 1.1, y, face(0, 1));
+  rack(k, -0.2, 0.5, y, 0, 3, TEAL);
 }
 
 // ------------------------------------------------------------------ secure (16–20)
@@ -1311,7 +1335,7 @@ function command(k: Kit, level: number, y: number) {
 function secure(k: Kit, level: number, y: number) {
   if (level === 16) {
     // Hardened lab: gunmetal armoured block, huge sliding blast door with a scan bar, sensor mast
-    const bx = -0.05, bz = -0.42, bw = 2.65, bd = 1.8, bh = STOREY * 3;
+    const bx = -0.05, bz = -0.42, bw = 2.65, bd = 1.8, bh = STOREY * 2.85;
     armourBlock(k, bx, bz, bw, bd, bh, y);
     slits(k, 4, 2.0, bx, y + STOREY * 2 + 0.3, bz + bd / 2 + 0.01, HOLO);
     slits(k, 4, 2.0, bx, y + STOREY + 0.3, bz + bd / 2 + 0.01);
@@ -1319,33 +1343,46 @@ function secure(k: Kit, level: number, y: number) {
     strongDoor(k, 'blast', -0.45, y, fz, 0.8, 0.9, { inner: HOLO });
     scanBar(k, -0.45, y, fz + 0.15, 0.8, 0.9);
     statusLight(k, -0.45, y + 1.02, fz);
-    board(k, 'ARMOURY', 0.9, 0.18, 0.75, y + STOREY + 0.6, fz + 0.01, ARMOUR, HAZ);
+    board(k, 'ARMOURY', 0.9, 0.18, 0.3, y + STOREY + 0.6, fz + 0.01, ARMOUR, HAZ);
     cctv(k, bx - bw / 2 + 0.1, y + 1.3, fz, 0.4);
     cctv(k, bx + bw / 2 - 0.1, y + 1.3, fz, -0.4);
     k.solarPanels(bx - 0.4, y + bh + 0.14, bz, 1.2, 0.8);
+    hazard(k, bw + 0.12, 0.1, bx, y + bh + 0.04, bz + bd / 2 + 0.07, false, 0.18);
+    // Leaning armour shields either side of the blast door
+    for (const sx of [-1.1, 1.0]) {
+      const sh = k.box(0.42, bh * 0.82, 0.12, ARMOUR, sx, y, fz + 0.22);
+      sh.rotation.x = -0.14;
+      k.box(0.44, 0.06, 0.13, HAZ, sx, y + bh * 0.8, fz + 0.1).rotation.x = -0.14;
+    }
     sensorMast(k, bx + 0.85, bz - 0.2, y + bh + 0.14, 0.9);
     station(k, 0.75, 1.05, y, 0, { seed: 2, top: '#8b949a', legs: '#4a4f54', lamp: HOLO });
     porter(k, -0.45, fz, 1.25, y, '#33383d');
     sentry(k, -1.15, 0.9, y, face(0, 1));
-    rack(k, 0.15, fz + 0.1, y, 0, 3, ARMOUR);
+    rack(k, 1.3, 0.45, y, -Math.PI / 2, 3, ARMOUR);
     for (const x of [-1.3, 1.3]) k.cyl(0.07, 0.3, HAZ, x, y, 1.25, 8);
     return;
   }
   if (level === 17) {
     // Bunker vault: grass-covered berm with a concrete portal and blast door, test chamber cupola on top
     const bz = -0.35;
-    const berm = mesh(new THREE.CylinderGeometry(1.0, 1.42, 1.35, 4, 1).rotateY(Math.PI / 4), M(GRASS), 0, y + 0.675, bz);
-    berm.scale.set(1.0, 1, 0.85);
+    const berm = mesh(new THREE.CylinderGeometry(1.15, 1.85, 1.3, 4, 1).rotateY(Math.PI / 4), M(GRASS), 0, y + 0.65, bz);
+    berm.scale.set(1.0, 1, 0.82);
     k.add(berm);
-    const top = y + 1.35;
-    k.box(1.45, 0.06, 1.2, '#4f9a2c', 0, top, bz);
+    const top = y + 1.3;
+    k.box(1.6, 0.06, 1.3, '#4f9a2c', 0, top, bz);
+    for (const [x, z] of [[-1.05, 0.35], [1.1, 0.3], [-0.9, -1.2], [1.0, -1.15]]) {
+      const b = mesh(new THREE.IcosahedronGeometry(0.16, 0), M(i2c(x)), x, y + 0.2, z);
+      b.scale.y = 0.8;
+      k.add(b);
+    }
     // Research block on the berm
-    const rb = 1.25;
-    k.box(rb, STOREY * 1.2, 1.0, ARMOUR, 0, top, bz - 0.05);
-    k.box(rb + 0.08, 0.1, 1.08, GUNMETAL, 0, top + STOREY * 1.2, bz - 0.05);
-    slits(k, 3, 0.9, 0, top + 0.6, bz + 0.46, HOLO);
-    testChamberMini(k, -0.25, bz - 0.1, top + STOREY * 1.2 + 0.1, 0.32, HOLO);
-    sensorMast(k, 0.45, bz - 0.3, top + STOREY * 1.2 + 0.1, 0.55);
+    const rb = 1.4;
+    k.box(rb, STOREY * 1.3, 1.1, GUNMETAL, 0, top, bz - 0.05);
+    k.box(rb + 0.1, 0.12, 1.2, ARMOUR, 0, top + STOREY * 1.3, bz - 0.05);
+    hazard(k, rb, 0.06, 0, top + STOREY * 1.3 - 0.08, bz + 0.51);
+    slits(k, 3, 0.9, 0, top + 0.6, bz + 0.51, HOLO);
+    testChamberMini(k, -0.3, bz - 0.1, top + STOREY * 1.3 + 0.12, 0.36, HOLO);
+    sensorMast(k, 0.45, bz - 0.3, top + STOREY * 1.3 + 0.12, 0.55);
     // Portal pushing out of the berm
     const pz = bz + 0.85, pw = 1.2;
     k.box(pw, 1.25, 0.75, CONCRETE, 0, y, pz - 0.15);
@@ -1373,9 +1410,9 @@ function secure(k: Kit, level: number, y: number) {
     const top = podium(k, 2.85, 2.6, y, 0.3, CONCRETE, 0, -0.15);
     steps(k, 0, 1.25, 0.8, y, 0.3);
     const cz = -0.65;
-    armourBlock(k, 0, cz, 1.1, 1.05, STOREY * 3.15, top, GUNMETAL);
+    armourBlock(k, 0, cz, 1.1, 1.05, STOREY * 2.75, top, GUNMETAL);
     slits(k, 2, 0.6, 0, top + STOREY * 2.4, cz + 0.54, HOLO);
-    sensorMast(k, 0.25, cz - 0.2, top + STOREY * 3.15 + 0.14, 0.4);
+    sensorMast(k, 0.25, cz - 0.2, top + STOREY * 2.75 + 0.14, 0.4);
     const fz = cz + 0.56;
     strongDoor(k, 'blast', 0, top, fz, 0.6, 0.8, { inner: HOLO });
     scanBar(k, 0, top, fz + 0.15, 0.6, 0.8);
@@ -1390,8 +1427,9 @@ function secure(k: Kit, level: number, y: number) {
       strongDoor(k, 'round', px, top + 0.05, pz + 0.49, 0.46, 0.46, { inner: c, hinge: px < 0 ? -1 : 1, color: '#9aa3a8' });
     }
     // Third pod rides on the rear of the command block's roof as a glowing teal vault drum
-    k.cyl(0.36, 0.4, ARMOUR, -0.15, top + STOREY * 3.15 + 0.14, cz + 0.1, 10);
-    k.cyl(0.3, 0.12, HOLO, -0.15, top + STOREY * 3.15 + 0.3, cz + 0.1, 10).material = glow(HOLO, 1);
+    k.cyl(0.4, 0.3, ARMOUR, -0.1, top + STOREY * 2.75 + 0.14, cz + 0.05, 10);
+    k.cyl(0.34, 0.14, HOLO, -0.1, top + STOREY * 2.75 + 0.44, cz + 0.05, 10).material = glow(HOLO, 1);
+    k.cyl(0.38, 0.05, ARMOUR, -0.1, top + STOREY * 2.75 + 0.58, cz + 0.05, 10);
     station(k, -0.85, 0.75, top, 0, { seed: 1, top: '#8b949a', legs: '#4a4f54', lamp: '#ff5a4a', jig: '#ff5a4a' });
     station(k, 0.85, 0.75, top, 0, { seed: 2, top: '#8b949a', legs: '#4a4f54', lamp: '#ffb020', jig: '#ffb020' });
     station(k, 0, 0.42, top, 0, { seed: 3, top: '#8b949a', legs: '#4a4f54', lamp: HOLO, jig: HOLO, len: 0.5 });
@@ -1405,23 +1443,23 @@ function secure(k: Kit, level: number, y: number) {
     // Scanner vault: hardened block wrapped by a rotating sensor ring, laser scan arch over the door path
     const top = podium(k, 2.85, 2.6, y, 0.3, CONCRETE, 0, -0.15);
     steps(k, -0.3, 1.25, 0.8, y, 0.3);
-    const bx = 0, bz = -0.55, bw = 2.3, bd = 1.45, bh = STOREY * 2.85;
+    const bx = 0, bz = -0.55, bw = 2.3, bd = 1.45, bh = STOREY * 2.6;
     const h = armourBlock(k, bx, bz, bw, bd, bh, top, GUNMETAL);
     slits(k, 4, 1.8, bx, top + STOREY * 2 + 0.25, bz + bd / 2 + 0.01, '#ff5a4a');
     // Sensor ring on stand-offs around the roof, with pods
     const ring = new THREE.Group();
     ring.position.set(bx, top + h + 0.25, bz);
-    ring.add(mesh(new THREE.TorusGeometry(0.85, 0.05, 6, 32).rotateX(Math.PI / 2), M('#e8e6e0')));
+    ring.add(mesh(new THREE.TorusGeometry(0.95, 0.07, 6, 32).rotateX(Math.PI / 2), M('#f4f4f0')));
     for (let i = 0; i < 4; i++) {
       const a = (i / 4) * Math.PI * 2;
-      const pod = mesh(new THREE.SphereGeometry(0.1, 10, 8), glow(i % 2 ? '#ff5a4a' : HOLO, 1.2), Math.cos(a) * 0.85, 0.02, Math.sin(a) * 0.85);
+      const pod = mesh(new THREE.SphereGeometry(0.14, 10, 8), glow(i % 2 ? '#ff5a4a' : HOLO, 1.2), Math.cos(a) * 0.95, 0.02, Math.sin(a) * 0.95);
       ring.add(pod);
     }
     k.add(ring);
     k.cyl(0.14, 0.25, '#e8e6e0', bx, top + h, bz, 8);
     for (let i = 0; i < 4; i++) {
       const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-      const arm = mesh(new THREE.BoxGeometry(0.85, 0.04, 0.04), M('#e8e6e0'), Math.cos(a) * 0.42, 0, Math.sin(a) * 0.42);
+      const arm = mesh(new THREE.BoxGeometry(0.95, 0.05, 0.05), M('#f4f4f0'), Math.cos(a) * 0.47, 0, Math.sin(a) * 0.47);
       arm.rotation.y = -a;
       ring.add(arm);
     }
@@ -1458,7 +1496,7 @@ function secure(k: Kit, level: number, y: number) {
   hazard(k, 2.9, 0.0, 0, top, 1.28);
   k.box(2.92, 0.04, 2.77, GOLD, 0, top - 0.04, -0.1);
   steps(k, 0, 1.3, 0.9, y, 0.32);
-  const kx = 0, kz = -0.45, kr = 1.12, kh = STOREY * 2.75;
+  const kx = 0, kz = -0.45, kr = 1.12, kh = STOREY * 2.3;
   const keep = mesh(new THREE.CylinderGeometry(kr, kr, kh, 8).rotateY(Math.PI / 8), M(GUNMETAL), kx, top + kh / 2, kz);
   k.add(keep);
   for (const yy of [0.2, STOREY * 1.4, kh - 0.12]) k.add(mesh(new THREE.CylinderGeometry(kr + 0.03, kr + 0.03, 0.08, 8).rotateY(Math.PI / 8), M(GOLD, { metalness: 0.4, roughness: 0.45 }), kx, top + yy, kz));
@@ -1472,13 +1510,20 @@ function secure(k: Kit, level: number, y: number) {
   // Crown: gold-trimmed drum and an eight-sided gold roof
   const ct = top + kh;
   k.add(mesh(new THREE.CylinderGeometry(kr + 0.1, kr + 0.1, 0.12, 8).rotateY(Math.PI / 8), M(ARMOUR), kx, ct + 0.06, kz));
-  k.add(mesh(new THREE.CylinderGeometry(0.62, 0.66, 0.32, 8).rotateY(Math.PI / 8), M(GUNMETAL), kx, ct + 0.28, kz));
-  k.add(mesh(new THREE.ConeGeometry(0.72, 0.32, 8).rotateY(Math.PI / 8), M(GOLD, { metalness: 0.4, roughness: 0.45 }), kx, ct + 0.6, kz));
+  const gd = mesh(new THREE.SphereGeometry(0.95, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), M(GOLD, { metalness: 0.4, roughness: 0.45 }), kx, ct + 0.12, kz);
+  gd.scale.y = 0.55;
+  k.add(gd);
+  for (let i = 0; i < 8; i++) {
+    const rib = mesh(new THREE.TorusGeometry(0.955, 0.025, 4, 12, Math.PI / 2), M('#fff0a8'), kx, ct + 0.12, kz);
+    rib.rotation.set(0, (i / 8) * Math.PI * 2, 0);
+    rib.scale.set(1, 0.55, 1);
+    k.add(rib);
+  }
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
     k.box(0.1, 0.1, 0.1, GOLD, kx + Math.cos(a) * (kr + 0.02), ct + 0.12, kz + Math.sin(a) * (kr + 0.02));
   }
-  hologram(k, kx, ct + 0.76, kz, 0.9, '#ffd84a', GOLD);
+  hologram(k, kx, ct + 0.62, kz, 0.8, '#ffd84a', GOLD);
   slits(k, 2, 1.2, kx, top + STOREY * 2.1, kz + kr * 0.92 + 0.01, '#ffd84a', 0.25, 0.08);
   // Giant gold vault door in a gold frame
   const fz = kz + kr * Math.cos(Math.PI / 8) + 0.02;
@@ -1505,6 +1550,8 @@ function secure(k: Kit, level: number, y: number) {
   k.flagpole(-1.25, -1.2, 1.6, top);
   cctv(k, kx - 0.6, top + 1.5, fz - 0.15, 0.5);
 }
+
+const i2c = (x: number) => (x > 0 ? '#3f8a2e' : '#55a832');
 
 /** Small glowing test cupola for roofs. */
 function testChamberMini(k: Kit, x: number, z: number, y: number, r: number, glowC: string) {

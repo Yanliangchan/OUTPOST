@@ -56,13 +56,13 @@ const RED = '#d8342c';
 const HAZ = '#f2c230';
 const STRAW = '#e0bf5c';
 const STRAW_D = '#b8963e';
-const EARTH = '#9a6b42';
-const EARTH_D = '#7c5533';
+const EARTH = '#b07a4a';
+const EARTH_D = '#9a6a42';
 const GRASS = '#5f9e38';
 const TEAL = '#2bb3a3';
 const CYAN = '#3fd1ff';
-const STEEL = '#4a5258';
-const STEEL_D = '#363c41';
+const STEEL = '#7d868c';
+const STEEL_D = '#5c656b';
 const TIMBER = '#8a6040';
 const M = (c: string, o: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color: c, flatShading: true, roughness: 0.8, ...o });
 const glow = (c: string, i = 1, o: THREE.MeshStandardMaterialParameters = {}) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, flatShading: true, ...o });
@@ -75,6 +75,8 @@ const ZB = -1.22; // back strip centre
 const XB = -1.84;
 const XT = -1.58;
 const XM = XT + 0.2;
+/** Mid-range target row (base band and up). */
+const MID = -0.45;
 const XF = 1.0;
 const XI = 1.6;
 const XS = 1.74;
@@ -309,7 +311,7 @@ function stander(k: Kit, x: number, z: number, y: number, rotY: number, seed = 2
 // ------------------------------------------------------------------ shooters
 
 type Pose = 'prone' | 'kneel' | 'stand';
-interface Gear { uniform: string; helmet: string; ear?: string; vest?: string; gun?: string; tracer?: string }
+interface Gear { uniform: string; helmet: string; ear?: string; vest?: string; gun?: string; tracer?: string; /** x of a mid-range target row hit by the first shot */ mid?: number }
 
 /**
  * A Recruit on the firing line, facing the targets (-x). The upper body and
@@ -449,10 +451,14 @@ function shooter(k: Kit, lane: number, x: number, z: number, y: number, p: Pose,
     }
     // Tracer streaks to the target
     let tr = -1;
-    for (const s of SHOTS) if (c >= s && c < s + 0.035) tr = (c - s) / 0.035;
+    let end = XT + 0.05;
+    for (const s of SHOTS) if (c >= s && c < s + 0.035) {
+      tr = (c - s) / 0.035;
+      end = s === SHOTS[0] && gear.mid !== undefined ? gear.mid + 0.05 : XT + 0.05;
+    }
     if (tr >= 0) {
       tracer.visible = true;
-      tracer.position.set(muzzleX + (XT + 0.05 - muzzleX) * tr, gunY + 0.01 - tr * 0.06, z + (p === 'prone' ? -0.025 : -0.04));
+      tracer.position.set(muzzleX + (end - muzzleX) * tr, gunY + 0.01 - tr * 0.06, z + (p === 'prone' ? -0.025 : -0.04));
       tracer.scale.setScalar(1);
     } else {
       tracer.visible = false;
@@ -481,7 +487,7 @@ type TargetStyle = 'paper' | 'frame' | 'electronic' | 'rail' | 'led' | 'holo' | 
  * shakes when hit, falls flat and rises again on the lane cycle. A dust or
  * spark strike kicks up from the bullet catcher behind it.
  */
-function targets(k: Kit, n: number, y: number, style: TargetStyle, strike: string) {
+function targets(k: Kit, n: number, y: number, style: TargetStyle, strike: string | null, row = XT, hit = HIT, dustShots: number[] = SHOTS, size = 1.25) {
   const s = Math.min(1, laneW(n) / 0.33);
   for (let i = 0; i < n; i++) {
     const z = laneZ(i, n);
@@ -489,7 +495,8 @@ function targets(k: Kit, n: number, y: number, style: TargetStyle, strike: strin
     const face = new THREE.Group(); // everything that falls
     pivot.add(face);
     const carrier = new THREE.Group(); // rail carriers move along the lane
-    carrier.position.set(XT, y, z);
+    carrier.position.set(row, y, z);
+    carrier.scale.set(size, size, 1);
     carrier.add(pivot);
     k.add(carrier);
     const fy = style === 'paper' || style === 'frame' ? 0.05 : 0.09;
@@ -535,12 +542,14 @@ function targets(k: Kit, n: number, y: number, style: TargetStyle, strike: strin
       for (const m of [a, b, r]) m.castShadow = false;
     }
     const hx = XB - 0.02;
-    const dust = part(k.group, new THREE.IcosahedronGeometry(0.05, 0), M(strike, { transparent: true, opacity: 0.9 }), hx, y + 0.25, z);
+    const dust = part(k.group, new THREE.IcosahedronGeometry(0.05, 0), M(strike ?? '#c9a36a', { transparent: true, opacity: 0.9 }), hx, y + 0.25, z);
     dust.castShadow = false;
+    dust.visible = false;
     const holo = style === 'holo' || style === 'gold';
     const rail = style === 'rail';
     k.anims.push((t) => {
-      const c = lc(t, i);
+      const raw = lc(t, i);
+      const c = (((raw - (hit - HIT)) % 1) + 1) % 1;
       const f = fallAt(c);
       if (holo) {
         // Holograms glitch and collapse instead of tipping over
@@ -558,11 +567,11 @@ function targets(k: Kit, n: number, y: number, style: TargetStyle, strike: strin
         else if (c < 0.56) u = 1;
         else if (c < 0.84) u = 1 - smooth((c - 0.56) / 0.28);
         else u = 0;
-        carrier.position.x = XT + 0.62 * u;
+        carrier.position.x = row + 0.62 * u;
       }
       // Strike on the berm for each shot
       let d = -1;
-      for (const sh of SHOTS) if (c >= sh + 0.03 && c < sh + 0.13) d = (c - sh - 0.03) / 0.1;
+      if (strike) for (const sh of dustShots) if (raw >= sh + 0.03 && raw < sh + 0.13) d = (raw - sh - 0.03) / 0.1;
       if (d >= 0) {
         dust.visible = true;
         dust.position.set(hx + d * 0.08, y + 0.28 + d * 0.2, z + (i % 2 ? 0.04 : -0.04));
@@ -577,10 +586,10 @@ function targets(k: Kit, n: number, y: number, style: TargetStyle, strike: strin
 }
 
 /** Low mantlet across all lanes in front of the targets, hiding the mechanisms; returns its top. */
-function mantlet(k: Kit, y: number, color: string, h = 0.12, band: string | null = null) {
+function mantlet(k: Kit, y: number, color: string, h = 0.12, band: string | null = null, x = XM) {
   const len = Z1 - Z0 + 0.04;
-  k.box(0.14, h, len, color, XM, y, (Z0 + Z1) / 2);
-  if (band) for (let i = 0; i < 10; i++) k.box(0.145, 0.04, len / 10, i % 2 ? C.kerbB : band, XM, y + h - 0.05, Z0 - 0.02 + (len / 10) * (i + 0.5));
+  k.box(0.14, h, len, color, x, y, (Z0 + Z1) / 2);
+  if (band) for (let i = 0; i < 10; i++) k.box(0.145, 0.04, len / 10, i % 2 ? C.kerbB : band, x, y + h - 0.05, Z0 - 0.02 + (len / 10) * (i + 0.5));
   return y + h;
 }
 
@@ -597,8 +606,8 @@ const FLOOR: Record<Floor, [string, string, string]> = {
   grass: ['#86c24e', '#76b443', '#ffffff'],
   turf: ['#5aa33a', '#4f9533', '#ffffff'],
   teal: ['#4f9ba3', '#468d95', '#ffffff'],
-  slate: ['#4d555b', '#434a50', CYAN],
-  gold: ['#4d555b', '#434a50', GOLD],
+  slate: ['#7a8288', '#6e767c', CYAN],
+  gold: ['#7a8288', '#6e767c', GOLD],
 };
 
 function laneFloor(k: Kit, y: number, n: number, f: Floor) {
@@ -607,8 +616,13 @@ function laneFloor(k: Kit, y: number, n: number, f: Floor) {
   const w = laneW(n);
   for (let i = 0; i < n; i++) k.box(x1 - x0, 0.016, w, i % 2 ? b : a, (x0 + x1) / 2, y, laneZ(i, n));
   if (f === 'dirt') {
-    // Lime-washed lane lines pegged out with string
+    // Lime-washed lane lines pegged out with string, grass tufts in the dirt
     for (let i = 0; i <= n; i++) k.box(x1 - x0, 0.02, 0.025, line, (x0 + x1) / 2, y, Z0 + w * i);
+    const tuft = new THREE.ConeGeometry(0.05, 0.1, 5);
+    for (let j = 0; j < 22; j++) {
+      const tx = XB + 0.35 + ((j * 0.618) % 1) * 2.4, tz = Z0 + 0.08 + ((j * 0.377 + 0.21) % 1) * (Z1 - Z0 - 0.16);
+      part(k.group, tuft, mat(j % 3 ? '#6f9e3a' : '#8fb84a'), tx, y + 0.05, tz).scale.set(1, 0.7 + (j % 4) * 0.2, 1);
+    }
   } else {
     for (let i = 0; i <= n; i++) {
       const lm = f === 'slate' ? glow(CYAN, 0.9) : f === 'gold' ? M(GOLD, { metalness: 0.4, roughness: 0.4 }) : mat(line);
@@ -618,7 +632,6 @@ function laneFloor(k: Kit, y: number, n: number, f: Floor) {
       k.group.add(m);
     }
     // Distance bars across the lanes
-    for (const dx of [-0.9, 0.0]) k.box(0.03, 0.02, Z1 - Z0, line === CYAN ? '#7fe3ff' : line, dx, y, (Z0 + Z1) / 2);
   }
   // Firing line in red
   k.box(0.05, 0.024, Z1 - Z0, RED, XF - 0.42, y, (Z0 + Z1) / 2);
@@ -629,7 +642,7 @@ function laneFloor(k: Kit, y: number, n: number, f: Floor) {
 
 /** Straw-bale wall stacked in courses (Lv 1 berm and later side walls). */
 function bales(k: Kit, x: number, y: number, z0: number, z1: number, rows: number, deep = 2) {
-  const bw = 0.24, bh = 0.15, bl = 0.34;
+  const bw = 0.26, bh = 0.15, bl = 0.36;
   for (let r = 0; r < rows; r++) {
     const off = (r % 2) * bl * 0.5;
     const n = Math.floor((z1 - z0 - off) / bl);
@@ -653,7 +666,7 @@ function earthBerm(k: Kit, y: number, h: number, top: string, face: string, x0 =
 }
 
 /** Concrete-faced berm: a vertical retaining wall with a rubber bullet trap, grass bank behind. */
-function concreteBerm(k: Kit, y: number, h: number, face = CONCRETE, trap = '#3a3d40', top = GRASS) {
+function concreteBerm(k: Kit, y: number, h: number, face = CONCRETE, trap = '#8a6a4a', top = GRASS) {
   const len = Z1 - Z0 + 0.3;
   const zc = (Z0 + Z1) / 2;
   prism(k, [[-2.44, 0], [XB - 0.12, 0], [XB - 0.12, h], [-2.38, h + 0.05]], len, EARTH_D, 0, y, zc);
@@ -694,22 +707,25 @@ function campTower(k: Kit, y: number) {
   return fy;
 }
 
-/** Concrete control tower (base band) with a glazed cab; `storeys` of shaft below the cab. Returns roof top. */
-function concreteTower(k: Kit, y: number, storeys: number, roof: string | null = null) {
+/** Concrete control tower (base band) with a glazed cab; `storeys` of shaft below the cab, `wide` cab overhang. Returns roof top. */
+function concreteTower(k: Kit, y: number, storeys: number, roof: string | null = null, wide = 0) {
   const sh = storeys * STOREY;
   k.box(TW - 0.08, sh, TD - 0.08, CONCRETE, TX, y, TZ);
-  for (let f = 0; f < storeys; f++) k.box(TW - 0.04, 0.05, TD - 0.04, C.trim, TX, y + f * STOREY, TZ);
-  for (let f = 0; f < storeys; f++) k.box(0.03, 0.28, 0.26, DARK_GLASS, TX + (TW - 0.08) / 2 + 0.01, y + f * STOREY + 0.36, TZ);
+  for (let f = 0; f < Math.floor(storeys); f++) {
+    k.box(TW - 0.04, 0.05, TD - 0.04, C.trim, TX, y + f * STOREY, TZ);
+    if (f > 0 || storeys < 1.5) k.box(0.03, 0.26, 0.26, DARK_GLASS, TX + (TW - 0.08) / 2 + 0.01, y + f * STOREY + 0.38, TZ);
+  }
   k.door('front', TX, TZ, TW - 0.08, TD - 0.08, 0, y, 0.26, 0.56, '#4a4f54');
   const cy = y + sh;
-  k.box(TW + 0.16, 0.07, TD + 0.16, CONCRETE, TX, cy, TZ);
-  k.box(TW + 0.04, 0.5, TD + 0.04, '#86b7cc', TX, cy + 0.07, TZ);
-  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.05, 0.5, 0.05, C.trim, TX + dx * (TW / 2 + 0.02), cy + 0.07, TZ + dz * (TD / 2 + 0.02));
+  const cw = TW + wide, cd = TD + wide, cx = TX - wide / 2, cz = TZ + wide / 2;
+  k.box(cw + 0.16, 0.07, cd + 0.16, CONCRETE, cx, cy, cz);
+  k.box(cw + 0.04, 0.5, cd + 0.04, '#86b7cc', cx, cy + 0.07, cz);
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) k.box(0.05, 0.5, 0.05, C.trim, cx + dx * (cw / 2 + 0.02), cy + 0.07, cz + dz * (cd / 2 + 0.02));
   const ry = cy + 0.57;
-  if (roof) k.hipRoof(TW + 0.06, TD + 0.06, 0.3, TX, ry + 0.06, TZ, roof, 0.16);
-  k.box(TW + 0.3, 0.08, TD + 0.3, C.white, TX, ry, TZ);
-  stander(k, TX - 0.12, TZ + 0.08, cy + 0.07, Math.PI * 0.9, 5, null, true);
-  return ry + 0.08;
+  k.box(cw + 0.3, 0.08, cd + 0.3, C.white, cx, ry, cz);
+  if (roof) k.hipRoof(cw + 0.06, cd + 0.06, 0.3, cx, ry + 0.08, cz, roof, 0.14);
+  stander(k, cx - 0.12, cz + 0.08, cy + 0.07, Math.PI * 0.9, 5, null, true);
+  return ry + (roof ? 0.38 : 0.08);
 }
 
 /** Camp firing shelter: cream hut with a veranda roof over the range-officer walk. */
@@ -820,11 +836,11 @@ function commandHall(k: Kit, y: number, z0: number, z1: number, h = STOREY * 1.3
 }
 
 /** Overhead baffle portal across all lanes: posts at the sides, angled deflector slat on top. */
-function baffle(k: Kit, x: number, y: number, h: number, frame: string, slat: string, band: string | null = null) {
+function baffle(k: Kit, x: number, y: number, h: number, frame: string, slat: string, band: string | null = null, sw = 0.34) {
   const z0 = Z0 - 0.06, z1 = Z1 + 0.06;
   for (const z of [z0, z1]) k.box(0.1, h, 0.1, frame, x, y, z);
   k.box(0.12, 0.08, z1 - z0 + 0.1, frame, x, y + h, (z0 + z1) / 2);
-  const s = k.box(0.34, 0.05, z1 - z0, slat, x + 0.04, y + h - 0.12, (z0 + z1) / 2);
+  const s = k.box(sw, 0.05, z1 - z0, slat, x + 0.04, y + h - 0.12, (z0 + z1) / 2);
   s.rotation.z = 0.5;
   if (band) k.box(0.13, 0.04, z1 - z0 + 0.12, band, x, y + h + 0.08, (z0 + z1) / 2);
 }
@@ -955,7 +971,7 @@ function field(k: Kit, level: number, y: number) {
     // Bale Range: a wall of straw bales stops the rounds; paper targets on timber frames
     bales(k, XB - 0.12, y, Z0 - 0.1, Z1 + 0.1, 3, 2);
     for (let i = 0; i < n; i++) k.box(0.16, 0.08, 0.28, EARTH, XM, fy, laneZ(i, n)); // earth mound hides the hinge
-    targets(k, n, fy, 'paper', '#c9a36a');
+    targets(k, n, fy, 'paper', '#c9a36a', XT, HIT, SHOTS, 1.45);
     firingLine(k, n, fy, ['prone'], FIELD_GEAR, '#4b5a3a');
     rangeFlag(k, -2.2, Z1 + 0.05, y + 0.45, 1.3, 0.48, '#c9a36a');
     ammoPile(k, 2.05, Z0 + 0.25, y);
@@ -974,7 +990,7 @@ function field(k: Kit, level: number, y: number) {
     earthBerm(k, y, 0.62, '#7aa64a', EARTH, -2.44, XB + 0.05);
     bales(k, XB + 0.12, y, Z0 - 0.05, Z1 + 0.05, 1, 1);
     for (let i = 0; i < n; i++) k.box(0.16, 0.1, 0.3, EARTH, XM, fy, laneZ(i, n));
-    targets(k, n, fy, 'paper', '#b98a5a');
+    targets(k, n, fy, 'paper', '#b98a5a', XT, HIT, SHOTS, 1.45);
     firingLine(k, n, fy, ['prone'], FIELD_GEAR, '#4b5a3a');
     // Canvas fly on timber poles
     const ax0 = 1.74, ax1 = 2.42, az0 = -1.3, az1 = 1.36;
@@ -1002,7 +1018,7 @@ function field(k: Kit, level: number, y: number) {
   earthBerm(k, y, 0.78, GRASS, EARTH, -2.44, XB + 0.04);
   for (let i = 0; i < 9; i++) k.box(0.04, 0.5, (Z1 - Z0 + 0.3) / 9 - 0.02, TIMBER, XB + 0.04 - 0.15, y, Z0 - 0.15 + ((Z1 - Z0 + 0.3) / 9) * (i + 0.5));
   k.sandbags(XM, (Z0 + Z1) / 2, Z1 - Z0, Math.PI / 2, fy, 2);
-  targets(k, n, fy, 'paper', '#b98a5a');
+  targets(k, n, fy, 'paper', '#b98a5a', XT, HIT, SHOTS, 1.45);
   laneNumbers(k, n, fy + 0.2, '#efe6cc');
   firingLine(k, n, fy, ['prone', 'kneel'], FIELD_GEAR, '#4b5a3a');
   for (let i = 1; i < n; i++) k.sandbags(XF + 0.15, Z0 + laneW(n) * i, 0.6, 0, fy, 2);
@@ -1036,7 +1052,7 @@ function camp(k: Kit, level: number, y: number) {
   // Concrete kerb along the berm foot, with a sand trap strip
   k.box(0.12, 0.1, Z1 - Z0 + 0.3, C.concrete, XB + 0.06, y, (Z0 + Z1) / 2);
   const mt = mantlet(k, fy, level === 6 ? C.wall : CONCRETE, level === 6 ? 0.2 : 0.13, HAZ);
-  targets(k, n, fy, 'frame', '#b98a5a');
+  targets(k, n, fy, 'frame', '#b98a5a', XT, HIT, SHOTS, 1.4);
   laneNumbers(k, n, mt);
   // Concrete firing apron
   k.box(0.9, 0.025, Z1 - Z0, '#cfc9bc', XF + 0.2, fy, (Z0 + Z1) / 2);
@@ -1084,12 +1100,15 @@ function base(k: Kit, level: number, y: number) {
   const bh = level <= 8 ? 1.05 : 1.15;
   const bt = concreteBerm(k, y, bh);
   const mt = mantlet(k, fy, CONCRETE, 0.14, HAZ);
-  targets(k, n, fy, 'electronic', '#9a8f80');
+  targets(k, n, fy, 'electronic', '#9a8f80', XT, HIT, [HIT]);
   laneNumbers(k, n, mt);
+  // Mid-range row of pop-ups, hit by the first shot
+  mantlet(k, fy, CONCRETE, 0.1, HAZ, MID + 0.2);
+  targets(k, n, fy, 'electronic', null, MID, SHOTS[0], [], 1.0);
   k.box(0.95, 0.04, Z1 - Z0, '#d6d1c6', XF + 0.2, fy, (Z0 + Z1) / 2);
   // Low booth dividers between lanes on the firing point
   for (let i = 1; i < n; i++) k.box(0.4, 0.3, 0.03, '#e8e6e0', XF + 0.38, fy + 0.04, Z0 + laneW(n) * i);
-  firingLine(k, n, fy + 0.04, ['prone', 'kneel', 'stand'], BASE_GEAR);
+  firingLine(k, n, fy + 0.04, ['prone', 'kneel', 'stand'], { ...BASE_GEAR, mid: MID });
   rangeOfficer(k, fy, '#f26b1d', '#7a1f1f');
   rangeFlag(k, -2.25, Z1 + 0.05, bt, 1.5, 0.55);
   dangerBoard(k, 1.3, 1.4, y, 0.4);
@@ -1102,7 +1121,7 @@ function base(k: Kit, level: number, y: number) {
     board(k, 'RANGE COMPLEX', 1.0, 0.18, 2.44, y + STOREY + 0.32, 0.4, C.trim, '#ffffff', Math.PI / 2, 40);
   }
   // Tower: a two-storey concrete lookout, raised to a three-storey control tower at Lv 9
-  const top = concreteTower(k, y, level >= 9 ? 2 : 1, level >= 9 ? C.roof : null);
+  const top = concreteTower(k, y, level >= 9 ? 1.4 : 1.32, level >= 9 ? C.roof : null, level >= 9 ? 0.3 : 0);
   rangeFlag(k, TX + 0.24, TZ - 0.2, top, 0.9, 0.55);
   if (level >= 9) k.antenna(TX - 0.2, top + 0.3, TZ - 0.15, 0.7);
   if (level === 7) {
@@ -1139,7 +1158,9 @@ function command(k: Kit, level: number, y: number) {
     p.rotation.z = 0.5;
   }
   const mt = mantlet(k, fy, '#eeefe9', 0.15, TEAL);
-  targets(k, n, fy, level >= 12 ? 'rail' : 'electronic', '#c9c4b9');
+  targets(k, n, fy, level >= 12 ? 'rail' : 'electronic', '#c9c4b9', XT, HIT, [HIT]);
+  mantlet(k, fy, '#eeefe9', 0.1, TEAL, MID + 0.2);
+  targets(k, n, fy, 'electronic', null, MID, SHOTS[0], [], 1.0);
   if (level >= 12) for (let i = 0; i < n; i++) for (const dz of [-0.06, 0.06]) k.box(0.8, 0.02, 0.02, '#33383d', XT + 0.33, fy, laneZ(i, n) + dz);
   laneNumbers(k, n, mt, TEAL, '#ffffff');
   k.box(0.95, 0.04, Z1 - Z0, '#e8e6e0', XF + 0.2, fy, (Z0 + Z1) / 2);
@@ -1147,12 +1168,12 @@ function command(k: Kit, level: number, y: number) {
     k.box(0.42, 0.42, 0.025, '#bfe6f2', XF + 0.36, fy + 0.04, Z0 + laneW(n) * i);
     k.box(0.44, 0.03, 0.03, TEAL, XF + 0.36, fy + 0.46, Z0 + laneW(n) * i);
   }
-  firingLine(k, n, fy + 0.04, ['stand', 'kneel', 'prone'], CMD_GEAR);
+  firingLine(k, n, fy + 0.04, ['stand', 'kneel', 'prone'], { ...CMD_GEAR, mid: MID });
   rangeOfficer(k, fy, '#2bb3a3', '#7a1f1f');
   rangeFlag(k, -2.25, Z1 + 0.05, bt, 1.5, 0.55);
   // Hall over the firing point and a white tower
-  const ht = commandHall(k, y, TZ + TD / 2 + 0.04, 1.42, STOREY * (level >= 13 ? 1.45 : 1.3));
-  const tt = commandTower(k, y, level >= 15 ? STOREY * 2.2 : STOREY * 1.6, level >= 15);
+  const ht = commandHall(k, y, TZ + TD / 2 + 0.04, 1.42, STOREY * 2);
+  const tt = commandTower(k, y, STOREY * (level >= 15 ? 2.2 : 2.0), level >= 15);
   rangeFlag(k, TX + 0.26, TZ - 0.22, tt, 0.7, 0.5);
   if (level === 11 || level === 12) {
     // Baffle Range: overhead white baffles stop any round leaving the range
@@ -1161,7 +1182,7 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level >= 12) {
     // Glass control room on the hall roof overlooking the lanes
-    if (level === 12) glassRoom(k, 2.1, ht, 0.35, 0.56, 0.48, 1.6, C.roofGreen, TEAL);
+    if (level === 12) glassRoom(k, 2.12, ht, 0.35, 0.6, 0.42, 1.7, C.roofGreen, TEAL);
   }
   if (level >= 13) {
     // Indoor Range: continuous baffled roof over the lanes and a tall white back wall
@@ -1170,7 +1191,7 @@ function command(k: Kit, level: number, y: number) {
     if (level === 13) {
       k.box(wx1 - wx0, 1.25, 0.12, '#f2f1ec', (wx0 + wx1) / 2, y, Z0 - 0.1);
       k.box(wx1 - wx0, 0.06, 0.14, TEAL, (wx0 + wx1) / 2, y + 1.0, Z0 - 0.1);
-      glassRoom(k, 2.1, ht, 0.35, 0.56, 0.48, 1.6, C.roofGreen, TEAL);
+      glassRoom(k, 2.12, ht, 0.35, 0.6, 0.42, 1.7, C.roofGreen, TEAL);
     } else {
       // 14+: two-storey glass viewing gallery along the whole back of the range
       const gd = 0.4, gz = Z0 - 0.04 - gd / 2;
@@ -1179,7 +1200,7 @@ function command(k: Kit, level: number, y: number) {
       // Mullions across the long face
       for (let x = wx0 + 0.25; x < wx1; x += 0.35) k.box(0.03, 0.75, gd + 0.02, C.trim, x, y + STOREY * 0.9, gz);
       for (let i = 0; i < 4; i++) stander(k, wx0 + 0.6 + i * 0.75, gz + 0.06, y + STOREY * 0.9, -Math.PI / 2, 20 + i);
-      glassRoom(k, 2.1, ht, 0.35, 0.56, 0.48, 1.6, C.roofGreen, TEAL);
+      glassRoom(k, 2.12, ht, 0.35, 0.6, 0.42, 1.7, C.roofGreen, TEAL);
     }
   }
   if (level === 15) {
@@ -1230,39 +1251,44 @@ function secure(k: Kit, level: number, y: number) {
     k.box(0.18, 0.08, sw + 0.16, band, XB - 0.22, y + bh + sh + 0.06, (Z0 + Z1) / 2);
   } else bt = armourBerm(k, y, bh, band);
   const mt = mantlet(k, fy, STEEL, 0.16, band);
-  targets(k, n, fy, level === 16 ? 'led' : gold ? 'gold' : 'holo', '#ffcf6a');
+  const ts: TargetStyle = level === 16 ? 'led' : gold ? 'gold' : 'holo';
+  targets(k, n, fy, ts, '#ffcf6a', XT, HIT, [HIT]);
+  mantlet(k, fy, STEEL, 0.1, band, MID + 0.2);
+  targets(k, n, fy, ts, null, MID, SHOTS[0], [], 1.0);
   laneNumbers(k, n, mt, '#1f2428', gold ? GOLD : CYAN);
   k.box(0.95, 0.04, Z1 - Z0, '#5c656b', XF + 0.2, fy, (Z0 + Z1) / 2);
   for (let i = 1; i < n; i++) {
     k.box(0.44, 0.46, 0.035, STEEL, XF + 0.36, fy + 0.04, Z0 + laneW(n) * i);
     k.box(0.45, 0.025, 0.04, gold ? GOLD : CYAN, XF + 0.36, fy + 0.5, Z0 + laneW(n) * i);
   }
-  firingLine(k, n, fy + 0.04, ['stand', 'kneel', 'prone'], { ...SEC_GEAR, ear: gold ? GOLD : SEC_GEAR.ear });
+  firingLine(k, n, fy + 0.04, ['stand', 'kneel', 'prone'], { ...SEC_GEAR, ear: gold ? GOLD : SEC_GEAR.ear, mid: MID });
   rangeOfficer(k, fy, '#f26b1d', '#1f2428');
   rangeFlag(k, -2.28, Z1 + 0.05, bt + 0.05, 1.5, 0.55, gold ? GOLD : C.white);
   // Bunker firing point and armoured tower
-  const ht = bunker(k, y, TZ + TD / 2 + 0.04, 1.42, STOREY * (level >= 18 ? 1.5 : 1.35), gold);
-  const tt = secureTower(k, y, STOREY * (level >= 17 ? 1.6 : 1.35), gold);
+  const ht = bunker(k, y, TZ + TD / 2 + 0.04, 1.42, STOREY * 2.25, gold);
+  const tt = secureTower(k, y, STOREY * (level >= 17 ? 2.05 : 1.9), gold);
   rangeFlag(k, TX + 0.28, TZ - 0.24, tt, 0.7, 0.5, gold ? GOLD : C.white);
   const wx0 = XB + 0.05, wx1 = TX - TW / 2 - 0.05;
   if (level === 16 || level === 17) {
-    // Armoured steel baffle portals with hazard bands
-    for (const x of [-1.0, -0.1, 0.75]) baffle(k, x, y, 1.4, STEEL, STEEL_D, band);
+    // Hardened Range: a dense row of armoured steel baffles with hazard bands
+    for (let i = 0; i < 6; i++) baffle(k, -1.35 + i * 0.5, y, 1.4, STEEL, STEEL_D, band, 0.44);
     armourWall(k, y, wx0, wx1, level === 16 ? 0.6 : 0.75, band);
   } else {
-    // 18+: Armoured hall: continuous dark louvred roof, tall armour wall with sensor pods
+    // 18+: Armoured hall: continuous louvred roof, tall armour wall with sensor pods
     louvreRoof(k, y, -1.65, XS - 0.05, 1.5, STEEL, STEEL_D, 0.36);
     armourWall(k, y, wx0, wx1, 1.3, band);
     for (let x = wx0 + 0.4; x < wx1; x += 0.9) {
       const pod = part(k.group, new THREE.SphereGeometry(0.06, 8, 6), glow(gold ? '#ffd86a' : CYAN, 1), x, y + 1.42, Z0 - 0.1);
       pod.castShadow = false;
     }
-    // Armoured control pod on the bunker roof
-    k.box(0.5, 0.42, 1.4, STEEL, 2.12, ht, 0.4);
-    k.box(0.02, 0.12, 1.2, '#1f2a2e', 1.86, ht + 0.22, 0.4);
-    const ps = part(k.group, new THREE.BoxGeometry(0.02, 0.03, 1.2), glow(gold ? '#ffd86a' : CYAN, 1.3), 1.86, ht + 0.12, 0.4);
+  }
+  if (level >= 17) {
+    // Armoured control pod with a sensor visor on the bunker roof
+    k.box(0.5, 0.36, 1.5, STEEL, 2.14, ht, 0.35);
+    k.box(0.02, 0.12, 1.3, '#1f2a2e', 1.88, ht + 0.22, 0.35);
+    const ps = part(k.group, new THREE.BoxGeometry(0.02, 0.03, 1.3), glow(gold ? '#ffd86a' : CYAN, 1.3), 1.88, ht + 0.12, 0.35);
     ps.castShadow = false;
-    k.box(0.56, 0.06, 1.46, gold ? GOLD : STEEL_D, 2.12, ht + 0.42, 0.4);
+    k.box(0.56, 0.06, 1.56, gold ? GOLD : STEEL_D, 2.14, ht + 0.36, 0.35);
   }
   if (level >= 17) {
     // Smart range: sensor masts track every shot
