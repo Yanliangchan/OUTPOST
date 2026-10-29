@@ -1634,7 +1634,7 @@ function build(level: number): Kit {
       disc(k, 0.5, 0.32, '#3a3f45', 0, 0, 0, 16, Y);
       ring(k, 0.49, 0.52, 0.06, 0.24, HAZ, 0, 0, 'wall', 16, Y);
       k.box(0.36, 0.4, 0.62, '#2a2e33', -0.22, 0.2, 0, Y);
-      barrels(k, rig, { len: 1.1, r: 0.13, color: '#3a3f45', band: HAZ, bands: 2, lip: '#2a2e33' }, 4, 'square');
+      barrels(k, rig, { len: 1.18, r: 0.145, color: '#7a838c', band: HAZ, bands: 2, lip: '#2a2e33' }, 4, 'square');
       crewLoader(k, rig, rig.tubes[3], SEC, 30, 'dark');
       registerRig(k, rig, level, 18);
       acousticMast(k, 1.25, -1.25, fl, 1.3);

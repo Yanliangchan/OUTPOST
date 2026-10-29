@@ -16,7 +16,7 @@ export const RELEASE_MAX_LEVEL = 10;
 - **Theme by band, identity by building:** the band sets the shared theme (materials, colours, era). Each building keeps its own signature at every level: **HQ** has flags, clock, command tower and antennas; **Bunk** has rows of rooms, corridors or balconies and laundry; **Cookhouse** has chimneys or steam stacks, dining tables, umbrellas and canopies; **QM Store** has crates and pallets, a forklift and a loading dock or roller shutter; **Workshop** has workbenches, a vehicle on a lift or hoist, oil drums and welding sparks.
 - **No shared concepts:** no two buildings use the same idea at the same level. Check with the compare view: open the game with `?showcase=11-15` or `?showcase=16-20` (all buildings side by side, one row per level); add `&only=admin,parade,…` to compare a subset.
 - **Every step is an upgrade:** height rises level by level until it reaches the building's cap (**HQ 5 storeys, Bunk 4.5, Cookhouse 3.5, QM Store 3.5; the other buildings stay at or under 4, and the Parade Square stays mostly flat at about 2**), then holds while coverage and detail keep growing. Checked by measurement: open the browser console and run `__outpost.metrics()` to get the height, peak, coverage and detail of every level. A level fails if height drops by more than half a storey or presence (height × coverage) drops by more than 15%.
-- **Every building is alive:** each has a signature "working" micro-animation at every level, like the Clash of Clans gold-mine cart (see the table below). Each building also gets a random timing offset so a base never moves in lockstep. Checked with `__outpost.animCheck()`, which counts moving parts per level; every level has at least one, on top of flags, blinking lights, steam and sparks. **Walls are the one exception:** a base holds hundreds of wall pieces, so they stay static and low-poly for performance.
+- **Every building is alive:** each has a signature "working" micro-animation at every level, like the Clash of Clans gold-mine cart (see the table below). Each building also gets a random timing offset so a base never moves in lockstep. Checked with `__outpost.animCheck()`, which counts moving parts per level; every level has at least one, on top of flags, blinking lights, steam and sparks. **Walls are the one exception:** a base holds hundreds of wall pieces, so they stay static and low-poly for performance. They're also exempt from the height/presence metric: see-through fence levels (chain-link, mesh, laser) are deliberately thin, so the progression is judged visually.
 - **Defences idle now, fight later:** every defence's weapon is built on a shared combat rig (`src/buildings/turret.ts`). With no target it runs an idle scan (sweeping, sentries looking round); once the Raids phase hands it a target it slews, aims and fires with muzzle flash and recoil, and reports each shot so the combat layer can spawn projectiles and apply damage. Preview it with `?showcase=<id>&combat` (raiders on foot and drones circle each defence).
 - **Walls are placed tile by tile:** each 1×1 piece is a post plus half-segments toward its neighbouring wall tiles, so runs, corners and T-junctions join up automatically (Clash of Clans style).
 - **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
@@ -40,6 +40,11 @@ export const RELEASE_MAX_LEVEL = 10;
 | **Motor Pool** | Vehicles pull out of their bays and reverse back in (wheels turning); boom barriers lift at dispatch huts; fuel hoses sway; wash-bay brushes spin with spray; tow-truck beacon flashes; camo net breathes; turntable rotates; blast doors slide; stacker lift rises; LED gantry flashes; pods circle the guideway; a jeep laps the rotunda | |
 | **Parade Square** | Squads of Recruits march in step around the square (legs and arms swing, leader out front); drill instructor paces and points; flags raised, held and lowered; drummers beat; crowds bob and cheer | Bunting sways, sprinklers spray, scoreboard and mast lights blink, LED screens and grid floor cycle colours |
 | **Guardhouse** | Barrier lifts (pole, boom, swing gates, bollards, wedge, portcullis) for a vehicle that drives up, waits and passes through; the sentry walks out, checks the pass and salutes; searchlights sweep; siren turns; inspector checks under the truck; X-ray gantry glides; turnstiles and speed gates let visitors through; lasers pulse | Traffic lights switch red/green with the barrier; lanterns sway; camo net breathes |
+| **Sentry Tower** | Sentry scans the horizon and raises binoculars; GPMG gunner and remote weapon stations sweep, then slew, aim and fire with muzzle flash and recoil; ammo bucket hauled on a pulley; runners carry ammo up stairs; recruits climb ladders; spotters raise binoculars; loader feeds the belt; lift car travels; EO and thermal sensor heads pan; tethered drone lifts off and lands; blast doors slide and rise; camera ring circles | Ammo belts, lanterns, canteens, bells and banners sway; tarp valances and camo-net edges stir; beacons rotate; anemometers, aircon fans and the wind turbine spin; CCTV pans; sensor ring pulses |
+| **Mortar Pit** | Loader lifts a bomb, drops it down the muzzle, ducks with his hands over his ears and turns for the next round; the barrel traverses slowly and in a raid slews, fires (flash, recoil) and lobs the bomb; spotters raise binoculars and point; bearers carry rounds; shed door swings; blast door slides; rangefinder traverses; davit swings and lowers a crate; magazine drum steps round; turntable turns; casemate hatch doors slide; drone hovers with spinning rotors; sensor heads and acoustic masts turn | Pennants and range flags wave; camo net breathes; lantern and alarm bell swing; anemometer spins; weather balloon bobs; teal, red and gold lamps pulse; beacons spin; CCTV pans |
+| **Searchlight** | Beams sweep the sky and ground (figure-eights, ground sweeps, circles, sector steps), then slew onto a raider and hold; the lens flares on every lock pulse; the laser dazzler strikes; iris and louvre shutters blink signals; LED arrays shimmer; halo and crown rings turn | Generators shake, spin their fans and puff exhaust; operators raise binoculars, crank, point and check tablets; cable reels wind; extractor and roof fans spin; beacons turn; tarp, lantern and pennants sway; sentry patrols; sensor balls and cameras pan |
+| **Artillery Emplacement** | Gun lays onto a new bearing and elevation every few seconds; in a raid it slews round, fires with a muzzle flash and the barrel recoils on its cradle; the loader fetches a round, the rammer rams it, the layer pulls the lanyard and the empty brass case drops out (Lv 1–9); ammunition bearers and shell trolleys shuttle rounds; gantry hoist, deck hoists and lift cages carry rounds; range-finders, EO sensors and spotters scan; loading arm, conveyors, carousels and drones in the Command/Secure bands | Camo nets breathe, lanterns and signal flags swing, handwheels and anemometers spin, blast doors slide, CCTV pans, beacons blink |
+| **Air Defence** | Search radars turn (Yagi, bedspring, truss, planar, AESA; turret-borne radars spin on the moving turret); guns sweep the sky with barrels raised and in combat slew, elevate and fire alternating barrels with recoil; tracking dishes elevate with the guns; missiles vanish on launch and reload up their tubes; armour lids, clamshell doors and sliding hatches open and shut as the launcher raises and stows; loaders carry ammo and feed clips, gunners turn handwheels, spotters and commanders scan with binoculars; ammo hoist, shell conveyor and reload crane cycle; phased-array scan bars sweep | Windsock sways, canvas flap swings, camo net breathes, generator and cooling fans spin and exhaust smokes, aircon fans, beacons and status LEDs blink, flags wave |
 | **Secure band (16–20)** | Boom gate lifts to let vehicles in; CCTV cameras pan | |
 
 ## Roster and build order
@@ -62,11 +67,11 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 12 | **Parade Square** | 6×6 | 5 | Fall-in events; Cohesion | ✅ 20/20 designed |
 | 13 | **Guardhouse** | 3×2 | 6 | Entrance; first line of defence; spots raiders | ✅ 20/20 designed |
 | 14 | **Perimeter Wall** | 1×1 (tile by tile) | 6 | Holds raiders at the line; pieces join up | ✅ 20/20 designed |
-| 15 | Sentry Tower | 2×2 | 6 | Rifle/MG vs ground and air | in progress |
-| 16 | Mortar Pit | 3×3 | 8 | Splash vs ground, lobbed | in progress |
-| 17 | Searchlight | 2×2 | 9 | Locks on, reveals and slows raiders; boosts nearby defences | in progress |
-| 18 | Artillery Emplacement | 3×3 | 11 | Long-range heavy gun vs ground | in progress |
-| 19 | Air Defence | 3×3 | 13 | Flak and missiles vs air | in progress |
+| 15 | **Sentry Tower** | 2×2 | 6 | Rifle/MG vs ground and air | ✅ 20/20 designed |
+| 16 | **Mortar Pit** | 3×3 | 8 | Splash vs ground, lobbed | ✅ 20/20 designed |
+| 17 | **Searchlight** | 2×2 | 9 | Locks on, reveals and slows raiders; boosts nearby defences | ✅ 20/20 designed |
+| 18 | **Artillery Emplacement** | 3×3 | 11 | Long-range heavy gun vs ground | ✅ 20/20 designed |
+| 19 | **Air Defence** | 3×3 | 13 | Flak and missiles vs air | ✅ 20/20 designed |
 | — | Special plots: Boat Jetty (Cove), Adventure Training Centre (Lakeside), Signal Station (Ridge) | 9×9 sites | 8–9 | Late-game landmarks | planned |
 
 ---
@@ -861,3 +866,276 @@ Placed **tile by tile** like Clash of Clans walls: each 1×1 piece is a post plu
 | 20 | **Citadel Rampart:** thick concrete with a gold band, merlons and gold-capped glass posts |
 
 Review scene: open the game with `?showcase=wall` (each level shown as a short run with a corner at each end).
+
+# Sentry Tower: full specification
+
+The elevated lookout of the camp's defences: a raised post with a rifleman that fires on raiders on the ground and in the air. Every level keeps the same signature: height (a stand, platform or tower), a ladder or stairs up to it, and the weapon on top. The weapon grows with the bands: on Lv 1–4 it is a **sentry figure aiming a rifle** (the whole figure turns to track; when idle the sentry scans the horizon and now and then lowers the rifle to raise binoculars). On Lv 5–10 it is a **GPMG on a pintle with the gunner behind it**, and on Lv 11–20 a **remote weapon station** (twin MG turret with a glowing optics block). Footprint **2×2**, unlocked at **HQ 6**. Bulk rises from about 1 storey (Lv 1) to about 3.9 storeys (Lv 20); thin masts and pennants go a little higher.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | DPS | Range | Rate (shots/s) | Damage/shot | Weapon |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Lookout Stand | 6,000 | 250 | 1 h | 700 | 10.0 | 7.0 | 1.2 | 8.3 | Rifle |
+| 2 | Timber Lookout | 8,000 | 350 | 1.5 h | 840 | 11.8 | 7.1 | 1.2 | 9.8 | Rifle |
+| 3 | Stilt Lookout | 11,000 | 500 | 2 h | 1,010 | 13.9 | 7.3 | 1.2 | 11.6 | Rifle |
+| 4 | Sentry Post | 15,000 | 700 | 3 h | 1,210 | 16.4 | 7.4 | 1.2 | 13.7 | Rifle |
+| 5 | Gun Post | 20,000 | 950 | 4 h | 1,450 | 19.4 | 7.5 | 1.6 | 12.1 | GPMG |
+| 6 | Gun Tower | 27,000 | 1,250 | 5 h | 1,740 | 22.9 | 7.7 | 1.6 | 14.3 | GPMG |
+| 7 | Pillbox Tower | 36,000 | 1,600 | 7 h | 2,090 | 27.0 | 7.8 | 1.6 | 16.9 | GPMG |
+| 8 | Lattice Tower | 49,000 | 2,000 | 9 h | 2,510 | 31.9 | 7.9 | 1.6 | 19.9 | GPMG |
+| 9 | Bastion Tower | 66,000 | 2,500 | 12 h | 3,010 | 37.6 | 8.1 | 1.6 | 23.5 | GPMG |
+| 10 | Keep Tower | 89,000 | 3,100 | 16 h | 3,610 | 44.4 | 8.2 | 1.6 | 27.7 | GPMG |
+| 11 | Remote Gun Tower | 120,000 | 3,800 | 20 h | 4,330 | 52.3 | 8.3 | 2.2 | 23.8 | Twin MG RWS |
+| 12 | Lift Tower | 160,000 | 4,600 | 1 d | 5,200 | 61.8 | 8.4 | 2.2 | 28.1 | Twin MG RWS |
+| 13 | Sensor Mast Tower | 220,000 | 5,500 | 1.25 d | 6,240 | 72.9 | 8.6 | 2.2 | 33.1 | Twin MG RWS |
+| 14 | Cantilever Tower | 300,000 | 6,600 | 1.5 d | 7,490 | 86.0 | 8.7 | 2.2 | 39.1 | Twin MG RWS |
+| 15 | Terrace Tower | 400,000 | 7,900 | 2 d | 8,990 | 101.5 | 8.8 | 2.2 | 46.1 | Twin MG RWS |
+| 16 | Cupola Tower | 540,000 | 9,400 | 2.5 d | 10,780 | 119.7 | 9.0 | 2.2 | 54.4 | Twin MG RWS |
+| 17 | Armour Tower | 730,000 | 11,200 | 3 d | 12,940 | 141.3 | 9.1 | 2.2 | 64.2 | Twin MG RWS |
+| 18 | Drone Sentry | 980,000 | 13,300 | 4 d | 15,530 | 166.7 | 9.2 | 2.2 | 75.8 | Twin MG RWS |
+| 19 | Fortress Tower | 1,320,000 | 15,800 | 5 d | 18,640 | 196.7 | 9.4 | 2.2 | 89.4 | Twin MG RWS |
+| 20 | Citadel Sentry | 1,800,000 | 18,800 | 6 d | 22,360 | 232.1 | 9.5 | 2.2 | 105.5 | Twin MG RWS |
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Lookout Stand:** low four-log stand with a plank deck, sandbags on two sides and a leaning ladder; the **rifleman scans and raises binoculars**; crates, jerry cans, windsock, swinging lantern and canteen, a helmeted sentry pacing below |
+| 2 | **Timber Lookout:** taller square-timber stand with X-bracing, plank half-walls and a **ridge canvas tarp on guy ropes with flapping valances**; crates and drum under the deck, field telephone with a swinging handset |
+| 3 | **Stilt Lookout:** tapered log tower, sandbag parapet all round, zinc mono-pitch roof; a **rope pulley hauls an ammo bucket** up and down while a recruit pulls the rope; rifle on a bipod |
+| 4 | **Sentry Post:** first permanent: cream guard room with green door and louvred window, steel ladder to a railed roof deck under a red-brown hip pavilion with a pennant; **alarm bell swings**, aircon fan spins, scoped rifle |
+| 5 | **Gun Post:** deck on four cream columns with a cream parapet and red gable roof, sandbag bunker underneath; **GPMG on a pintle with its gunner** arrives; **a runner carries ammo up the front steel stair**, hand siren cranks |
+| 6 | **Gun Tower:** two-storey cream shaft with slit windows, cantilevered railed gun deck on brackets, **two-tier ventilated red roof** with louvred clerestory; GPMG with gun shield; **a recruit climbs the cage ladder**; lean-to ammo store |
+| 7 | **Pillbox Tower:** hexagonal concrete pillbox with firing slits, concrete stem with cage ladder, round slitted gun deck under a red hex canopy with a **rotating amber beacon**; **spotter with binoculars** on the pillbox roof |
+| 8 | **Lattice Tower:** olive steel lattice tower on hazard-striped footings, **a loader walks up the zig-zag stairs** inside, riveted armour-plate gun cab with steel roof, **spinning anemometer**, ammo container below |
+| 9 | **Bastion Tower:** battered concrete plinth, crenellated gun deck under a **camouflage-netted canopy with stirring edges**, separate stair tower with stepped windows linked by a bridge, CCTV; **kneeling loader feeds the belt** |
+| 10 | **Keep Tower:** concrete keep inside a sandbag-capped perimeter wall with gateway; corbelled gun deck crowned by **four round bartizans with red cone caps** around a central gun roof; shielded GPMG, **spotter with binoculars**, 'SENTRY TOWER' plaque *(release cap)* |
+| 11 | **Remote Gun Tower:** white podium and finned white shaft with a teal band; **first remote weapon station** (twin MG, glowing optics) on the roof; cantilevered glass operator pod with a green roof and **operator at the console** |
+| 12 | **Lift Tower:** open white frame with a **glass lift shaft and travelling lift car**, hexagonal glass gun pod with a green roof, operator inside |
+| 13 | **Sensor Mast Tower:** white tower with teal glass corners, roof garden, glazed balcony with an observer; **EO sensor ball on a tall mast pans and tilts**, anemometer; RWS with smoke dischargers |
+| 14 | **Cantilever Tower:** slim core carrying a wide glass-railed gun deck that overhangs the front on a steel truss; **sentry patrols the deck**; rooftop kiosk with a **spinning vertical-axis wind turbine** |
+| 15 | **Terrace Tower:** three stepped white tiers with green roof terraces, fins and teal glass, flag and planters; heavy RWS on top, spotter on a terrace, two CCTV cameras pan |
+| 16 | **Cupola Tower:** secure band: T-wall ring and hardened apron, concrete tower with a **sliding blast door**; **armoured dome turret** with twin barrels and a red periscope eye on a hazard-banded ring |
+| 17 | **Armour Tower:** shaft clad in battered dark armour plates behind a hesco ring; heavy RWS with smoke dischargers and a **separate thermal camera head that pans**; climber on the cage ladder, rotating red beacon |
+| 18 | **Drone Sentry:** hexagonal concrete tower on a grass berm with a **pulsing blue sensor ring**; cantilevered pad from which a **tethered recon drone lifts off, hovers and lands** |
+| 19 | **Fortress Tower:** wide armoured bunker base with vents and a **rising blast door**, massive armour-clad keep, **360° camera ring circling the parapet**, two flanking camera pods, runner on the stair |
+| 20 | **Citadel Sentry:** gold-banded concrete-and-armour citadel with teal glass, crest, gold-capped T-walls, **swaying green banners**, gold-trimmed heavy RWS, panning sensor head, amber beacon and flag |
+
+Review scene: open the game with `?showcase=sentrytower`.
+
+# Mortar Pit: full specification
+
+The Mortar Pit lobs splash-damage bombs at ground raiders (like the Clash of Clans mortar): slow, heavy, area damage with a 3-tile dead zone, so it pairs with point defences that cover the inner ring. **Signature at every level:** the weapon is the building. A fat, stubby cartoon barrel held at a fixed steep elevation (`lob` 1.0 rad; only the yaw tracks the target) fills about half the pad and sits in a dug-in pit whose ring changes material by tier, like Clash of Clans' wood → stone → iron → gold: earth → sandbags → logs → red brick → hazard-rimmed concrete → white and teal → dark armour → black and gold. Beside the muzzle a **loader on a step lifts a bomb, drops it down the barrel, then ducks with his hands over his ears**, on a loop. Barrel count and colour, the ring material and one large add-on silhouette (shed, stilt hut, dome, drum, turntable, hatch doors, drone tower) change at every level, so each level reads at game zoom. Footprint **3×3**; unlocked at HQ 8; bulk stays between 1.2 and 2.0 storeys (the barrel and one corner structure set the height; masts, flags and the drone go higher).
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Damage (splash) | Range | Splash radius | Min range | Reload |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Dirt Scrape | 25,000 | 1,200 | 3 h | 900 | 20 | 10 tiles | 1.5 tiles | 3 tiles | 4 s |
+| 2 | Sandbag Pit | 33,000 | 1,400 | 4 h | 1,080 | 24 | 10.1 tiles | 1.5 tiles | 3 tiles | 4 s |
+| 3 | Log-Revetted Pit | 44,000 | 1,600 | 5 h | 1,300 | 29 | 10.2 tiles | 1.5 tiles | 3 tiles | 4 s |
+| 4 | Brick Mortar Bay | 59,000 | 1,900 | 6 h | 1,560 | 35 | 10.3 tiles | 1.5 tiles | 3 tiles | 4 s |
+| 5 | Bay & Ammo Shed | 78,000 | 2,200 | 8 h | 1,870 | 41 | 10.4 tiles | 1.5 tiles | 3 tiles | 4 s |
+| 6 | Twin-Tube Bay | 100,000 | 2,500 | 10 h | 2,240 | 50 | 10.5 tiles | 1.6 tiles | 3 tiles | 4 s |
+| 7 | Concrete Pit | 140,000 | 2,900 | 12 h | 2,690 | 60 | 10.6 tiles | 1.6 tiles | 3 tiles | 4 s |
+| 8 | Heavy Mortar Pit | 180,000 | 3,400 | 15 h | 3,220 | 72 | 10.7 tiles | 1.6 tiles | 3 tiles | 4 s |
+| 9 | Fire-Direction Pit | 240,000 | 3,900 | 18 h | 3,870 | 86 | 10.8 tiles | 1.6 tiles | 3 tiles | 4 s |
+| 10 | Mortar Battery *(release cap)* | 330,000 | 4,600 | 22 h | 4,640 | 103 | 10.9 tiles | 1.6 tiles | 3 tiles | 4 s |
+| 11 | Dome Turret | 430,000 | 5,300 | 1.25 d | 5,570 | 124 | 11.1 tiles | 1.7 tiles | 3 tiles | 4 s |
+| 12 | Autoloader Drum | 580,000 | 6,100 | 1.5 d | 6,690 | 149 | 11.2 tiles | 1.7 tiles | 3 tiles | 4 s |
+| 13 | Roof-Deck Turret | 770,000 | 7,100 | 2 d | 8,020 | 178 | 11.3 tiles | 1.7 tiles | 3 tiles | 4 s |
+| 14 | Turntable Mortar | 1,000,000 | 8,300 | 2.5 d | 9,630 | 214 | 11.4 tiles | 1.7 tiles | 3 tiles | 4 s |
+| 15 | Quad Rotunda | 1,400,000 | 9,600 | 3 d | 11,560 | 257 | 11.5 tiles | 1.7 tiles | 3 tiles | 4 s |
+| 16 | Hatch Casemate | 1,800,000 | 11,000 | 3.5 d | 13,870 | 308 | 11.6 tiles | 1.8 tiles | 3 tiles | 4 s |
+| 17 | Hydraulic Mortar | 2,400,000 | 13,000 | 4.25 d | 16,640 | 370 | 11.7 tiles | 1.8 tiles | 3 tiles | 4 s |
+| 18 | Drone-Spotted Quad | 3,200,000 | 15,000 | 5 d | 19,970 | 444 | 11.8 tiles | 1.8 tiles | 3 tiles | 4 s |
+| 19 | Black Turret | 4,200,000 | 17,000 | 6 d | 23,960 | 532 | 11.9 tiles | 1.8 tiles | 3 tiles | 4 s |
+| 20 | Citadel Mortar | 5,600,000 | 20,000 | 7 d | 28,750 | 639 | 12 tiles | 1.8 tiles | 3 tiles | 4 s |
+
+All damage is splash. Reload is a steady 4 s at every level (turret `rate` 0.25); multi-barrel levels alternate muzzles but keep the same rate, so barrel count is a visual tier, not a stat. Range grows from 10 to 12 tiles, splash radius from 1.5 to 1.8 tiles, and the 3-tile dead zone stays. *Levels 11–15 are post-release; 16–20 are reserve.*
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Dirt Scrape:** brown earth bowl with a low spoil berm, one fat olive tube on a steel baseplate and bipod, a timber AMMO crate with bombs on top, the **loader on an ammo box dropping a bomb down the muzzle and ducking**, a kneeling spotter with binoculars, a fluttering red pennant, aiming stakes, field telephone |
+| 2 | **Sandbag Pit:** chunky **tan sandbag ring** (three courses), bigger tube with a **timber-lashed band**, crate stack under a **breathing camo net**, an ammo bearer walking rounds over, spotter, pennant |
+| 3 | **Log-Revetted Pit:** **ring of upright brown logs** with a capping rail, duckboard floor, tube on a **red-painted baseplate**, loader on a timber step, **waving red range flag**, swinging hurricane lantern, DANGER board |
+| 4 | **Brick Mortar Bay:** first permanent tier: **red-brick ring with cream coping**, concrete floor, **green-painted tube**, steel loading step with a hazard edge, red-tiled brick **bomb store** in the back corner, bearer walking in from the gate, spotter, MORTAR BAY sign, lamp |
+| 5 | **Bay & Ammo Shed:** brick ring plus a **green-roofed cream ammo shed** in the back corner whose **door swings open as the bearer walks out** with a bomb; green tube with **white bands**; officer spotter |
+| 6 | **Twin-Tube Bay:** wider brick ring with piers, **TWIN green-and-white tubes** on one wide baseplate (first multi-barrel), the shed, **alarm bell with a swinging striker**, TWIN BAY sign |
+| 7 | **Concrete Pit:** grey **concrete ring with a yellow/black painted rim**, one **big black barrel with yellow bands** on a kerbed plinth, grass-roofed ready bunker whose **steel blast door slides**, **traversing tripod rangefinder**, spotter, NO SMOKING board |
+| 8 | **Heavy Mortar Pit:** concrete ring inside a grassed berm, the **biggest single steel-blue barrel with a gold recoil-spring housing**, sandbag-topped crew shelter, **davit hoist that swings in and lowers an ammo crate** |
+| 9 | **Fire-Direction Pit:** **twin heavy steel-blue barrels** with springs, a **tall fire-direction hut on timber stilts** (zinc roof, ladder, **spotter with binoculars on the deck**, antenna blinker), davit hoist |
+| 10 | **Mortar Battery:** *(release cap)* **TRIPLE steel-blue barrels with gold bands** on a raised deck inside a **cream bunker drum with a red-tile skirt and a gold rim**, gun-slit windows, steps and MORTAR BATTERY sign, twin flags, officer spotter, bomb rack |
+| 11 | **Dome Turret:** **white ring with a bold teal rim** (pulsing teal lamps at the gate), barrel rising through the slot of a **white half-sphere dome turret**, loader on a white-and-teal gantry, two-storey glass control kiosk with fins and a green roof, flag |
+| 12 | **Autoloader Drum:** low white turret with a **big revolving magazine drum of bombs beside the barrel that steps round each load**, teal bands, met mast with **spinning anemometer and wind vane**, taller kiosk |
+| 13 | **Roof-Deck Turret:** the pit becomes a **raised white podium with a green roof deck** and hedges; **twin-barrel white box turret** on top, met mast, **bobbing weather balloon**, flag, glowing teal strip over the steps |
+| 14 | **Turntable Mortar:** **large red-and-white striped turntable disc** that is the traversing mount; white barrel on a **wheeled carriage with yellow hydraulic struts**, loader riding the disc, kiosk, flag, **spinning amber beacon** |
+| 15 | **Quad Rotunda:** **teal-and-white round platform raised a step**, ring of white posts with **pulsing teal lamps**, **QUAD barrels in a 2×2 square** on a white turret, teal crest, twin flags |
+| 16 | **Hatch Casemate:** secure tier: **dark steel casemate block** with a yellow-ringed weapon well and **two big yellow chevron hatch doors that slide open and closed**, black barrel with yellow bands, armoured cupola with red slits, **spinning beacon**, blinker, CCTV |
+| 17 | **Hydraulic Mortar:** **olive octagonal armour block with orange hazard chevrons**, the **heaviest olive barrel lifted on twin yellow hydraulic rams**, olive cupola, **rotating acoustic sensor mast**, beacons, CCTV |
+| 18 | **Drone-Spotted Quad:** blue-grey armour octagon, **tall drone tower with a helipad and a tethered spotter drone hovering above (rotors spinning)**, **quad grey barrels**, acoustic mast, beacon, CCTV |
+| 19 | **Black Turret:** **black octagon with a red rim**, chamfered **black turret with twin long barrels and red bands**, **pulsing red sensor lights**, slewing EO sensor ball, red blinkers, red beacon |
+| 20 | **Citadel Mortar:** **gold-and-black**: black armour octagon with a **gold rim**, the **huge black barrel with three gold bands and a gold muzzle** on a gold baseplate, three black bastions with **glowing gold caps**, gold crest, two flags, gold-trimmed drone, gold beacon |
+
+Review scene: open the game with `?showcase=mortarpit`.
+
+# Searchlight: full specification
+
+A support defence. The Searchlight never shoots. It locks its beam onto a raider (on foot or in the air), which reveals it, slows it and makes nearby defences more accurate. Each lock pulse (0.5 per second) makes the lens flare white and the beam brighten. The signature at every level is a **big searchlight drum** on a yoke. Later levels add LED panel arrays, twin drums and a laser dazzler. The drum throws a visible soft-edged beam that sweeps the sky and ground in figure-eights, ground sweeps, full circles and sector steps while idle. When a raider is locked, the beam slews onto it, stretches to it and holds. Every level also has a **diesel generator** that shakes, spins its radiator fan and puffs exhaust, and an operator on watch with binoculars, a training crank, a tablet or a pointing arm. Footprint **2×2**, unlocks at **HQ 9**. Height climbs from about 1.1 storeys (a lamp on a timber tripod) to about 3.5 storeys (the Citadel Lantern). Only thin masts and flagpoles go higher.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Range | Accuracy boost | Slow |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Tripod Lamp | 35,000 | 2,200 | 3 h | 800 | 8 tiles | +5% | 10% |
+| 2 | Lamp Stage | 47,000 | 2,500 | 4 h | 960 | 8 tiles | +6.5% | 11% |
+| 3 | Lamp Truck | 62,000 | 2,850 | 6 h | 1,150 | 8.5 tiles | +8% | 12% |
+| 4 | Lamp Pillar | 82,000 | 3,250 | 8 h | 1,380 | 8.5 tiles | +9.5% | 13% |
+| 5 | Roof-Deck Lamp | 110,000 | 3,700 | 11 h | 1,660 | 9 tiles | +11% | 14% |
+| 6 | Lamp Tower | 145,000 | 4,200 | 14 h | 1,990 | 9 tiles | +12.5% | 15% |
+| 7 | Concrete Light Tower | 195,000 | 4,800 | 18 h | 2,390 | 9.5 tiles | +14% | 16% |
+| 8 | Twin-Lamp Tower | 260,000 | 5,450 | 22 h | 2,870 | 9.5 tiles | +15.5% | 17% |
+| 9 | Lamp Bastion | 345,000 | 6,200 | 1.25 d | 3,440 | 9.5 tiles | +17% | 18% |
+| 10 | Grand Searchlight *(release cap)* | 460,000 | 7,050 | 1.5 d | 4,130 | 10 tiles | +18.5% | 19% |
+| 11 | LED Mast | 610,000 | 8,000 | 2 d | 4,950 | 10 tiles | +20% | 21% |
+| 12 | Light Gantry | 810,000 | 9,100 | 2.5 d | 5,940 | 10.5 tiles | +21.5% | 22% |
+| 13 | Array Pavilion | 1,080,000 | 10,300 | 3 d | 7,130 | 10.5 tiles | +23% | 23% |
+| 14 | Twin Array Towers | 1,430,000 | 11,700 | 3.5 d | 8,560 | 10.5 tiles | +24.5% | 24% |
+| 15 | Lumen Crown | 1,900,000 | 13,300 | 4 d | 10,270 | 11 tiles | +26% | 25% |
+| 16 | Armoured Lamp Bunker | 2,530,000 | 15,100 | 4.5 d | 12,330 | 11 tiles | +27.5% | 26% |
+| 17 | Shutter Battery | 3,370,000 | 17,100 | 5 d | 14,790 | 11.5 tiles | +29% | 27% |
+| 18 | Dazzler Berm | 4,480,000 | 19,400 | 5.75 d | 17,750 | 11.5 tiles | +30.5% | 28% |
+| 19 | Twin-Drum Sensor Tower | 5,950,000 | 22,000 | 6.25 d | 21,300 | 12 tiles | +32% | 29% |
+| 20 | Citadel Lantern | 7,900,000 | 25,000 | 7 d | 25,560 | 12 tiles | +33.5% | 30% |
+*Levels 11–15 are post-release; 16–20 are reserve.* The accuracy boost applies to friendly defences within 4 tiles of the locked raider. The slow applies while the raider is in the beam. Lock pulses run at 0.5 per second. All numbers are first-pass balance.
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Tripod Lamp:** olive arc-lamp drum on a timber tripod with a figure-eight **sweeping beam**; portable framed generator **shaking and puffing smoke**, cable run and coil, operator with **binoculars**, jerrycans, sandbag row, NO SMOKING board, windsock |
+| 2 | **Lamp Stage:** timber stage on stilts with braces, railing and a ladder; operator **cranking the lamp** in slow ground sweeps; generator under a **flapping canvas lean-to**; swinging hurricane lantern, drums, crates, DANGER BRIGHT LIGHT board |
+| 3 | **Lamp Truck:** olive 3-tonner with the lamp on a raised bed mount and an operator on the bed; **idling cab shakes** and its exhaust smokes; generator on a parked two-wheel trailer; **cable reel winding**, wheel chocks, tarp-covered stores |
+| 4 | **Lamp Pillar:** first permanent post. Green lamp on a cream pillar with green bands on a yellow/black striped plinth; cream crew hut with a red-brown hip roof and a **spinning wall extractor**; mustard generator on a slab; cable reel |
+| 5 | **Roof-Deck Lamp:** flat-roofed cream lamp house with green roof railings and an external steel stair; lamp on the roof sweeping **sector by sector**; operator **pointing out targets**; **rotating amber beacon**; generator under a red-brown lean-to; aircon fan |
+| 6 | **Lamp Tower:** two-level cream tower with a white lamp platform edged in yellow/black, railings and a caged ladder; beam **circles the sky**; open-fronted red-roofed generator shed with a smoking flue; red aviation blinker, pennant |
+| 7 | **Concrete Light Tower:** round concrete tower with slit windows, a buttressed gallery ring with a hazard band and a ring rail; bigger steel drum; orange conduit; operator **with a tablet**; generator bay with a part-raised shutter, twin smoking stacks and a **roof fan** |
+| 8 | **Twin-Lamp Tower:** square concrete tower with green bands; main drum on top and a **second lamp on a cantilevered steel balcony** that tracks the air; generator house with a **twin-fan radiator wall**, generator on the roof, white diesel day tank |
+| 9 | **Lamp Bastion:** octagonal concrete bastion with a parapet and front steps; central round lamp tower plus **two terrace lamps** (three beams); **vent fans** in the bastion face; a sentry **patrols the terrace** |
+| 10 | **Grand Searchlight:** stepped concrete keep on a full podium with a **glazed operator cab** under a **giant drum**; two **outrigger lamps** on steel arms; twin generators; two flags; blinkers *(release cap)* |
+| 11 | **LED Mast:** white finned tower with teal bands and a glass cab; the drum gains **LED-array "ears" that shimmer**; modern white generator with a teal stripe; roof fans; operator with a tablet |
+| 12 | **Light Gantry:** twin white pylons bridged by a railed gantry; drum on top and **two LED arrays slung beneath**, sweeping the ground; glass control box on a podium |
+| 13 | **Array Pavilion:** glass pavilion with white fins and a roof garden; a slim column carries a **giant square LED array** in a deep heatsink housing, sweeping **sector by sector**; **teal beacon** |
+| 14 | **Twin Array Towers:** two slim white towers joined by a **glass skybridge**; one carries a drum and the other an LED array, with **independent beams** |
+| 15 | **Lumen Crown:** finned white tower on a green-roofed podium with a **turning teal halo ring**; huge drum flanked by two crown LED spots; twin generators; flags |
+| 16 | **Armoured Lamp Bunker:** low hardened bunker with sloped armour skirts and a hazard-striped blast door; stubby armoured tower; lamp in an **angular armour shell with an iris shutter that blinks signals** while searching; **sensor ball** and pan camera |
+| 17 | **Shutter Battery:** hazard-banded tower on buttresses; main lamp with **flicking venetian louvres**; **two cowled louvre lamps** on the buttress tops (three beams); thermal camera; armoured generator |
+| 18 | **Dazzler Berm:** grassed earth berm with a blast-door portal; armour-ribbed hex tower; the drum carries a **laser dazzler that strikes a green line** on each lock; armoured ground lamp; tall sensor ball |
+| 19 | **Twin-Drum Sensor Tower:** tall hexagonal hardened tower with a ring of **blinking sensor pods**; **twin drums on one yoke** with a dazzler; **bank of four cooling fans** on the generator block; armoured corner lamp |
+| 20 | **Citadel Lantern:** gold-banded citadel tower with armour pilasters and a gold-mullioned glass cab; **turning gold crown ring**; gold-rimmed giant drum with **LED ears and a laser dazzler**; two armoured corner lamps; flags, sensor ball |
+
+Review scene: open the game with `?showcase=searchlight`.
+
+# Artillery Emplacement: full specification
+
+The long-range heavy hitter against ground raiders: lobs high-explosive shells from far out with a small splash, one round every 5 seconds, but cannot hit anything inside 4 tiles. **Signature at every level:** a long-barrelled field gun / howitzer that keeps its barrel raised while it traverses, and a **big recoil** (the barrel slides back on its cradle at every shot); a **gun drill** where the loader fetches a round from the ready rack, the rammer drives it home with his staff, the layer pulls the lanyard and the empty brass case drops out (from the Command band an auto-loader takes over: rounds ride conveyors, hoists and carousels into the mount); shell racks and brass cartridge cases throughout. The gun evolves with the bands: towed field gun in a sandbag pit → gun on a concrete turntable with an ammo store → barbette, coastal gunhouse, casemate and domed turret → modern gun station and turreted gun → hardened auto-loading turret → twin-barrel turret. Footprint **3×3**; unlocked at HQ 11; bulk stays at or under ~2.6 storeys (masts, flags and the raised barrel go higher).
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Damage | Range | Min range | Splash | Reload | Barrels |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Gun Pit | 120,000 | 4,000 | 6 h | 1,400 | 80 | 11 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 2 | Camouflaged Gun Pit | 156,000 | 4,600 | 7 h | 1,680 | 96 | 11 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 3 | Dug-in Howitzer | 203,000 | 5,300 | 9 h | 2,020 | 115 | 11.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 4 | Gun Turntable | 264,000 | 6,100 | 11 h | 2,420 | 138 | 11.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 5 | Shell Gantry Battery | 343,000 | 7,000 | 13 h | 2,900 | 166 | 12 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 6 | Range-Finder Battery | 446,000 | 8,000 | 16 h | 3,480 | 199 | 12 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 7 | Concrete Emplacement | 580,000 | 9,200 | 19 h | 4,180 | 239 | 12.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 8 | Coastal Battery | 754,000 | 10,600 | 22 h | 5,020 | 287 | 12.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 9 | Casemate Battery | 980,000 | 12,200 | 1.1 d | 6,020 | 344 | 12.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 10 | Fortress Battery *(release cap)* | 1,270,000 | 14,000 | 1.3 d | 7,220 | 413 | 13 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 11 | Modern Gun Station | 1,650,000 | 16,100 | 1.6 d | 8,670 | 495 | 13 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 12 | Fire Direction Centre | 2,150,000 | 18,500 | 1.9 d | 10,400 | 594 | 13.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 13 | Turret Battery | 2,800,000 | 21,300 | 2.3 d | 12,480 | 713 | 13.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 14 | Elevated Turret | 3,640,000 | 24,500 | 2.7 d | 14,980 | 856 | 13.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 15 | Landmark Battery | 4,730,000 | 28,200 | 3.25 d | 17,970 | 1,027 | 14 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 16 | Hardened Gun Bunker | 6,150,000 | 32,400 | 3.9 d | 21,570 | 1,233 | 14 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 17 | Auto-Loader Battery | 8,000,000 | 37,300 | 4.6 d | 25,880 | 1,479 | 14.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 18 | Sensor Battery | 10,400,000 | 42,900 | 5.5 d | 31,060 | 1,775 | 14.5 tiles | 4 tiles | 1 tiles | 5 s | 1 |
+| 19 | Twin-Gun Turret | 13,500,000 | 49,300 | 6.6 d | 37,270 | 2,130 | 15 tiles | 4 tiles | 1.5 tiles | 5 s | 2 |
+| 20 | Citadel Battery | 17,500,000 | 56,700 | 8 d | 44,730 | 2,556 | 15 tiles | 4 tiles | 1.5 tiles | 5 s | 2 |
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Gun Pit:** towed field gun with a flat shield, spoked wheels and split trails with spades on a timber firing platform, in a horseshoe of sandbags; **the loader fetches a round, the rammer drives it home and the empty brass case drops out**; ammo boxes, spent cases, red/white aiming post, spotter on a crate, swinging lantern |
+| 2 | **Camouflaged Gun Pit:** higher sandbag ring, longer barrel with a muzzle brake, **breathing camo net** over a two-wheeled ammunition limber and a timber shell rack; the layer **pulls the lanyard** at each shot; two aiming posts |
+| 3 | **Dug-in Howitzer:** heavier howitzer with a wrap-round shield and recuperator in a **log-revetted square pit**; sandbagged dugout with a zinc roof under a camo net, swinging lantern, "No.1 GUN" board, shell racks; a gunner carries rounds from the dugout |
+| 4 | **Gun Turntable:** first permanent emplacement: pedestal gun on a **turning concrete deck with a yellow/black rim** and bearing ticks, cream parapet with green coping, cream **AMMO store with a red hip roof**; a gunner **wheels a shell trolley** out to the gun; layer's handwheels spin |
+| 5 | **Shell Gantry Battery:** gable-roofed magazine and a green steel **gantry whose hoist trolley carries a crate of rounds out and lowers it**; wrap shield, ammunition niches in the parapet, flagpole |
+| 6 | **Range-Finder Battery:** battery office with a red-roofed roof platform and a **turning stereoscopic range-finder** manned by an observer; gun now under a roofed shield; gantry, trolley and flag |
+| 7 | **Concrete Emplacement:** big **raised concrete barbette** with steps and shell niches, grey gun under a roofed shield, **deck hoist lifting rounds up from the magazine**, earth-and-grass-covered magazine, lamp, flag |
+| 8 | **Coastal Battery:** heavier gun in an **open-backed armoured gunhouse**; concrete **battery observation post** with slit windows and a sun-roofed sandbagged deck (spotter scanning), small magazine with a **sliding blast door**, **signal flags swinging** on a yard |
+| 9 | **Casemate Battery:** a solid **L-shaped concrete casemate with a grassed roof** shelters the gun position, camo fringe, long gun with a bore evacuator, floodlight, blast-door magazine, signal mast, tall flag |
+| 10 | **Fortress Battery:** gun in a **fully enclosed domed armoured turret** on a high barbette (a round slides onto the loading tray at the rear hatch); crenellated two-storey **fortress block** with crest, "FORTRESS BATTERY" board, blast door and flag; **steel lift tower** with a cage riding up and down |
+| 11 | **Modern Gun Station:** command band: white/grey modern gun on a **white hexagonal platform with a teal band**; **hydraulic loading arm** swings rounds to the breech; white two-storey magazine, **conveyor carrying rounds**, glass fire-control cabin, met mast with **spinning anemometer**, technician with a tablet |
+| 12 | **Fire Direction Centre:** wrap-shielded modern gun; two-storey white **FDC with fins under a big green mono-pitch roof**, tall met mast, second magazine with a roller shutter and conveyor |
+| 13 | **Turret Battery:** first **enclosed angular white turret** with a teal band and auto-loader bustle on an octagonal platform; **round white fire-control tower** with a teal glass ring and green dome; glass control pod with a pulsing beacon; conveyor feed; technician pacing |
+| 14 | **Elevated Turret:** turret on a **tall plinth** with stairs; **blue glass ops tower**; glass **ammunition lift** carrying rounds up; a **spotter drone circles** overhead |
+| 15 | **Landmark Battery:** turret inside a **ring colonnade with a green roof and teal trim**, glass-finned tower, "No.1 GUN" plaque, two flags, circling drone, conveyor |
+| 16 | **Hardened Gun Bunker:** secure band: **tan armoured turret** on an **octagonal concrete bunker** with a hazard band and slit windows; square blast-door magazine (**sliding door**), conveyor and **shell hoist into the turret ring**, T-wall screen, **panning CCTV** |
+| 17 | **Auto-Loader Battery:** olive turret with skirts; **grass-covered magazine mound** with a concrete portal crowned by a **rotating ammunition carousel** |
+| 18 | **Sensor Battery:** longest barrel, slat armour round the bustle; **round sensor tower** with a **slewing electro-optical turret**, mast with a nodding sensor ball and beacon |
+| 19 | **Twin-Gun Turret:** **twin-barrel turret** (barrels fire alternately) on a **dark steel base**; magazine keep with a drone deck where a **drone lifts off, patrols and lands**; ground-level caged carousel, sensor mast |
+| 20 | **Citadel Battery:** twin turret with **gold bands and crest** on a gold-banded bunker; gold-trimmed keep with drone, **gold crest wall** "CITADEL BATTERY", gold-capped bollards, flag |
+
+Review scene: open the game with `?showcase=artillery`.
+
+# Air Defence: full specification
+
+The camp's anti-aircraft defence: it **only shoots flying raiders** (drones and helicopters) and cannot hit troops on the ground. Weapon `flak`, targets `air`. **Signature at every level:** guns or launchers pointing skyward (idle sweep with the barrels raised, about 0.9–1.1 rad), a **rotating search radar** (open-frame Yagi → "bedspring" dipole grid → orange-peel truss → white planar panel → dark phased-array AESA), and a crew (gunner, spotter, loader, commander or console operator). The weapon grows band by band: improvised twin MG on a sandbag ring → quad MG → single AA cannon → twin cannons on a turntable → enclosed twin-cannon turret with fire-control radar → white twin-35 turret → **missile pods** (every tube is a muzzle; a fired missile vanishes and the next slides back up the tube) → hardened launchers that **stow under armoured lids, clamshell doors or sliding hatches**, with phased-array panels and gold at 20. Footprint **3×3**; unlocked at HQ 13; bulk stays at or under ~3.2 storeys (radar masts and barrels go higher).
+
+| Lv | Title | Supplies | Reputation | Build time | HP | DPS (air only) | Range | Bursts/s | Barrels / tubes |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | Sandbag AA Nest | 300,000 | 3,000 | 8 h | 1,100 | 40 | 9.0 tiles | 1.0 | 2 |
+| 2 | Canvas AA Pit | 375,000 | 3,450 | 10 h | 1,320 | 47 | 9.1 tiles | 1.0 | 2 |
+| 3 | Quad-Gun Platform | 470,000 | 3,950 | 12 h | 1,580 | 56 | 9.3 tiles | 1.1 | 4 |
+| 4 | AA Cannon Pit | 585,000 | 4,550 | 14 h | 1,900 | 66 | 9.4 tiles | 0.8 | 1 |
+| 5 | Shielded Gun Bay | 730,000 | 5,250 | 17 h | 2,280 | 78 | 9.5 tiles | 0.85 | 1 |
+| 6 | Twin-Gun Turntable | 915,000 | 6,050 | 20 h | 2,740 | 92 | 9.7 tiles | 1.0 | 2 |
+| 7 | Fire-Control Battery | 1,150,000 | 6,950 | 1 d | 3,280 | 108 | 9.8 tiles | 1.0 | 2 |
+| 8 | Gun Turret Drum | 1,430,000 | 8,000 | 1.25 d | 3,940 | 127 | 9.9 tiles | 1.05 | 2 |
+| 9 | Radar Gun Tower | 1,790,000 | 9,200 | 1.5 d | 4,730 | 150 | 10.1 tiles | 1.1 | 2 |
+| 10 | Air Defence Bastion *(release cap)* | 2,240,000 | 10,600 | 1.75 d | 5,680 | 177 | 10.2 tiles | 1.1 | 2 |
+| 11 | Twin-35 Pavilion | 2,800,000 | 12,200 | 2 d | 6,810 | 209 | 10.3 tiles | 1.2 | 2 |
+| 12 | Missile Pod Battery | 3,500,000 | 14,000 | 2.5 d | 8,170 | 247 | 10.4 tiles | 0.9 | 8 |
+| 13 | Reload Crane Battery | 4,370,000 | 16,100 | 3 d | 9,810 | 292 | 10.6 tiles | 0.95 | 12 |
+| 14 | Launcher Tower | 5,460,000 | 18,500 | 3.5 d | 11,770 | 344 | 10.7 tiles | 1.0 | 16 |
+| 15 | Sky Shield Centre | 6,830,000 | 21,200 | 4 d | 14,120 | 406 | 10.8 tiles | 1.05 | 24 |
+| 16 | Hardened Launcher | 8,530,000 | 24,400 | 5 d | 16,950 | 479 | 11.0 tiles | 1.0 | 12 |
+| 17 | Phased-Array Post | 10,700,000 | 28,100 | 6 d | 20,340 | 565 | 11.1 tiles | 1.05 | 18 |
+| 18 | Clamshell Launcher | 13,300,000 | 32,300 | 7 d | 24,400 | 667 | 11.2 tiles | 1.1 | 16 |
+| 19 | Sensor Fortress | 16,700,000 | 37,100 | 8 d | 29,290 | 787 | 11.4 tiles | 1.15 | 20 |
+| 20 | Sky Citadel | 20,800,000 | 42,700 | 9 d | 35,140 | 929 | 11.5 tiles | 1.2 | 24 |
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Sandbag AA Nest:** two-layer sandbag ring, twin machine-gun on a timber tripod with ring sight and belt-fed ammo cans; **Yagi spotting antenna turns** on a guyed bamboo pole; spotter with binoculars scans the sky; field radio on a crate, windsock |
+| 2 | **Canvas AA Pit:** deeper three-layer bag ring with a step, twin MG on a steel pedestal with a seated gunner, **first "bedspring" dipole radar** on a timber mast, plotter with headset under a canvas shade whose **flap swings**, cable drum |
+| 3 | **Quad-Gun Platform:** raised timber deck with sandbag walls and stairs, **quad MG** with an armoured tub, **trailer-mounted radar** with a generator (fan spins, exhaust smokes), zinc ammo lean-to, **loader humps ammo boxes** up to the deck |
+| 4 | **AA Cannon Pit:** first permanent build: cream round parapet with green coping, **single AA cannon** on a concrete pedestal with a 4-round clip, gunner **spinning the handwheel**, red-roofed ready room with aircon, bedspring radar on a green mast, loader carrying clips |
+| 5 | **Shielded Gun Bay:** tall cream octagonal emplacement with windows and stairs, cannon with an **olive gun shield**, **loader on the mount lifts clips into the feed**, steel lattice radar tower with ladder, gable-roofed radar cabin, AMMO bunker, flag |
+| 6 | **Twin-Gun Turntable:** **twin cannons on a yellow-rimmed rotating turntable** with a central layer's seat, two-storey cream radar hut with the radar on its roof, windsock, red-roofed ammo store, loader shuttling shells |
+| 7 | **Fire-Control Battery:** sloped hexagonal concrete emplacement, jacketed twin cannons on a grey turntable with a **tracking dish that elevates with the guns**, concrete command post under a **breathing camouflage net**, orange-peel truss radar, **ammo hoist** raises crates |
+| 8 | **Gun Turret Drum:** **enclosed olive twin-cannon turret** on a tall concrete drum, commander with binoculars in the hatch, tracking dish, lattice search-radar tower, magazine with **shells riding a conveyor** up into the drum, generator |
+| 9 | **Radar Gun Tower:** square concrete gun tower with railings and stairs; bigger turret **carries its own spinning truss radar** on the back plus a tracking dish; cooling plant with a **big rooftop fan**, blast walls |
+| 10 | **Air Defence Bastion** *(release cap)*: two-tier octagonal concrete bastion with hazard band, the largest olive turret with an EO sensor ball, **elevated radar mast** with platform, guy wires, IFF bar and beacon, magazine with blast door, two flags, spotter on the terrace |
+| 11 | **Twin-35 Pavilion:** white **teal-striped twin-35 turret** with a planar radar riding on its back and a scanning EO ball, glazed white podium with fins, **glass operator cab** (operator at screens) with a green roof, planter beds and teal-capped walls |
+| 12 | **Missile Pod Battery:** first missiles: **two 4-tube pods** on a dark glass drum podium; missiles **vanish on launch and reload up the tube**; white tubular mast with a planar radar, glass control cab, spare canisters |
+| 13 | **Reload Crane Battery:** square glazed podium with fins, **two 6-tube pods**, a yellow **articulated reload crane swings a canister** from a loading dock, white lattice radar tower |
+| 14 | **Launcher Tower:** **four 2×2 pods on a tall white drum tower** around a sensor head, two-storey command block with glass, fins and green roof, rooftop planar radar, link bridge, aircon fans |
+| 15 | **Sky Shield Centre:** grand teal-capped glazed drum, **launcher with four 2×3 pods (24 tubes)** and its own small spinning radar, tall white mast with **two counter-rotating planar arrays**, glass pavilion with a roof garden, two flags |
+| 16 | **Hardened Launcher:** **grass-covered earth bunker**, armoured launcher whose pods **stow level and shut flip-up armour lids**, T-walls and blast walls, armoured mast with a rotating phased-array AESA, sensor cabinet with blinking LEDs and fan |
+| 17 | **Phased-Array Post:** tapered concrete sensor tower with **two phased-array faces whose scan bars sweep**, AESA on its roof; round hardened bunker with a **nine-tube lidded launcher** |
+| 18 | **Clamshell Launcher:** sand-coloured octagonal shelter; the launcher **stows inside an armoured housing and yellow-lined clamshell doors swing shut over it**; big AESA on an armoured mast, glowing phased-array pillars |
+| 19 | **Sensor Fortress:** dark two-storey sensor block with **phased-array faces on three sides**, AESA and a **counter-spinning jammer array** on the roof; launcher under **sliding armoured roof hatches** |
+| 20 | **Sky Citadel:** pale gold-banded citadel tower with gold-framed phased arrays, **gold-rimmed AESA** plus a counter-rotating dark array, the biggest clamshell launcher (**24 gold-tipped missiles**), gold-capped bollards, flags |
+
+Review scene: open the game with `?showcase=airdefence`.
