@@ -1181,7 +1181,7 @@ function command(k: Kit, level: number, y: number) {
   if (level === 11) {
     // Research lab: white three-storey block, glass front with fins, green roof, sliding teal vault door
     const bx = 0, bz = -0.45, bw = 2.65, bd = 1.65;
-    const h = labBlock(k, bx, bz, bw, bd, 3, y, { glassFrom: 99, fins: false, hip: 0.42, windows: 5 });
+    const h = labBlock(k, bx, bz, bw, bd, 3, y, { glassFrom: 99, fins: false, hip: 0.34, windows: 5 });
     const fz = bz + bd / 2 + 0.03;
     strongDoor(k, 'slide', -0.55, y, fz, 0.62, 0.74, { color: '#e8e6e0', inner: HOLO });
     k.box(0.64, 0.05, 0.03, TEAL, -0.55, y + 0.78, fz + 0.06);
@@ -1416,8 +1416,9 @@ function secure(k: Kit, level: number, y: number) {
     }
     // Research block on the berm
     const rb = 1.4;
-    k.box(rb, STOREY * 1.3, 1.1, GUNMETAL, 0, top, bz - 0.05);
-    k.box(rb + 0.1, 0.12, 1.2, ARMOUR, 0, top + STOREY * 1.3, bz - 0.05);
+    k.box(rb, STOREY * 1.3, 1.1, '#4f9a2c', 0, top, bz - 0.05); // planted green wall
+    for (let i = 0; i < 6; i++) k.box(0.05, STOREY * 1.3, 1.12, '#3f8a2e', -rb / 2 + 0.12 + i * ((rb - 0.24) / 5), top, bz - 0.05);
+    k.box(rb + 0.1, 0.12, 1.2, GRASS, 0, top + STOREY * 1.3, bz - 0.05);
     hazard(k, rb, 0.06, 0, top + STOREY * 1.3 - 0.08, bz + 0.51);
     slits(k, 3, 0.9, 0, top + 0.6, bz + 0.51, HOLO);
     testChamberMini(k, -0.3, bz - 0.1, top + STOREY * 1.3 + 0.12, 0.36, HOLO);

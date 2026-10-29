@@ -1612,8 +1612,8 @@ function secure(k: Kit, level: number, y: number) {
   // 19–20: yellow helipad pad with a fast-rope gantry and a big front-facing helicopter mock-up
   const gx = 0.75, gz = 0.82, gh = 1.45;
   floor(k, 2.0, 1.04, HAZ, gx + 0.05, y, gz, 0.03);
-  floor(k, 1.8, 0.86, '#2a2b2d', gx + 0.05, y + 0.03, gz, 0.004);
-  const hMark = board(k, 'H', 0.34, 0.3, gx - 0.75, y, gz, '#2a2b2d', HAZ);
+  for (const sgn of [-1, 1]) floor(k, 1.9, 0.04, '#2a2b2d', gx + 0.05, y + 0.03, gz + sgn * 0.46, 0.004);
+  const hMark = board(k, 'H', 0.34, 0.3, gx - 0.75, y, gz, HAZ, '#2a2b2d');
   hMark.rotation.x = -Math.PI / 2;
   hMark.position.y = y + 0.05;
   const frameC = gold ? GOLD : '#4a4f54';
@@ -1621,9 +1621,11 @@ function secure(k: Kit, level: number, y: number) {
   for (const sgn of [-1, 1]) k.box(0.08, 0.09, 0.8, HAZ, gx + sgn * 0.7, y + gh - 0.09, gz);
   for (const dz of [-0.36, 0.36]) k.box(1.48, 0.09, 0.08, frameC, gx, y + gh - 0.09, gz + dz);
   const H = grp(k, gx, y + gh, gz, Math.PI / 4);
-  const body = gold ? C.wall : '#8a9a52';
+  H.scale.setScalar(1.2);
+  const body = gold ? C.wall : '#ecebe4';
   k.box(1.25, 0.55, 0.6, body, 0, 0, 0, H);
-  k.box(1.26, 0.08, 0.61, gold ? GOLD : HAZ, 0, 0.14, 0, H);
+  k.box(1.26, 0.12, 0.61, gold ? GOLD : '#d8342c', 0, 0.14, 0, H);
+  k.box(0.92, 0.06, 0.17, gold ? GOLD : '#d8342c', -1.05, 0.33, 0, H);
   k.box(0.36, 0.42, 0.56, '#86b7cc', 0.78, 0.06, 0, H);
   k.box(0.9, 0.16, 0.16, body, -1.05, 0.28, 0, H);
   k.box(0.1, 0.42, 0.05, body, -1.45, 0.3, 0, H);
