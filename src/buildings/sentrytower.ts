@@ -1040,9 +1040,15 @@ function camp(k: Kit, level: number, y0: number, rate: number) {
   bags(k, -0.68, cz, 1.1, Math.PI / 2, D, 2);
   k.box(0.3, 0.012, 0.3, '#4a4f54', 0.58, D, cz + 0.3);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.box(0.07, 0.64, 0.07, C.trim, sx * 0.72, D, cz + sz * 0.72);
-  k.hipRoof(1.44, 1.44, 0.48, 0, D + 0.64, cz, C.roof, 0.12);
-  k.cyl(0.04, 0.1, C.roofDark, 0, D + 1.12, cz, 6);
-  pennant(k, 0, D + 1.18, cz, 0.4);
+  // Two-tier ventilated roof: lower hip, louvred clerestory, upper hip
+  k.hipRoof(1.44, 1.44, 0.3, 0, D + 0.64, cz, C.roof, 0.12);
+  k.box(0.62, 0.16, 0.62, C.wall, 0, D + 0.88, cz);
+  for (let i = 0; i < 3; i++) {
+    k.box(0.64, 0.025, 0.5, C.trim, 0, D + 0.9 + i * 0.045, cz);
+    k.box(0.5, 0.025, 0.64, C.trim, 0, D + 0.9 + i * 0.045, cz);
+  }
+  k.hipRoof(0.7, 0.7, 0.3, 0, D + 1.06, cz, C.roof, 0.14);
+  pennant(k, 0, D + 1.34, cz, 0.4);
   // Cage ladder up the right face, through a hatch in the deck
   ladder(k, w / 2 + 0.03, cz + 0.3, y0, D, Math.PI / 2, 0.22, C.trim, 0.02, 0.018, true);
   climber(k, w / 2 + 0.17, cz + 0.3, y0, D - 0.75, Math.PI, 12, 6, 'helmet');

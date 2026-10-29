@@ -1868,7 +1868,11 @@ function lv18(k: Kit, y: number) {
   // Clamshell launcher: the launcher stows flat inside an armoured housing and its clamshell doors
   // swing shut over it; octagonal hardened base, big AESA on an armoured mast, phased-array pillars
   const cx = -0.35, cz = -0.2, bh = 1.35;
-  k.cyl(1.1, bh, CONCRETE, cx, y, cz, 8, 0.98).rotation.y = Math.PI / 8;
+  k.cyl(1.1, bh, '#cdb98a', cx, y, cz, 8, 0.98).rotation.y = Math.PI / 8;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    k.box(0.06, bh - 0.2, 0.06, '#b39f6e', cx + Math.cos(a) * 1.02, y + 0.1, cz + Math.sin(a) * 1.02);
+  }
   k.cyl(1.12, 0.1, ARMOR_D, cx, y, cz, 8).rotation.y = Math.PI / 8;
   k.cyl(1.0, 0.07, HAZ, cx, y + bh - 0.1, cz, 8).rotation.y = Math.PI / 8;
   k.cyl(0.99, 0.05, ARMOR_D, cx, y + bh, cz, 8).rotation.y = Math.PI / 8;
@@ -1877,7 +1881,7 @@ function lv18(k: Kit, y: number) {
   housedLauncher(k, cx, y + bh + 0.05, cz, 18, 2, 4, 0.11, 'clam');
   armouredMast(k, 1.05, -1.05, y, 2.3, 0.95);
   for (const [px, pz, ry] of [[1.05, 0.35, Math.PI / 2], [0.55, 1.1, 0]] as const) {
-    k.box(0.5, 1.3, 0.25, CONCRETE, px - (ry ? 0.08 : 0), y, pz - (ry ? 0 : 0.08)).rotation.y = ry;
+    k.box(0.5, 1.3, 0.25, '#cdb98a', px - (ry ? 0.08 : 0), y, pz - (ry ? 0 : 0.08)).rotation.y = ry;
     arrayFace(k, 0.42, 0.9, px + (ry ? 0.05 : 0), y + 0.3, pz + (ry ? 0 : 0.05), ry, ARMOR_D, px);
   }
   for (let i = 0; i < 3; i++) tWall(k, -1.25, 0.6 + i * 0.32 - 0.6 + 0.2, y, Math.PI / 2);

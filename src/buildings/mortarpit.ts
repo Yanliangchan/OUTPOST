@@ -51,6 +51,8 @@ export const MORTAR_PIT_LEVELS: LevelStats[] = TITLES.map((title, i) => {
 // ------------------------------------------------------------------ palette
 
 const LOB = 1.0;
+/** Crew scale: big enough to read next to the fat cartoon barrels. */
+const CS = 1.25;
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const OLIVE = '#5b6b3a';
 const OLIVE_D = '#46542c';
@@ -128,26 +130,26 @@ function disc(k: Kit, r: number, h: number, color: string, x: number, y: number,
 class Bags {
   private readonly list: { m: THREE.Matrix4; c: number }[] = [];
   private readonly r: () => number;
-  constructor(seed: number) {
+  constructor(seed: number, private readonly size = 1) {
     this.r = rng(seed);
   }
   add(x: number, y: number, z: number, ry: number, big = 1) {
     const r = this.r;
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler((r() - 0.5) * 0.08, ry + (r() - 0.5) * 0.14, (r() - 0.5) * 0.07));
     const s = V((0.92 + r() * 0.16) * big, 0.88 + r() * 0.22, (0.94 + r() * 0.12) * big);
-    this.list.push({ m: new THREE.Matrix4().compose(V(x, y + 0.05, z), q, s), c: Math.floor(r() * BAG.length) });
+    this.list.push({ m: new THREE.Matrix4().compose(V(x, y + 0.05 * this.size, z), q, s), c: Math.floor(r() * BAG.length) });
   }
   /** A ring of bags around the origin, skipping a gap centred on compass angle gapAt. */
   ring(r: number, layers: number, y: number, gap = 0, gapAt = 0, cx = 0, cz = 0) {
     for (let l = 0; l < layers; l++) {
-      const rr = r - l * 0.02;
-      const n = Math.max(6, Math.round((2 * Math.PI * rr) / 0.25));
+      const rr = r - l * 0.02 * this.size;
+      const n = Math.max(6, Math.round((2 * Math.PI * rr) / (0.25 * this.size)));
       for (let i = 0; i < n; i++) {
         const phi = ((i + (l % 2) * 0.5) / n) * Math.PI * 2;
         const dphi = Math.atan2(Math.sin(phi - gapAt), Math.cos(phi - gapAt));
         if (gap && Math.abs(dphi) < gap / 2) continue;
         const [x, z] = P(phi, rr);
-        this.add(cx + x, y + l * 0.095, cz + z, phi);
+        this.add(cx + x, y + l * 0.095 * this.size, cz + z, phi);
       }
     }
   }
@@ -159,7 +161,8 @@ class Bags {
     }
   }
   flush(k: Kit, parent?: THREE.Object3D) {
-    const base = new RoundedBoxGeometry(0.26, 0.11, 0.16, 1, 0.035);
+    const z = this.size;
+    const base = new RoundedBoxGeometry(0.26 * z, 0.11 * z, 0.16 * z, 1, 0.035 * z);
     BAG.forEach((c, ci) => {
       const geos = this.list.filter((b) => b.c === ci).map((b) => base.clone().applyMatrix4(b.m));
       if (geos.length) mesh(k, mergeGeometries(geos)!, c, 0, 0, 0, parent);
@@ -342,6 +345,7 @@ function crew(k: Kit, seed: number, look: Look, parent?: THREE.Object3D): Crew {
     torso.add(g);
     return g;
   });
+  root.scale.setScalar(CS);
   k.add(root, parent);
   return { root, torso, legL: legs[0], legR: legs[1], armL: arms[0], armR: arms[1] };
 }
@@ -350,7 +354,7 @@ function crew(k: Kit, seed: number, look: Look, parent?: THREE.Object3D): Crew {
 const hand = (th: number) => V(0.2 * Math.sin(th), 0.19 - 0.2 * Math.cos(th), 0);
 
 function kneel(f: Crew, e: number, y: number) {
-  f.root.position.y = y - 0.1 * e;
+  f.root.position.y = y - 0.1 * CS * e;
   f.legL.rotation.z = 0.9 * e;
   f.legR.rotation.z = -0.9 * e;
 }
@@ -491,149 +495,6 @@ function bearer(k: Kit, a: THREE.Vector3, b: THREE.Vector3, look: Look, seed: nu
   } };
 }
 
-// ------------------------------------------------------------------ weapons
-
-interface Tube { g: THREE.Group; len: number; z: number; r: number }
-interface Rig { yaw: THREE.Group; pitch: THREE.Group; tubes: Tube[]; px: number; py: number }
-
-function newRig(k: Kit, x: number, y: number, z: number, px: number, py: number, parent?: THREE.Object3D): Rig {
-  const yaw = new THREE.Group();
-  yaw.position.set(x, y, z);
-  const pitch = new THREE.Group();
-  pitch.position.set(px, py, 0);
-  pitch.rotation.z = LOB;
-  yaw.add(pitch);
-  k.add(yaw, parent);
-  return { yaw, pitch, tubes: [], px, py };
-}
-
-/** A tube along +x from the pivot: breech cap, muzzle lip and a dark bore. */
-function addTube(k: Kit, rig: Rig, len: number, r: number, z: number, color = GUN, lip = GUN_D, band?: string) {
-  const g = new THREE.Group();
-  g.position.z = z;
-  rig.pitch.add(g);
-  mesh(k, new THREE.CylinderGeometry(r, r * 1.12, len, 10).rotateZ(-Math.PI / 2).translate(len / 2, 0, 0), color, 0, 0, 0, g);
-  mesh(k, new THREE.CylinderGeometry(r * 1.3, r * 1.3, 0.035, 10).rotateZ(-Math.PI / 2), lip, len - 0.02, 0, 0, g);
-  mesh(k, new THREE.CylinderGeometry(r * 0.78, r * 0.78, 0.01, 10).rotateZ(-Math.PI / 2), '#111315', len + 0.002, 0, 0, g);
-  mesh(k, new THREE.SphereGeometry(r * 1.25, 8, 6), lip, 0, 0, 0, g);
-  if (band) mesh(k, new THREE.CylinderGeometry(r * 1.14, r * 1.14, 0.03, 10).rotateZ(-Math.PI / 2), band, len * 0.72, 0, 0, g);
-  const m = new THREE.Object3D();
-  m.position.x = len;
-  g.add(m);
-  const t: Tube = { g, len, z, r };
-  rig.tubes.push(t);
-  return t;
-}
-
-/** Muzzle mouth of a tube in yaw space. */
-const mouth = (rig: Rig, t: Tube, extra = 0) => V(rig.px + (t.len + extra) * Math.cos(LOB), rig.py + (t.len + extra) * Math.sin(LOB), t.z);
-
-function registerRig(k: Kit, rig: Rig, level: number, seed = 0, sweep = 0.8, base = 0.4) {
-  const yaw = rig.yaw, pitch = rig.pitch;
-  k.turret({
-    yaw, pitch,
-    muzzles: rig.tubes.map((t) => t.g.children[t.g.children.length - 1]),
-    recoil: rig.tubes.map((t) => t.g),
-    weapon: 'mortar', targets: 'ground', rate: 0.25, lob: LOB,
-    turnRate: 0.9 + level * 0.06, kick: 0.05 + Math.min(0.04, rig.tubes[0].r * 0.4),
-    idle: (t) => {
-      yaw.rotation.y = base + Math.sin(t * 0.21 + seed) * sweep + Math.sin(t * 0.083 + seed * 2) * sweep * 0.6;
-      pitch.rotation.z = LOB + Math.sin(t * 0.55 + seed) * 0.02;
-    },
-  });
-}
-
-/**
- * Field mortars (Lv 1–10): baseplate, tube(s) and bipod, all in the yaw group.
- * kind: light (1–3), medium (4–5), twin (6–7), heavy twin (8–10).
- */
-type FieldKind = 'light' | 'sight' | 'medium' | 'twin' | 'heavy' | 'heavyPlus';
-function fieldMortar(k: Kit, x: number, y: number, z: number, kind: FieldKind) {
-  const heavy = kind === 'heavy' || kind === 'heavyPlus';
-  const twin = kind === 'twin' || heavy;
-  const len = kind === 'light' || kind === 'sight' ? 0.6 : heavy ? 0.88 : 0.74;
-  const r = kind === 'light' || kind === 'sight' ? 0.045 : heavy ? 0.068 : 0.055;
-  const px = heavy ? -0.32 : -0.24, py = heavy ? 0.09 : 0.055;
-  const rig = newRig(k, x, y, z, px, py);
-  const zs = twin ? [-(heavy ? 0.17 : 0.15), heavy ? 0.17 : 0.15] : [0];
-  for (const tz of zs) addTube(k, rig, len, r, tz, GUN, GUN_D, kind === 'heavyPlus' ? HAZ : kind === 'light' ? undefined : '#2f3624');
-  // Baseplate(s)
-  if (heavy) {
-    k.box(0.5, 0.05, 0.62, STEEL_D, px, 0, 0, rig.yaw);
-    for (const s of [-1, 1]) k.box(0.44, 0.04, 0.03, STEEL, px, 0.05, s * 0.26, rig.yaw);
-    for (const tz of zs) disc(k, 0.09, 0.05, STEEL, px, 0.04, tz, 10, rig.yaw);
-  } else if (twin) {
-    k.box(0.36, 0.035, 0.5, STEEL_D, px, 0, 0, rig.yaw);
-    for (const tz of zs) disc(k, 0.075, 0.03, STEEL, px, 0.03, tz, 10, rig.yaw);
-  } else {
-    disc(k, kind === 'medium' ? 0.17 : 0.14, 0.03, STEEL_D, px, 0, 0, 12, rig.yaw);
-    for (let i = 0; i < 4; i++) {
-      const sp = k.box(0.025, 0.02, 0.26, STEEL, px, 0.025, 0, rig.yaw);
-      sp.rotation.y = (i * Math.PI) / 4;
-    }
-  }
-  // Bipod with a yoke round the tube(s), elevating spindle and cross-level bar
-  const d = len * 0.56;
-  const cx = px + d * Math.cos(LOB), cy = py + d * Math.sin(LOB);
-  const spread = twin ? (heavy ? 0.42 : 0.36) : 0.16;
-  const lr = heavy ? 0.022 : 0.014;
-  for (const s of [-1, 1]) {
-    strut(k, rig.yaw, V(cx + 0.12, 0.0, s * spread), V(cx, cy, s * (twin ? zs[1] + r + 0.03 : r + 0.03)), lr, STEEL_D);
-    mesh(k, new THREE.BoxGeometry(0.06, 0.015, 0.05), STEEL_D, cx + 0.12, 0, s * spread, rig.yaw);
-  }
-  strut(k, rig.yaw, V(cx + 0.075, cy * 0.4, -spread * 0.62), V(cx + 0.075, cy * 0.4, spread * 0.62), lr * 0.8, STEEL);
-  strut(k, rig.yaw, V(cx + 0.075, cy * 0.4, 0), V(cx, cy, 0), lr * 1.2, STEEL);
-  for (const tz of zs) mesh(k, new THREE.CylinderGeometry(r * 1.45, r * 1.45, 0.05, 10).rotateZ(-Math.PI / 2), STEEL_D, d, 0, tz, rig.pitch);
-  if (twin) mesh(k, new THREE.BoxGeometry(0.04, 0.04, zs[1] * 2 + 0.06), STEEL_D, d, 0, 0, rig.pitch);
-  if (heavy) {
-    // Recoil buffers either side of each tube
-    for (const tz of zs) for (const s of [-1, 1]) mesh(k, new THREE.CylinderGeometry(0.014, 0.014, len * 0.42, 6).rotateZ(-Math.PI / 2), '#8a9196', d - 0.02, r + 0.02, tz + s * (r * 0.6), rig.pitch);
-  }
-  if (kind !== 'light') {
-    // Sight unit on the left of the yoke
-    const sz = -(twin ? zs[1] + r + 0.07 : r + 0.06);
-    mesh(k, new THREE.BoxGeometry(0.07, 0.06, 0.04), '#2f3a22', cx + 0.02, cy + 0.04, sz, rig.yaw);
-    mesh(k, new THREE.CylinderGeometry(0.014, 0.014, 0.05, 6), '#111315', cx + 0.02, cy + 0.09, sz, rig.yaw);
-  }
-  return rig;
-}
-
-/** Loader(s) for an open tube: placed beside the muzzle (outside each tube of a twin), with ready rounds. */
-function tubeLoaders(k: Kit, rig: Rig, look: Look, seed: number, ready = true, period = 4.4) {
-  const field = rig.tubes[0].r < 0.05;
-  rig.tubes.forEach((t, i) => {
-    const m = mouth(rig, t, 0.06);
-    const s = t.z < 0 ? -1 : 1;
-    const target = m.y + 0.07;
-    // Reach up (arms as high as ~2.5 rad) before resorting to a loading step.
-    let th = 2.5, feet = target - (0.45 - 0.2 * Math.cos(th));
-    if (feet < 0.03) {
-      th = Math.acos(Math.max(-1, Math.min(1, (0.45 - target) / 0.2)));
-      feet = 0;
-    }
-    const lz = t.z + s * 0.2 * Math.sin(th);
-    if (feet > 0.01) {
-      // Loading step
-      if (field) {
-        // He stands on an ammo box
-        ammoBox(k, m.x - 0.02, 0, lz + s * 0.03, 0, OLIVE, 0.3, feet, 0.22, 'HE', rig.yaw);
-      } else {
-        k.box(0.3, feet, 0.24, STEEL, m.x - 0.02, 0, lz + s * 0.03, rig.yaw);
-        for (let i = 0; i < 3; i++) k.box(0.1, 0.02, 0.25, i % 2 ? C.kerbB : HAZ, m.x - 0.12 + i * 0.1, feet - 0.012, lz + s * 0.03, rig.yaw);
-      }
-    }
-    loader(k, rig.yaw, V(m.x, feet, lz), s > 0 ? Math.PI / 2 : -Math.PI / 2, th, look, seed + i, { parent: t.g, from: V(t.len + 0.06, 0, 0), to: V(t.len - 0.24, 0, 0), rot: -Math.PI / 2 }, period, i * period * 0.5, s * 1.25);
-    if (ready) {
-      // Ready-round box behind him (he turns to it between shots)
-      const bx = m.x - 0.26, bz = lz + s * 0.04;
-      ammoBox(k, bx, feet, bz, 0, OLIVE, 0.16, 0.08, 0.2, '', rig.yaw);
-      for (const dz of [-0.05, 0.0, 0.05]) {
-        const b = bomb(k, rig.yaw, GUN, HAZ, 0.8);
-        b.position.set(bx, feet + 0.13, bz + dz);
-      }
-    }
-  });
-}
 
 // ------------------------------------------------------------------ small animated props
 
@@ -827,359 +688,7 @@ function sub(k: Kit, x: number, y: number, z: number, ry: number, fn: (s: Kit) =
   return s;
 }
 
-// ------------------------------------------------------------------ turret mortars (Lv 11–13)
-
-function turretMortar(k: Kit, x: number, y: number, z: number, level: number, look: Look, seed: number) {
-  const body = C.white;
-  const rig = newRig(k, x, y, z, 0.12, 0.34);
-  const Y = rig.yaw;
-  // Static turret ring in the floor
-  disc(k, 0.5, 0.06, '#9aa0a4', x, y, z, 24);
-  disc(k, 0.44, 0.065, '#6b7075', x, y, z, 24);
-  // Hull
-  disc(k, 0.43, 0.08, '#c9ced2', 0, 0, 0, 24, Y);
-  k.box(0.66, 0.3, 0.58, body, -0.06, 0.08, 0, Y);
-  const glacis = k.box(0.24, 0.05, 0.58, body, 0.3, 0.26, 0, Y);
-  glacis.rotation.z = -0.75;
-  k.box(0.67, 0.04, 0.59, TEAL, -0.06, 0.2, 0, Y);
-  k.box(0.5, 0.06, 0.48, '#e2e5e7', -0.12, 0.38, 0, Y);
-  // Commander's cupola and periscope on the roof
-  disc(k, 0.08, 0.07, '#d5d9dc', -0.2, 0.44, -0.12, 8, Y);
-  k.box(0.06, 0.04, 0.05, DARK_GLASS, -0.15, 0.48, -0.12, Y);
-  // Rear feed hatch with a tray
-  k.box(0.04, 0.14, 0.26, '#4a4f54', -0.4, 0.18, 0, Y);
-  k.box(0.14, 0.02, 0.12, '#8a9196', -0.44, 0.24, 0, Y);
-  // Mantlet + twin stubby tubes in the pitch group
-  k.box(0.16, 0.16, 0.42, '#d5d9dc', -0.04, -0.08, 0, rig.pitch);
-  for (const tz of [-0.12, 0.12]) addTube(k, rig, 0.52, 0.048, tz, '#4a4f54', '#33383d', TEAL);
-  for (const tz of [-0.12, 0.12]) mesh(k, new THREE.CylinderGeometry(0.07, 0.07, 0.12, 10).rotateZ(-Math.PI / 2), '#e2e5e7', 0.12, 0, tz, rig.pitch);
-  if (level >= 12) {
-    // Ammo bustle with a moving conveyor of bombs feeding the hatch
-    k.box(0.3, 0.06, 0.4, '#c9ced2', -0.6, 0.14, 0, Y);
-    k.box(0.3, 0.02, 0.06, '#33383d', -0.6, 0.2, 0, Y);
-    const belt: THREE.Object3D[] = [];
-    for (let i = 0; i < 4; i++) {
-      const b = bomb(k, Y, GUN, TEAL, 0.85);
-      b.rotation.z = -Math.PI / 2;
-      belt.push(b);
-    }
-    k.anims.push((t) => belt.forEach((b, i) => {
-      const u = ((t * 0.18 + i / 4) % 1);
-      b.position.set(-0.74 + u * 0.3, 0.25, 0);
-      b.visible = u < 0.95;
-    }));
-    for (const s of [-1, 1]) k.box(0.3, 0.05, 0.02, '#8a9196', -0.6, 0.2, s * 0.05, Y);
-  }
-  if (level >= 13) {
-    // Armour skirts and a sensor box on the turret roof
-    for (const s of [-1, 1]) k.box(0.6, 0.14, 0.03, '#d5d9dc', -0.06, 0.1, s * 0.31, Y);
-    k.box(0.12, 0.08, 0.1, '#4a4f54', -0.3, 0.44, 0.13, Y);
-    k.box(0.02, 0.05, 0.06, DARK_GLASS, -0.235, 0.45, 0.13, Y);
-  }
-  // Loader at the rear hatch feeding the tray (or the conveyor)
-  const feedX = level >= 12 ? -0.74 : -0.46;
-  loader(k, Y, V(feedX - 0.13, 0, 0.0), 0, 0.62, look, seed, { parent: Y, from: V(feedX + 0.02, 0.27, 0), to: V(feedX + 0.16, 0.25, 0), rot: -Math.PI / 2 }, 4.4, 0, 1.3);
-  // Ready rack behind him on the turret floor
-  for (const dz of [-0.2, 0.2]) {
-    ammoBox(k, feedX - 0.12, 0.08, dz * 1.15, 0, '#4a5240', 0.14, 0.08, 0.12, '', Y);
-  }
-  registerRig(k, rig, level, seed);
-  return rig;
-}
-
-// ------------------------------------------------------------------ turntable mortars (Lv 14–20)
-
-/** Two-link arm solve: shoulder and elbow angles to reach planar (d, h). */
-function ik(l1: number, l2: number, d: number, h: number): [number, number] {
-  const D = Math.min(l1 + l2 - 1e-3, Math.max(Math.abs(l1 - l2) + 1e-3, Math.hypot(d, h)));
-  const a2 = Math.acos(Math.max(-1, Math.min(1, (D * D - l1 * l1 - l2 * l2) / (2 * l1 * l2))));
-  const a1 = Math.atan2(h, d) + Math.atan2(l2 * Math.sin(a2), l1 + l2 * Math.cos(a2));
-  return [a1, a2];
-}
-
-interface TableOpts { tubes: number; deck: string; rim: string; armour?: string; accent: string; scale?: number; seed: number; crewLook: Look; gold?: boolean }
-
-/**
- * Turntable mortar: the whole deck traverses (it is the yaw group), carrying the
- * tubes on a pedestal, a bomb carousel and a robot loader arm that lifts bombs
- * from the carousel and drops them down each muzzle in turn; a crewman restocks
- * the carousel.
- */
-function turntable(k: Kit, x: number, y: number, z: number, level: number, o: TableOpts) {
-  const rig = newRig(k, x, y, z, -0.2, 0.32);
-  const Y = rig.yaw;
-  if (o.scale) Y.scale.setScalar(o.scale);
-  // Static base ring + rails
-  const s = o.scale ?? 1;
-  disc(k, 0.88 * s, 0.04, '#6b7075', x, y, z, 32);
-  // Deck
-  disc(k, 0.84, 0.07, o.deck, 0, 0.0, 0, 32, Y);
-  ring(k, 0.78, 0.86, 0.085, 0.0, o.rim, 0, 0, 'wall', 32, Y);
-  for (let i = 0; i < 16; i++) {
-    const [dx, dz] = P((i / 16) * Math.PI * 2, 0.82);
-    const m = k.box(0.12, 0.09, 0.05, i % 2 ? C.kerbB : HAZ, dx, 0.0, dz, Y);
-    m.rotation.y = (i / 16) * Math.PI * 2;
-  }
-  // Pedestal and cradle
-  k.box(0.34, 0.24, 0.5, o.armour ?? '#c9ced2', -0.2, 0.07, 0, Y);
-  if (o.armour) {
-    // Low armoured hood round the breeches
-    for (const sd of [-1, 1]) {
-      const p = k.box(0.5, 0.26, 0.04, o.armour, -0.12, 0.08, sd * (o.tubes > 2 ? 0.4 : 0.28), Y);
-      p.rotation.x = sd * 0.12;
-    }
-    k.box(0.06, 0.3, o.tubes > 2 ? 0.8 : 0.56, o.armour, -0.4, 0.07, 0, Y);
-    for (let i = 0; i < 6; i++) k.box(0.02, 0.02, 0.02, '#8a8f80', -0.36 + (i % 3) * 0.18, 0.28, (i < 3 ? -1 : 1) * (o.tubes > 2 ? 0.42 : 0.3), Y);
-  }
-  const zs = o.tubes > 2 ? [-0.3, -0.1, 0.1, 0.3] : [-0.14, 0.14];
-  for (const tz of zs) addTube(k, rig, 0.74, 0.05, tz, o.gold ? '#3a3f44' : '#4a4f54', o.gold ? GOLD : '#33383d', o.accent);
-  for (const tz of zs) mesh(k, new THREE.CylinderGeometry(0.075, 0.075, 0.1, 10).rotateZ(-Math.PI / 2), '#8a9196', 0.36, 0, tz, rig.pitch);
-  mesh(k, new THREE.BoxGeometry(0.06, 0.06, zs[zs.length - 1] * 2 + 0.12), '#5c6166', 0.36, 0, 0, rig.pitch);
-  // Hydraulic struts from deck to cradle
-  const cp = mouth(rig, { g: rig.pitch as THREE.Group, len: 0.36, z: 0, r: 0 });
-  for (const sd of [-1, 1]) strut(k, Y, V(cp.x + 0.18, 0.07, sd * (zs[zs.length - 1] + 0.08)), V(cp.x, cp.y, sd * (zs[zs.length - 1] + 0.08)), 0.025, '#8a9196', 6);
-  // Bomb carousel (steps round one slot per load)
-  const car = new THREE.Group();
-  car.position.set(-0.42, 0.07, 0.5);
-  disc(k, 0.17, 0.04, '#5c6166', 0, 0, 0, 12, car);
-  disc(k, 0.04, 0.24, '#8a9196', 0, 0, 0, 6, car);
-  disc(k, 0.17, 0.02, '#5c6166', 0, 0.2, 0, 12, car);
-  for (let i = 0; i < 8; i++) {
-    const [dx, dz] = P((i / 8) * Math.PI * 2, 0.12);
-    bomb(k, car, GUN, o.accent, 0.9).position.set(dx, 0.13, dz);
-  }
-  Y.add(car);
-  // Robot loader arm
-  const shoulder = V(0.12, 0.38, 0.5);
-  k.box(0.16, 0.06, 0.16, '#33383d', shoulder.x, 0.07, shoulder.z, Y);
-  disc(k, 0.05, shoulder.y - 0.13, o.accent === GOLD ? GOLD : '#e8e6e0', shoulder.x, 0.13, shoulder.z, 8, Y);
-  const base = new THREE.Group();
-  base.position.copy(shoulder);
-  Y.add(base);
-  const L1 = 0.42, L2 = 0.4;
-  const upper = new THREE.Group();
-  base.add(upper);
-  const armCol = o.gold ? GOLD : '#f2c230';
-  mesh(k, new THREE.BoxGeometry(L1, 0.06, 0.06).translate(L1 / 2, 0, 0), armCol, 0, 0, 0, upper);
-  mesh(k, new THREE.SphereGeometry(0.05, 8, 6), '#33383d', 0, 0, 0, upper);
-  const elbow = new THREE.Group();
-  elbow.position.x = L1;
-  upper.add(elbow);
-  mesh(k, new THREE.BoxGeometry(L2, 0.045, 0.045).translate(L2 / 2, 0, 0), armCol, 0, 0, 0, elbow);
-  mesh(k, new THREE.SphereGeometry(0.04, 8, 6), '#33383d', 0, 0, 0, elbow);
-  const wrist = new THREE.Group();
-  wrist.position.x = L2;
-  elbow.add(wrist);
-  mesh(k, new THREE.BoxGeometry(0.05, 0.05, 0.05), '#33383d', 0, -0.02, 0, wrist);
-  for (const sd of [-1, 1]) mesh(k, new THREE.BoxGeometry(0.012, 0.07, 0.02), '#8a9196', sd * 0.03, -0.07, 0, wrist);
-  const gb = bomb(k, wrist, GUN, o.accent, 1);
-  gb.position.y = -0.13;
-  const drops = rig.tubes.map((t) => {
-    const b = bomb(k, t.g);
-    b.rotation.z = -Math.PI / 2;
-    b.visible = false;
-    return b;
-  });
-  const pick = V(-0.42 + 0.12, 0.07 + 0.13 + 0.13, 0.5);
-  const restP = V(0.25, 0.75, 0.55);
-  const PER = 4.4;
-  k.anims.push((t) => {
-    const n = Math.floor((t + 100) / PER);
-    const u = cyc(t, PER);
-    const ti = n % rig.tubes.length;
-    const tube = rig.tubes[ti];
-    const dropP = mouth(rig, tube, 0.06).add(V(0, 0.13, 0));
-    const above = dropP.clone().add(V(-0.05, 0.12, 0));
-    let p: THREE.Vector3, hold = false;
-    const lerp = (a: THREE.Vector3, b: THREE.Vector3, e: number, bump = 0) => a.clone().lerp(b, sm(e)).add(V(0, Math.sin(sm(e) * Math.PI) * bump, 0));
-    if (u < 0.18) p = lerp(restP, pick, u / 0.18, 0.05);
-    else if (u < 0.26) (p = pick.clone().add(V(0, Math.sin(((u - 0.18) / 0.08) * Math.PI) * 0.03, 0))), (hold = u > 0.22);
-    else if (u < 0.48) (p = lerp(pick, above, (u - 0.26) / 0.22, 0.12)), (hold = true);
-    else if (u < 0.54) (p = lerp(above, dropP, (u - 0.48) / 0.06)), (hold = true);
-    else if (u < 0.6) (p = dropP), (hold = u < 0.56);
-    else if (u < 0.84) p = lerp(dropP, restP, (u - 0.6) / 0.24, 0.08);
-    else p = restP;
-    const dx = p.x - shoulder.x, dz = p.z - shoulder.z;
-    base.rotation.y = Math.atan2(-dz, dx);
-    const [a1, a2] = ik(L1, L2, Math.hypot(dx, dz), p.y - shoulder.y);
-    upper.rotation.z = a1;
-    elbow.rotation.z = -a2;
-    wrist.rotation.z = -(a1 - a2);
-    gb.visible = hold;
-    drops.forEach((b, i) => {
-      const v = i === ti && u >= 0.56 && u < 0.64;
-      b.visible = v;
-      if (v) b.position.set(tube.len + 0.06 - Math.pow((u - 0.56) / 0.08, 2) * 0.3, 0, 0);
-    });
-    car.rotation.y = (n + sm((u - 0.84) / 0.12)) * ((Math.PI * 2) / 8);
-  });
-  // Crewman restocking the carousel from a crate
-  ammoBox(k, -0.66, 0.07, 0.22, 0.3, '#4a5240', 0.2, 0.1, 0.14, 'HE', Y);
-  loader(k, Y, V(-0.62, 0.07, 0.38), face(0.2, 0.12) , 1.25, o.crewLook, o.seed + 5, { parent: car, from: V(0, 0.32, 0.1), to: V(0, 0.15, 0.12), rot: 0 }, 6.6, 1.3, -1.6);
-  registerRig(k, rig, level, o.seed);
-  return rig;
-}
-
-// ------------------------------------------------------------------ hardened magazine (Lv 16–20)
-
-/** Concrete magazine with twin roof hatches that slide apart for an ammo lift. */
-function magazine(k: Kit, x: number, z: number, y: number, w: number, d: number, h: number, ry: number, col: string, hatch: string, period = 7, offset = 0, gold = false) {
-  return sub(k, x, y, z, ry, (s) => {
-    s.box(w, h, d, col, 0, 0, 0);
-    s.box(w + 0.04, 0.05, d + 0.04, gold ? GOLD : '#9a968d', 0, h, 0);
-    // Hatch well frame
-    s.box(0.5, 0.04, 0.44, '#2a2e2a', 0, h + 0.03, 0);
-    for (const sz of [-1, 1]) s.box(0.62, 0.03, 0.04, HAZ, 0, h + 0.05, sz * 0.24);
-    const leaves = [-1, 1].map((sd) => {
-      const l = s.box(0.25, 0.04, 0.44, hatch, sd * 0.125, h + 0.06, 0);
-      for (let i = 0; i < 3; i++) s.box(0.24, 0.012, 0.02, '#8a8f80', 0, 0.04, -0.14 + i * 0.14, l);
-      return l;
-    });
-    // Lift platform with a pallet of bombs
-    const lift = new THREE.Group();
-    s.box(0.36, 0.03, 0.32, '#8a9196', 0, 0, 0, lift);
-    for (let i = 0; i < 6; i++) bomb(s, lift, GUN, HAZ, 0.9).position.set(-0.1 + (i % 3) * 0.1, 0.11, i < 3 ? -0.06 : 0.06);
-    s.add(lift);
-    // Door on the front and a warning plate
-    s.box(0.3, 0.44, 0.03, '#4a4f54', 0, 0, d / 2 + 0.005);
-    for (let i = 0; i < 5; i++) s.box(0.06, 0.06, 0.035, i % 2 ? C.kerbB : HAZ, -0.12 + i * 0.06, 0.44, d / 2 + 0.01);
-    board(s, 'AMMO', 0.26, 0.09, 0, h - 0.2, d / 2 + 0.02, '#d8342c', '#ffffff', 0);
-    s.anims.push((t) => {
-      const u = cyc(t, period, offset);
-      const open = u < 0.12 ? sm(u / 0.12) : u < 0.62 ? 1 : u < 0.74 ? 1 - sm((u - 0.62) / 0.12) : 0;
-      const up = u < 0.14 ? 0 : u < 0.28 ? sm((u - 0.14) / 0.14) : u < 0.48 ? 1 : u < 0.6 ? 1 - sm((u - 0.48) / 0.12) : 0;
-      leaves[0].position.x = -0.125 - open * 0.24;
-      leaves[1].position.x = 0.125 + open * 0.24;
-      lift.position.y = h - 0.3 + up * 0.36;
-      lift.visible = up > 0.02;
-    });
-  });
-}
-
-// ------------------------------------------------------------------ FIELD (1–3)
-
-function field(k: Kit, level: number, y: number) {
-  const bags = new Bags(level * 11);
-  if (level === 1) {
-    // Shell scrape: a shallow earth bowl with a low ring of sandbags
-    ring(k, 0.9, 1.32, 0.09, y, EARTH, 0.8, 0.45, 'berm');
-    disc(k, 0.98, 0.012, DIRT_D, 0, y, 0);
-    bags.ring(1.0, 2, y + 0.04, 0.8, 0.45);
-    bags.flush(k);
-    const rig = fieldMortar(k, 0.05, y + 0.012, 0.0, 'light');
-    tubeLoaders(k, rig, FIELD, 1);
-    registerRig(k, rig, level, 1);
-    spotter(k, -0.55, y, 0.42, face(0.5, 1), FIELD, 2);
-    // Groundsheet with bombs and an opened ammo box
-    k.box(0.42, 0.01, 0.3, '#56663a', 0.4, y + 0.012, -0.55);
-    for (let i = 0; i < 3; i++) {
-      const b = bomb(k);
-      b.rotation.z = Math.PI / 2;
-      b.position.set(0.32 + i * 0.0, y + 0.05, -0.64 + i * 0.09);
-    }
-    ammoBox(k, -0.45, y + 0.012, -0.55, 0.4);
-    const lid = k.box(0.3, 0.02, 0.18, OLIVE, -0.62, y + 0.012, -0.36);
-    lid.rotation.y = 0.9;
-    aimingStakes(k, 0.95, 1.18, y, 2, 0.18, 0.05);
-    pennant(k, -1.2, -1.15, y, 0.75);
-    jerrycan(k, -0.9, -0.7, y + 0.05, 0.4);
-    // Spade stuck in the spoil
-    const sp = k.box(0.025, 0.36, 0.025, TIMBER, 1.15, y + 0.05, -0.3);
-    sp.rotation.z = 0.3;
-    k.box(0.09, 0.1, 0.015, STEEL, 1.08, y + 0.02, -0.3).rotation.z = 0.3;
-    return;
-  }
-  if (level === 2) {
-    // Sandbag pit: full three-layer ring with a narrow entry, camo net over the stores
-    ring(k, 1.05, 1.42, 0.12, y, EARTH, 0.6, 0.35, 'berm');
-    disc(k, 1.06, 0.012, DIRT_D, 0, y, 0);
-    bags.ring(1.12, 3, y + 0.03, 0.55, 0.35);
-    bags.line(0.45, 1.36, 0.4, 0.35, y + 0.02, 2);
-    bags.flush(k);
-    const rig = fieldMortar(k, 0.12, y + 0.012, 0.12, 'light');
-    tubeLoaders(k, rig, FIELD, 3, false);
-    // No.2 kneeling with the next bomb ready, beside an ammo stack
-    registerRig(k, rig, level, 2);
-    camoNet(k, -0.45, -0.62, 1.0, 0.62, y, 0.62, 0.15, 4);
-    crateStack(k, -0.5, y + 0.012, -0.68, 0.15, 5, 1);
-    fieldPhone(k, -0.05, -0.75, y + 0.012, 0.3);
-    bearer(k, V(-0.2, y + 0.012, -0.42), V(-0.05, y + 0.012, -0.2), FIELD, 4, 8, 1.5, false);
-    spotter(k, -0.78, y + 0.012, 0.3, face(0.4, 1), FIELD, 5);
-    aimingStakes(k, 1.05, 1.15, y, 3, 0.15, 0.04);
-    pennant(k, 1.25, -1.22, y, 0.8);
-    jerrycan(k, 0.75, -0.55, y + 0.012, 0.6);
-    jerrycan(k, 0.86, -0.5, y + 0.012, 0.3, '#3f4d30');
-    return;
-  }
-  // 3: Revetted pit: timber-revetted ring capped with sandbags, duckboards, zinc ammo bay
-  ring(k, 1.22, 1.46, 0.14, y, EARTH, 0.55, 0.3, 'berm');
-  disc(k, 1.14, 0.012, DIRT_D, 0, y, 0);
-  // Duckboard floor
-  for (let i = 0; i < 7; i++) k.box(0.1, 0.02, 1.2, TIMBER, -0.45 + i * 0.15, y + 0.012, 0.15);
-  for (const dz of [-0.35, 0.65]) k.box(0.98, 0.022, 0.05, LOGC, 0, y + 0.03, dz);
-  // Vertical timber revetment (merged planks)
-  const planks: THREE.BufferGeometry[] = [];
-  const n = 40;
-  for (let i = 0; i < n; i++) {
-    const phi = (i / n) * Math.PI * 2;
-    if (Math.abs(Math.atan2(Math.sin(phi - 0.3), Math.cos(phi - 0.3))) < 0.25) continue;
-    const [px, pz] = P(phi, 1.16);
-    const g = new THREE.BoxGeometry(0.17, 0.32 + (i % 3) * 0.02, 0.04).translate(0, 0.16, 0);
-    g.applyMatrix4(new THREE.Matrix4().makeRotationY(phi).setPosition(px, y, pz));
-    planks.push(g);
-  }
-  mesh(k, mergeGeometries(planks)!, TIMBER);
-  for (let i = 0; i < 12; i++) {
-    const phi = (i / 12) * Math.PI * 2 + 0.26;
-    const [px, pz] = P(phi, 1.12);
-    k.cyl(0.03, 0.42, LOGC, px, y, pz, 5);
-  }
-  bags.ring(1.2, 2, y + 0.33, 0.55, 0.3);
-  bags.flush(k);
-  // Timber steps at the entry
-  for (let i = 0; i < 3; i++) {
-    const [sx, sz] = P(0.3, 1.25 + i * 0.1);
-    const st = k.box(0.42, 0.24 - i * 0.08, 0.1, TIMBER, sx, y, sz);
-    st.rotation.y = 0.3;
-  }
-  // Zinc lean-to ammo bay at the back
-  sub(k, -0.45, y, -0.72, 0.2, (s) => {
-    for (const sx of [-0.42, 0.42]) {
-      s.box(0.04, 0.62, 0.04, TIMBER, sx, 0, 0.18);
-      s.box(0.04, 0.5, 0.04, TIMBER, sx, 0, -0.2);
-    }
-    const roof = s.box(0.98, 0.03, 0.52, C.zinc, 0, 0.56, 0);
-    roof.rotation.x = 0.22;
-    crateStack(s, 0, 0.012, -0.05, 0, 6, 2);
-  });
-  const rig = fieldMortar(k, 0.2, y + 0.03, 0.18, 'sight');
-  tubeLoaders(k, rig, FIELD, 6, false);
-  registerRig(k, rig, level, 3);
-  bearer(k, V(-0.1, y + 0.03, -0.4), V(0.0, y + 0.03, -0.15), FIELD, 7, 8, 2.5, false);
-  spotter(k, -0.85, y + 0.03, 0.2, face(0.3, 1), FIELD, 8, false);
-  rangeFlag(k, 1.28, -1.28, y, 1.7);
-  lantern(k, 0.95, -0.6, y + 0.03, 0.6, 1);
-  aimingStakes(k, -1.3, 1.25, y, 2, 0.16, -0.05);
-  signPost(k, 'DANGER', -1.0, 1.35, y, 0.3, RED, 0.42, 0.14, 0.3);
-}
-
-// ------------------------------------------------------------------ CAMP (4–6)
-
-/** Cream rendered ring wall with a green dado and white coping. */
-function campRing(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number, coping: string = C.white) {
-  ring(k, rIn, rOut, h, y, C.wall, gap, gapAt);
-  ring(k, rOut, rOut + 0.015, 0.1, y, C.trim, gap, gapAt);
-  ring(k, rIn - 0.02, rOut + 0.03, 0.05, y + h, coping, gap + 0.02, gapAt);
-  // End piers at the opening
-  for (const sd of [-1, 1]) {
-    const phi = gapAt + sd * (gap / 2 + 0.03);
-    const [px, pz] = P(phi, (rIn + rOut) / 2);
-    const p = k.box(0.1, h + 0.1, rOut - rIn + 0.08, C.wall, px, y, pz);
-    p.rotation.y = phi;
-    const cap = k.box(0.14, 0.05, rOut - rIn + 0.12, C.trim, px, y + h + 0.1, pz);
-    cap.rotation.y = phi;
-  }
-}
+// ------------------------------------------------------------------ structures
 
 /** Yellow/black painted kerb ring round the weapon plinth. */
 function plinth(k: Kit, r: number, y: number, h = 0.06) {
@@ -1194,10 +703,10 @@ function plinth(k: Kit, r: number, y: number, h = 0.06) {
 }
 
 /** Small red-roofed ammo hut whose door swings open for the bearer. */
-function ammoHut(k: Kit, x: number, z: number, y: number, ry: number, open: (t: number) => number, w = 0.6, d = 0.52) {
+function ammoHut(k: Kit, x: number, z: number, y: number, ry: number, open: (t: number) => number, w = 0.6, d = 0.52, roof: string = C.roof) {
   sub(k, x, y, z, ry, (s) => {
     s.block(w, d, 0.68, 0, 0, 0);
-    s.hipRoof(w, d, 0.28, 0, 0.646, 0, C.roof, 0.1);
+    s.hipRoof(w, d, 0.34, 0, 0.646, 0, roof, 0.12);
     const hinge = new THREE.Group();
     hinge.position.set(-0.12, 0, d / 2 + 0.02);
     s.box(0.24, 0.46, 0.035, C.trim, 0.12, 0, 0, hinge);
@@ -1207,166 +716,6 @@ function ammoHut(k: Kit, x: number, z: number, y: number, ry: number, open: (t: 
     board(s, 'AMMO', 0.24, 0.08, 0, 0.52, d / 2 + 0.025, RED);
     s.anims.push((t) => (hinge.rotation.y = -open(t) * 1.6));
   });
-}
-
-function camp(k: Kit, level: number, y: number) {
-  const fl = y;
-  if (level === 4) {
-    // Mortar bay: cream ring with an opening toward the ammo hut
-    campRing(k, 1.06, 1.22, 0.44, fl, 0.62, 2.36);
-    disc(k, 1.06, 0.012, '#cfc9bb', 0, fl, 0);
-    const py = plinth(k, 0.46, fl + 0.012);
-    const rig = fieldMortar(k, 0.0, py, 0.0, 'medium');
-    tubeLoaders(k, rig, CAMP, 9);
-    registerRig(k, rig, level, 4, 0.8, 0.6);
-    const b = bearer(k, V(0.98, fl, -0.98), V(0.55, fl + 0.012, -0.5), CAMP, 10, 9);
-    ammoHut(k, 1.08, -1.08, fl, -Math.PI / 4, b.open);
-    bombRack(k, 0.38, fl + 0.012, -0.72, 0.35, 6);
-    bombRack(k, -0.62, fl + 0.012, -0.62, -0.75, 5);
-    signPost(k, 'MORTAR BAY', -0.9, 1.3, fl, 0.6, C.trim, 0.6, 0.16, 0.36, C.white);
-    k.lamp(1.25, 1.25, fl, 1.1);
-    aimingStakes(k, 0.95, 0.95, fl, 2, -0.18, 0.12);
-    crateStack(k, -1.2, fl, -1.12, 0.78, 3, 0);
-    return;
-  }
-  if (level === 5) {
-    // Fire-post bay: as Lv 4 plus a raised gabled fire-control post and its flag signaller
-    campRing(k, 1.08, 1.25, 0.46, fl, 0.62, 2.36, C.trim);
-    disc(k, 1.08, 0.012, '#cfc9bb', 0, fl, 0);
-    const py = plinth(k, 0.48, fl + 0.012);
-    const rig = fieldMortar(k, 0.0, py, 0.05, 'medium');
-    tubeLoaders(k, rig, CAMP, 11);
-    registerRig(k, rig, level, 5, 0.7, 0.5);
-    const b = bearer(k, V(0.98, fl, -0.98), V(0.55, fl + 0.012, -0.5), CAMP, 12, 9, 3);
-    ammoHut(k, 1.08, -1.08, fl, -Math.PI / 4, b.open);
-    bombRack(k, 0.38, fl + 0.012, -0.72, 0.35, 6);
-    bombRack(k, 0.7, fl + 0.012, -0.2, 1.2, 5);
-    // Fire-control post (back-left corner), raised on a plinth with steps
-    sub(k, -1.0, fl, -1.0, Math.PI / 4, (s) => {
-      s.box(0.66, 0.26, 0.6, C.concrete, 0, 0, 0);
-      s.box(0.68, 0.04, 0.62, C.trim, 0, 0.26, 0);
-      for (const sx of [-1, 1]) s.box(0.04, 0.22, 0.6, C.wall, sx * 0.31, 0.3, 0);
-      s.box(0.66, 0.22, 0.04, C.wall, 0, 0.3, -0.28);
-      for (const sx of [-1, 1]) for (const sz of [-1, 1]) s.box(0.05, 0.6, 0.05, C.trim, sx * 0.3, 0.3, sz * 0.27);
-      s.gableRoof(0.66, 0.6, 0.26, 0, 0.9, 0, C.roof, 0.08);
-      s.stairs(0.38, 0.4, 0.22, 0.22, 0.26, true);
-      board(s, 'FIRE CONTROL', 0.5, 0.09, 0, 0.92 - 0.12, 0.33, C.trim, '#ffffff');
-      // Fire controller: raises the flag while loading, drops it as the bomb goes in
-      const f = crew(s, 13, OFFICER);
-      f.root.position.set(0.05, 0.3, 0.05);
-      f.root.rotation.y = -Math.PI / 2 + 0.3;
-      const flag = new THREE.Group();
-      s.box(0.012, 0.3, 0.012, '#d8c26a', 0, 0, 0, flag);
-      s.box(0.14, 0.1, 0.006, RED, 0.07, 0.2, 0, flag);
-      f.armR.add(flag);
-      flag.position.y = -0.2;
-      s.anims.push((t) => {
-        const u = cyc(t, 4.4, 0);
-        const up = u < 0.25 ? sm(u / 0.1) : u < 0.33 ? 1 - sm((u - 0.31) / 0.02) : 0;
-        f.armR.rotation.z = 0.2 + up * 2.6;
-        f.armR.rotation.x = -0.2;
-        f.torso.rotation.y = Math.sin(t * 0.5) * 0.2;
-      });
-      fieldPhone(s, -0.2, -0.15, 0.52, 0.2);
-    });
-    // Telephone pole carrying the line to the post
-    k.cyl(0.03, 1.5, TIMBER, -1.3, fl, 0.6, 5);
-    k.box(0.3, 0.03, 0.03, TIMBER, -1.3, fl + 1.38, 0.6);
-    strut(k, undefined, V(-1.3, fl + 1.4, 0.6), V(-1.0, fl + 1.0, -0.85), 0.006, '#2a2b2d', 3);
-    signPost(k, 'MORTAR BAY', 0.2, 1.36, fl, 0, C.trim, 0.6, 0.16, 0.36, C.white);
-    k.lamp(1.25, 1.25, fl, 1.1);
-    k.lamp(-1.25, -0.2, fl, 1.1);
-    aimingStakes(k, 0.98, 0.9, fl, 3, -0.15, 0.12);
-    return;
-  }
-  // 6: Twin-tube bay with a curved red-tile veranda over the back of the ring
-  campRing(k, 1.14, 1.32, 0.5, fl, 0.6, 0.35, C.white);
-  disc(k, 1.14, 0.012, '#cfc9bb', 0, fl, 0);
-  const py = plinth(k, 0.56, fl + 0.012);
-  const rig = fieldMortar(k, 0.05, py, 0.1, 'twin');
-  tubeLoaders(k, rig, CAMP, 14, true, 4.8);
-  registerRig(k, rig, level, 6, 0.7, 0.3);
-  // Crescent veranda on green posts
-  const a0 = 1.55, a1 = 4.75, segs = 9;
-  for (let i = 0; i < segs; i++) {
-    const a = a0 + ((i + 0.5) / segs) * (a1 - a0);
-    const [px, pz] = P(a, 1.05);
-    const plate = k.box(0.42, 0.04, 0.62, C.roof, px, fl + 0.98, pz);
-    plate.rotation.set(0, a, 0);
-    plate.rotateX(0.32);
-    const [ex, ez] = P(a, 0.78);
-    const eave = k.box(0.42, 0.035, 0.05, C.trim, ex, fl + 0.88, ez);
-    eave.rotation.y = a;
-  }
-  for (let i = 0; i <= 4; i++) {
-    const a = a0 + 0.12 + (i / 4) * (a1 - a0 - 0.24);
-    const [px, pz] = P(a, 0.86);
-    k.box(0.06, 0.9, 0.06, C.trim, px, fl, pz);
-  }
-  // Steel bomb lockers under the veranda
-  for (let i = 0; i < 4; i++) {
-    const a = 2.6 + i * 0.42;
-    const [px, pz] = P(a, 0.98);
-    const l = k.box(0.28, 0.4, 0.16, '#4b6b3a', px, fl + 0.012, pz);
-    l.rotation.y = a;
-    const [hx, hz] = P(a, 0.89);
-    const hd = k.box(0.03, 0.06, 0.012, '#d8c26a', hx, fl + 0.22, hz);
-    hd.rotation.y = a;
-  }
-  bombRack(k, 0.88, fl + 0.012, -0.32, 1.45, 6);
-  // Alarm bell on a bracket, its striker swinging
-  const [bx, bz] = P(2.0, 1.42);
-  k.box(0.05, 0.9, 0.05, C.trim, bx, fl, bz);
-  k.box(0.22, 0.04, 0.04, C.trim, bx - 0.08, fl + 0.88, bz);
-  const bell = new THREE.Group();
-  bell.position.set(bx - 0.16, fl + 0.86, bz);
-  mesh(k, new THREE.CylinderGeometry(0.035, 0.07, 0.1, 10).translate(0, -0.05, 0), '#d8b24a', 0, 0, 0, bell);
-  mesh(k, new THREE.SphereGeometry(0.018, 6, 4), '#7a5a2a', 0, -0.11, 0, bell);
-  k.add(bell);
-  k.anims.push((t) => (bell.rotation.z = Math.sin(t * 7) * 0.22 * (cyc(t, 6) < 0.3 ? 1 : 0.15)));
-  // Kerbed ramp at the entry, sign, lamps
-  for (let i = 0; i < 4; i++) {
-    const [rx, rz] = P(0.35, 1.38 + i * 0.0);
-    void rx;
-    void rz;
-  }
-  const [ex, ez] = P(0.35, 1.3);
-  const ramp = k.box(0.62, 0.05, 0.3, '#c9c3b5', ex, fl, ez);
-  ramp.rotation.y = 0.35;
-  signPost(k, 'MORTAR BAY 2', -1.15, 1.2, fl, 0.7, C.trim, 0.56, 0.15, 0.36, C.white);
-  k.lamp(1.3, 0.95, fl, 1.2);
-  spotter(k, 0.62, fl + 0.012, -0.85, face(0.6, 1), OFFICER, 15, false);
-}
-
-// ------------------------------------------------------------------ BASE (7–10)
-
-/** Concrete ring with merlons (aiming slots) round the top. */
-function concreteRing(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number, merlons = 0, mh = 0.16) {
-  ring(k, rIn, rOut, h, y, CONCRETE, gap, gapAt);
-  ring(k, rIn - 0.015, rOut + 0.015, 0.045, y + h, '#bdb8ad', gap, gapAt);
-  for (let i = 0; i < merlons; i++) {
-    const phi = ((i + 0.5) / merlons) * Math.PI * 2;
-    const dphi = Math.atan2(Math.sin(phi - gapAt), Math.cos(phi - gapAt));
-    if (Math.abs(dphi) < gap / 2 + 0.15) continue;
-    const [px, pz] = P(phi, (rIn + rOut) / 2);
-    const m = k.box(0.26, mh, rOut - rIn, CONCRETE, px, y + h + 0.04, pz);
-    m.rotation.y = phi;
-  }
-  for (const sd of [-1, 1]) {
-    const phi = gapAt + sd * (gap / 2 + 0.04);
-    const [px, pz] = P(phi, (rIn + rOut) / 2);
-    const p = k.box(0.12, h + 0.12, rOut - rIn + 0.06, CONCRETE, px, y, pz);
-    p.rotation.y = phi;
-    for (let j = 0; j < 4; j++) {
-      const s = k.box(0.125, 0.07, rOut - rIn + 0.065, j % 2 ? C.kerbB : HAZ, px, y + 0.06 + j * 0.14, pz);
-      s.rotation.y = phi;
-    }
-  }
-}
-
-/** Grassed earth berm hugging the outside of the pit. */
-function berm(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number) {
-  ring(k, rIn, rOut, h, y, GRASS_D, gap, gapAt, 'berm', 36);
 }
 
 /** Grass-roofed concrete ready-ammo bunker with a sliding steel blast door. */
@@ -1450,182 +799,6 @@ function shelter(k: Kit, x: number, z: number, y: number, ry: number, w: number,
   });
 }
 
-/** Concrete fire-direction bunker with slit windows and a rotating periscope. */
-function fdcBunker(k: Kit, x: number, z: number, y: number, ry: number, w = 0.9, d = 0.66, h = 0.66) {
-  sub(k, x, y, z, ry, (s) => {
-    s.box(w, h, d, CONCRETE, 0, 0, 0);
-    s.box(w + 0.12, 0.1, d + 0.12, '#bdb8ad', 0, h, 0);
-    s.box(w - 0.2, 0.06, 0.02, '#1d2326', 0, h - 0.2, d / 2 + 0.005);
-    s.box(0.02, 0.06, d - 0.25, '#1d2326', w / 2 + 0.005, h - 0.2, 0);
-    s.box(0.28, 0.44, 0.03, '#4a4f54', -w / 2 + 0.22, 0, d / 2 + 0.005);
-    for (const sx of [-1, 1]) {
-      const wing = s.box(0.3, h * 0.7, 0.08, CONCRETE, sx * (w / 2 + 0.1), 0, d / 2 + 0.04);
-      wing.rotation.y = sx * 0.6;
-    }
-    const peri = new THREE.Group();
-    peri.position.set(0.15, h + 0.1, -0.05);
-    s.cyl(0.035, 0.22, '#4a4f54', 0.15, h + 0.1, -0.05, 6);
-    s.box(0.08, 0.07, 0.07, '#4a4f54', 0.02, 0.22, 0, peri);
-    s.box(0.012, 0.045, 0.05, DARK_GLASS, 0.065, 0.23, 0, peri);
-    s.add(peri);
-    s.anims.push((t) => (peri.rotation.y = Math.sin(t * 0.35) * 1.4));
-    board(s, 'FDC', 0.24, 0.1, 0.2, 0.3, d / 2 + 0.02, C.trim);
-    s.antenna(-w / 2 + 0.12, h + 0.1, -d / 2 + 0.12, 0.9);
-  });
-}
-
-/** Narrow-gauge ammo rail with a trolley that rolls in and out. */
-function ammoRail(k: Kit, x0: number, z0: number, x1: number, z1: number, y: number, period = 9) {
-  const len = Math.hypot(x1 - x0, z1 - z0);
-  const ry = face(x1 - x0, z1 - z0);
-  sub(k, (x0 + x1) / 2, y, (z0 + z1) / 2, ry, (s) => {
-    for (const sd of [-1, 1]) s.box(len, 0.025, 0.02, '#8a9196', 0, 0.02, sd * 0.09);
-    for (let i = 0; i < Math.round(len / 0.14); i++) s.box(0.05, 0.02, 0.26, TIMBER, -len / 2 + 0.07 + i * 0.14, 0, 0);
-    const tr = new THREE.Group();
-    s.box(0.34, 0.08, 0.22, '#4b6b3a', 0, 0.05, 0, tr);
-    for (let i = 0; i < 6; i++) {
-      const b = bomb(s, tr, GUN, HAZ, 0.9);
-      b.rotation.z = Math.PI / 2;
-      b.position.set(0, 0.16 + (i >= 3 ? 0.05 : 0), -0.07 + (i % 3) * 0.07);
-    }
-    const wheels: THREE.Mesh[] = [];
-    for (const wx of [-0.1, 0.1]) for (const sd of [-1, 1]) {
-      const w = mesh(s, new THREE.CylinderGeometry(0.04, 0.04, 0.02, 8).rotateX(Math.PI / 2), '#33383d', wx, 0.04, sd * 0.09, tr) as THREE.Mesh;
-      wheels.push(w);
-    }
-    s.add(tr);
-    s.anims.push((t) => {
-      const u = cyc(t, period);
-      const p = u < 0.35 ? sm(u / 0.35) : u < 0.55 ? 1 : u < 0.9 ? 1 - sm((u - 0.55) / 0.35) : 0;
-      tr.position.x = -len / 2 + 0.2 + p * (len - 0.4);
-      wheels.forEach((w) => (w.rotation.z = -tr.position.x / 0.04));
-    });
-  });
-}
-
-function base(k: Kit, level: number, y: number) {
-  const fl = y;
-  if (level === 7) {
-    // Concrete pit: thick ring with merlons, ready bunker cut into the back
-    concreteRing(k, 1.1, 1.34, 0.5, fl, 0.55, 0.4, 9, 0.14);
-    disc(k, 1.1, 0.014, '#c2bdb2', 0, fl, 0);
-    for (let i = 0; i < 4; i++) k.box(0.2, 0.006, 0.05, '#5c6166', -0.9 + i * 0.0, fl + 0.015, 0.4 + i * 0.07);
-    const py = plinth(k, 0.6, fl + 0.014);
-    const rig = fieldMortar(k, 0.05, py, 0.1, 'twin');
-    tubeLoaders(k, rig, BASE, 16, true, 4.6);
-    registerRig(k, rig, level, 7, 0.7, 0.3);
-    readyBunker(k, 0.15, -1.12, fl, -0.12);
-    shelter(k, -1.0, -1.0, fl, Math.PI / 4, 0.66, 0.52, 1.0, 71);
-    rangefinder(k, -0.8, 0.45, fl + 0.014, 1);
-    spotter(k, -0.9, fl + 0.014, 0.18, face(0.5, 1), BASE, 17, false);
-    bombRack(k, 0.82, fl + 0.014, -0.45, 1.2, 6, '#4b6b3a');
-    bombRack(k, 0.5, fl + 0.014, -0.82, 0.55, 6, '#4b6b3a');
-    k.lamp(1.3, 1.3, fl, 1.15);
-    k.lamp(-1.32, -1.2, fl, 1.15);
-    signPost(k, 'NO SMOKING', 1.25, 0.35, fl, Math.PI / 2 - 0.3, RED, 0.48, 0.14, 0.32, C.metal);
-    return;
-  }
-  if (level === 8) {
-    // Heavy mortar pit: heavy twin tubes, concrete ring inside a grassed berm, davit hoist
-    berm(k, 1.2, 1.5, 0.42, fl, 0.6, 0.4);
-    concreteRing(k, 1.06, 1.22, 0.56, fl, 0.55, 0.4, 0);
-    disc(k, 1.06, 0.014, '#c2bdb2', 0, fl, 0);
-    const py = plinth(k, 0.66, fl + 0.014);
-    const rig = fieldMortar(k, 0.02, py, 0.06, 'heavy');
-    tubeLoaders(k, rig, BASE, 18, true, 4.6);
-    registerRig(k, rig, level, 8, 0.7, 0.3);
-    davit(k, 0.95, -0.95, fl + 0.3, 1.2, 0.6, face(-1, 1));
-    shelter(k, -1.0, -1.0, fl, Math.PI / 4, 0.7, 0.56, 1.06, 72);
-    k.box(0.34, 0.3, 0.34, CONCRETE, 0.95, fl, -0.95);
-    for (let i = 0; i < 3; i++) {
-      const a = 3.4 + i * 0.45;
-      const [px, pz] = P(a, 0.92);
-      const l = k.box(0.28, 0.44, 0.17, '#4b6b3a', px, fl + 0.014, pz);
-      l.rotation.y = a;
-    }
-    bombRack(k, 0.82, fl + 0.014, -0.18, 1.5, 6, '#4b6b3a');
-    // Concrete steps down through the berm
-    for (let i = 0; i < 3; i++) {
-      const [sx, sz] = P(0.4, 1.28 + i * 0.08);
-      const st = k.box(0.5, 0.3 - i * 0.09, 0.1, '#c2bcae', sx, fl, sz);
-      st.rotation.y = 0.4;
-    }
-    k.lamp(-1.1, 1.05, fl + 0.2, 1.1);
-    k.lamp(1.2, 0.4, fl + 0.3, 1.0);
-    spotter(k, -0.75, fl + 0.014, -0.6, face(0.5, 1), BASE, 19, true);
-    return;
-  }
-  if (level === 9) {
-    // Fire-direction pit: + FDC bunker with a rotating periscope, blast wings, hoist
-    berm(k, 1.22, 1.5, 0.46, fl, 0.6, 0.4);
-    concreteRing(k, 1.06, 1.24, 0.58, fl, 0.55, 0.4, 8, 0.12);
-    disc(k, 1.06, 0.014, '#c2bdb2', 0, fl, 0);
-    const py = plinth(k, 0.66, fl + 0.014);
-    const rig = fieldMortar(k, 0.1, py, 0.12, 'heavy');
-    tubeLoaders(k, rig, BASE, 20, true, 4.6);
-    registerRig(k, rig, level, 9, 0.7, 0.3);
-    fdcBunker(k, -0.92, -0.92, fl + 0.18, Math.PI / 4, 0.86, 0.6, 1.07);
-    davit(k, 1.0, -0.9, fl + 0.32, 1.2, 0.58, face(-1, 1), 11);
-    k.box(0.34, 0.32, 0.34, CONCRETE, 1.0, fl, -0.9);
-    bombRack(k, 0.86, fl + 0.014, -0.05, 1.5, 6, '#4b6b3a');
-    bombRack(k, 0.35, fl + 0.014, -0.86, 0.35, 6, '#4b6b3a');
-    for (let i = 0; i < 3; i++) {
-      const [sx, sz] = P(0.4, 1.28 + i * 0.08);
-      const st = k.box(0.5, 0.3 - i * 0.09, 0.1, '#c2bcae', sx, fl, sz);
-      st.rotation.y = 0.4;
-    }
-    k.lamp(-1.2, 0.95, fl + 0.2, 1.1);
-    k.lamp(1.25, 0.45, fl + 0.3, 1.0);
-    k.blinker(-0.52, fl + 0.8, -1.22, '#ff3b30', 0.03);
-    return;
-  }
-  // 10: Mortar battery: grand double ring, gateway, magazine with an ammo rail into the pit
-  berm(k, 1.22, 1.5, 0.5, fl, 0.7, 0.0);
-  concreteRing(k, 1.04, 1.24, 0.62, fl, 0.62, 0.0, 10, 0.16);
-  disc(k, 1.04, 0.014, '#c2bdb2', 0, fl, 0);
-  ring(k, 0.84, 0.88, 0.006, fl + 0.014, HAZ);
-  const py = plinth(k, 0.64, fl + 0.014);
-  const rig = fieldMortar(k, 0.08, py, -0.05, 'heavyPlus');
-  tubeLoaders(k, rig, BASE, 21, true, 4.6);
-  registerRig(k, rig, level, 10, 0.75, 0.6);
-  // Gateway arch over the entry
-  for (const sx of [-1, 1]) {
-    k.box(0.16, 1.05, 0.34, CONCRETE, sx * 0.42, fl, 1.32);
-    k.box(0.2, 0.05, 0.38, C.trim, sx * 0.42, fl + 1.05, 1.32);
-  }
-  k.box(1.04, 0.22, 0.36, CONCRETE, 0, fl + 1.05, 1.32);
-  board(k, 'MORTAR BATTERY', 0.86, 0.15, 0, fl + 1.08, 1.505, C.trim, '#ffffff');
-  for (let i = 0; i < 8; i++) k.box(0.13, 0.05, 0.37, i % 2 ? C.kerbB : HAZ, -0.455 + i * 0.13, fl + 1.27, 1.32);
-  // Magazine + rail
-  fdcBunker(k, -1.0, -0.95, fl + 0.2, Math.PI / 4, 0.84, 0.58, 1.12);
-  readyBunker(k, 0.98, -0.98, fl + 0.22, -Math.PI / 4, 0.78, 0.5, 0.48, 9);
-  ammoRail(k, 0.82, -0.82, 0.42, -0.42, fl + 0.014, 9);
-  bombRack(k, 0.88, fl + 0.014, 0.2, 1.75, 6, '#4b6b3a');
-  bombRack(k, -0.85, fl + 0.014, 0.25, -1.6, 6, '#4b6b3a');
-  k.flagpole(-1.3, 0.75, 2.0, fl + 0.2);
-  k.lamp(1.25, 1.25, fl + 0.1, 1.2);
-  k.lamp(-1.25, 1.25, fl + 0.1, 1.2);
-  rangeFlag(k, 1.32, 0.2, fl + 0.3, 1.5);
-  spotter(k, 0.75, fl + 0.014, 0.52, face(0.2, 1), OFFICER, 22, false);
-}
-
-// ------------------------------------------------------------------ COMMAND (11–15)
-
-/** White ring with a teal band and a teal-lit coping. */
-function whiteRing(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number) {
-  ring(k, rIn, rOut, h, y, C.white, gap, gapAt);
-  ring(k, rOut, rOut + 0.012, 0.06, y + h * 0.45, TEAL, gap, gapAt);
-  ring(k, rIn - 0.02, rOut + 0.02, 0.04, y + h, '#d9dcdc', gap, gapAt);
-  for (const sd of [-1, 1]) {
-    const phi = gapAt + sd * (gap / 2 + 0.04);
-    const [px, pz] = P(phi, (rIn + rOut) / 2);
-    const p = k.box(0.12, h + 0.14, rOut - rIn + 0.06, C.white, px, y, pz);
-    p.rotation.y = phi;
-    const [lx, lz] = P(phi, rOut + 0.04);
-    pulse(k, 0.05, 0.05, 0.05, TEAL, lx, y + h + 0.08, lz, 2.4);
-  }
-}
-
 /** Glass control kiosk with fins and a green roof (screens pulse inside). */
 function kiosk(k: Kit, x: number, z: number, y: number, ry: number, w: number, d: number, h: number, storeys = 1) {
   sub(k, x, y, z, ry, (s) => {
@@ -1643,127 +816,6 @@ function kiosk(k: Kit, x: number, z: number, y: number, ry: number, w: number, d
     pulse(s, w * 0.5, 0.14, 0.02, '#5fe0d0', 0, 0.3, -d / 2 + 0.06, 1.7);
     s.aircon(w / 2 + 0.05, 0.14, -0.05, Math.PI / 2);
   });
-}
-
-function command(k: Kit, level: number, y: number) {
-  const fl = y;
-  if (level === 11) {
-    whiteRing(k, 1.06, 1.24, 0.5, fl, 0.6, 0.4);
-    disc(k, 1.06, 0.014, '#dcdedd', 0, fl, 0);
-    ring(k, 0.6, 0.66, 0.006, fl + 0.014, TEAL);
-    turretMortar(k, 0.05, fl + 0.014, 0.0, level, CMD, 23);
-    kiosk(k, -1.0, -1.0, fl, Math.PI / 4, 0.62, 0.5, 0.68, 2);
-    bombRack(k, 0.75, fl + 0.014, -0.6, 0.9, 6, C.metal);
-    k.flagpole(1.25, -1.25, 1.9, fl);
-    k.lamp(1.3, 1.25, fl, 1.2);
-    signPost(k, 'MORTAR 11', -1.15, 1.25, fl, 0.6, TEAL, 0.5, 0.15, 0.34, C.white);
-    return;
-  }
-  if (level === 12) {
-    whiteRing(k, 1.08, 1.26, 0.52, fl, 0.6, 0.4);
-    disc(k, 1.08, 0.014, '#dcdedd', 0, fl, 0);
-    ring(k, 0.86, 0.9, 0.006, fl + 0.014, TEAL);
-    turretMortar(k, 0.12, fl + 0.014, 0.08, level, CMD, 24);
-    kiosk(k, -0.98, -0.98, fl, Math.PI / 4, 0.7, 0.52, 0.7, 2);
-    // Magazine pavilion: green canopy on white posts over bomb racks
-    sub(k, 1.02, fl, -1.02, -Math.PI / 4, (s) => {
-      for (const sx of [-1, 1]) for (const sz of [-1, 1]) s.box(0.05, 0.62, 0.05, C.white, sx * 0.28, 0, sz * 0.18);
-      s.box(0.72, 0.06, 0.5, C.roofGreen, 0, 0.62, 0);
-      s.box(0.74, 0.025, 0.52, C.white, 0, 0.6, 0);
-      bombRack(s, 0, 0.0, 0, 0, 6, C.metal);
-    });
-    k.flagpole(1.3, 0.3, 1.9, fl);
-    k.lamp(1.3, 1.25, fl, 1.2);
-    signPost(k, 'AUTOLOADER', -1.15, 1.25, fl, 0.6, TEAL, 0.52, 0.15, 0.34, C.white);
-    return;
-  }
-  if (level === 13) {
-    whiteRing(k, 1.08, 1.28, 0.56, fl, 0.6, 0.4);
-    disc(k, 1.08, 0.014, '#dcdedd', 0, fl, 0);
-    ring(k, 0.86, 0.9, 0.006, fl + 0.014, TEAL);
-    turretMortar(k, 0.12, fl + 0.014, 0.08, level, CMD, 25);
-    sub(k, -0.98, fl, -0.98, Math.PI / 4, (s) => {
-      // Two-storey control block with a roof garden
-      s.box(0.78, 0.12, 0.56, C.white, 0, 0, 0);
-      s.glassBox(0.72, 0.64, 0.5, 0, 0.12, 0);
-      s.box(0.82, 0.08, 0.6, C.white, 0, 0.76, 0);
-      s.box(0.78, 0.56, 0.56, C.white, 0, 0.84, 0);
-      s.box(0.6, 0.2, 0.02, DARK_GLASS, 0, 1.02, 0.285);
-      s.fins(0.66, 0.56, 0, 0.84, 0.32, 6);
-      s.box(0.84, 0.06, 0.62, C.roofGreen, 0, 1.4, 0);
-      for (let i = 0; i < 4; i++) s.hedge(-0.25 + i * 0.17, 0, 0.12, 0.4, 1.46);
-      pulse(s, 0.4, 0.14, 0.02, '#5fe0d0', 0, 0.3, -0.22, 1.7);
-    });
-    metMast(k, 1.25, -1.25, fl, 1.3);
-    balloon(k, 1.25, 0.6, fl, 1.25);
-    sub(k, 1.0, fl, -0.55, -1.2, (s) => bombRack(s, 0, 0.0, 0, 0, 6, C.metal));
-    k.lamp(1.3, 1.25, fl, 1.2);
-    signPost(k, 'MET STATION', -1.12, 1.25, fl, 0.6, TEAL, 0.56, 0.15, 0.34, C.white);
-    return;
-  }
-  if (level === 14) {
-    whiteRing(k, 1.1, 1.3, 0.5, fl, 0.6, 0.4);
-    disc(k, 1.1, 0.014, '#dcdedd', 0, fl, 0);
-    turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 2, deck: '#e2e5e7', rim: TEAL, accent: TEAL, seed: 26, crewLook: CMD });
-    kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.62, 0.48, 0.74, 2);
-    metMast(k, 1.25, -1.25, fl, 1.2);
-    k.flagpole(1.3, 0.35, 1.9, fl);
-    k.lamp(1.3, 1.25, fl, 1.2);
-    signPost(k, 'TURNTABLE', -1.15, 1.25, fl, 0.6, TEAL, 0.5, 0.15, 0.34, C.white);
-    return;
-  }
-  // 15: Mortar rotunda: white colonnade with a green ring roof round the turntable
-  whiteRing(k, 1.1, 1.3, 0.42, fl, 0.6, 0.4);
-  disc(k, 1.1, 0.014, '#dcdedd', 0, fl, 0);
-  turntable(k, 0.0, fl + 0.05, 0.0, level, { tubes: 2, deck: '#e2e5e7', rim: TEAL, accent: TEAL, seed: 27, crewLook: CMD });
-  const cols = 12;
-  for (let i = 0; i < cols; i++) {
-    const phi = (i / cols) * Math.PI * 2 + 0.13;
-    const [px, pz] = P(phi, 1.2);
-    k.cyl(0.05, 1.03, C.white, px, fl + 0.42, pz, 8);
-  }
-  ring(k, 1.0, 1.4, 0.08, fl + 1.45, C.roofGreen, 0, 0, 'wall', 36);
-  ring(k, 0.98, 1.42, 0.04, fl + 1.41, C.white, 0, 0, 'wall', 36);
-  ring(k, 1.0, 1.02, 0.12, fl + 1.53, TEAL, 0, 0, 'wall', 36);
-  for (let i = 0; i < 6; i++) {
-    const [lx, lz] = P((i / 6) * Math.PI * 2, 1.0);
-    pulse(k, 0.06, 0.04, 0.06, '#5fe0d0', lx, fl + 1.37, lz, 1.5);
-  }
-  // Crest plinth and twin flags at the entry
-  k.box(0.3, 0.28, 0.12, C.white, -0.6, fl, 1.32);
-  const crest = mesh(k, new THREE.CylinderGeometry(0.1, 0.1, 0.03, 12).rotateX(Math.PI / 2), TEAL, -0.6, fl + 0.4, 1.33);
-  k.anims.push((t) => (crest.rotation.y = t * 0.8));
-  k.flagpole(1.0, 1.3, 2.0, fl);
-  k.flagpole(-1.3, 0.75, 2.0, fl);
-}
-
-// ------------------------------------------------------------------ SECURE (16–20)
-
-function casemateDrum(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number, col: string, top: string) {
-  ring(k, rIn, rOut, h, y, col, gap, gapAt, 'wall', 36);
-  ring(k, rIn - 0.02, rOut + 0.02, 0.06, y + h, top, gap, gapAt, 'wall', 36);
-  ring(k, rIn - 0.01, rIn + 0.05, 0.05, y + h + 0.05, HAZ, gap, gapAt, 'wall', 36);
-  for (const sd of [-1, 1]) {
-    const phi = gapAt + sd * (gap / 2 + 0.04);
-    const [px, pz] = P(phi, (rIn + rOut) / 2);
-    const p = k.box(0.14, h + 0.1, rOut - rIn + 0.06, col, px, y, pz);
-    p.rotation.y = phi;
-  }
-}
-
-function riveted(k: Kit, r: number, h: number, y: number, n: number, gap: number, gapAt: number, col = ARMOUR) {
-  for (let i = 0; i < n; i++) {
-    const phi = ((i + 0.5) / n) * Math.PI * 2;
-    const dphi = Math.atan2(Math.sin(phi - gapAt), Math.cos(phi - gapAt));
-    if (Math.abs(dphi) < gap / 2 + 0.12) continue;
-    const [px, pz] = P(phi, r);
-    const pl = k.box(((2 * Math.PI * r) / n) * 0.92, h, 0.04, i % 2 ? col : ARMOUR_D, px, y, pz);
-    pl.rotation.y = phi;
-    for (const dy of [0.06, h - 0.06]) for (const dx of [-1, 1]) {
-      const [rx, rz] = P(phi + dx * 0.09 / r, r + 0.025);
-      k.box(0.02, 0.02, 0.02, '#8a8f80', rx, y + dy, rz);
-    }
-  }
 }
 
 /** Hovering tethered spotter drone with spinning rotors. */
@@ -1813,6 +865,12 @@ function sensorBall(k: Kit, x: number, z: number, y: number, h: number, gold = f
   });
 }
 
+
+/** Grassed earth berm hugging the outside of the pit. */
+function berm(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number) {
+  ring(k, rIn, rOut, h, y, GRASS_D, gap, gapAt, 'berm', 36);
+}
+
 /** Acoustic sensor mast: a cluster of horns that turns slowly. */
 function acousticMast(k: Kit, x: number, z: number, y: number, h: number) {
   k.cyl(0.03, h, '#4a4f54', x, y, z, 6);
@@ -1828,132 +886,780 @@ function acousticMast(k: Kit, x: number, z: number, y: number, h: number) {
   k.anims.push((t) => (head.rotation.y = t * 0.6 + x));
 }
 
-/** T-wall blast barrier section. */
-function tWall(k: Kit, x: number, z: number, y: number, ry: number, h = 0.8, gold = false) {
-  sub(k, x, y, z, ry, (s) => {
-    s.box(0.5, 0.12, 0.3, CONCRETE, 0, 0, 0);
-    s.box(0.5, h, 0.1, CONCRETE, 0, 0.12, 0);
-    s.box(0.52, 0.04, 0.12, gold ? GOLD : HAZ, 0, 0.12 + h - 0.04, 0);
-  });
+// ------------------------------------------------------------------ the weapon: a big, fat cartoon barrel
+
+interface Tube { g: THREE.Group; len: number; z: number; o: number; r: number }
+interface Rig { yaw: THREE.Group; pitch: THREE.Group; tubes: Tube[]; px: number; py: number }
+interface Barrel { len: number; r: number; color: string; band: string; bands: number; lip: string; lash?: boolean; spring?: string }
+
+function newRig(k: Kit, x: number, y: number, z: number, px: number, py: number, parent?: THREE.Object3D): Rig {
+  const yaw = new THREE.Group();
+  yaw.position.set(x, y, z);
+  const pitch = new THREE.Group();
+  pitch.position.set(px, py, 0);
+  pitch.rotation.z = LOB;
+  yaw.add(pitch);
+  k.add(yaw, parent);
+  return { yaw, pitch, tubes: [], px, py };
 }
 
-function secure(k: Kit, level: number, y: number) {
-  const fl = y;
-  const gold = level === 20;
-  if (level === 16) {
-    // Hardened casemate: thick concrete drum, grass glacis, armoured turntable, magazine hatches
-    berm(k, 1.3, 1.5, 0.4, fl, 0.55, 0.4);
-    casemateDrum(k, 1.0, 1.34, 0.66, fl, 0.5, 0.4, CONCRETE, '#9a968d');
-    disc(k, 1.0, 0.014, '#a9a59c', 0, fl, 0);
-    turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 2, deck: '#6b7075', rim: HAZ, armour: ARMOUR, accent: HAZ, seed: 28, crewLook: SEC });
-    magazine(k, -1.0, -1.0, fl, 0.78, 0.7, 1.32, Math.PI / 4, CONCRETE, ARMOUR, 7);
-    cctv(k, 1.25, -1.25, fl, 1.2, Math.PI * 0.75);
-    beacon(k, 0.95, fl + 0.72, -0.95);
-    k.lamp(1.3, 1.25, fl + 0.2, 1.1);
-    signPost(k, 'DANGER', -1.2, 1.2, fl, 0.7, RED, 0.42, 0.14, 0.34, '#4a4f54');
-    return;
+/** A stubby barrel along +x from the pivot: breech ball, reinforcing bands, wide muzzle lip, dark bore. */
+function addBarrel(k: Kit, rig: Rig, b: Barrel, z = 0, o = 0): Tube {
+  const g = new THREE.Group();
+  g.position.set(0, o, z);
+  rig.pitch.add(g);
+  const { len, r } = b;
+  mesh(k, new THREE.CylinderGeometry(r, r * 1.18, len, 14).rotateZ(-Math.PI / 2).translate(len / 2, 0, 0), b.color, 0, 0, 0, g);
+  mesh(k, new THREE.CylinderGeometry(r * 1.34, r * 1.3, 0.1, 14).rotateZ(-Math.PI / 2), b.lip, len - 0.05, 0, 0, g);
+  mesh(k, new THREE.CylinderGeometry(r * 0.8, r * 0.8, 0.01, 14).rotateZ(-Math.PI / 2), '#141618', len + 0.002, 0, 0, g);
+  mesh(k, new THREE.SphereGeometry(r * 1.3, 12, 8), b.lip, 0, 0, 0, g);
+  for (let i = 0; i < b.bands; i++) {
+    const f = b.bands === 1 ? 0.3 : 0.2 + (i / (b.bands - 1)) * 0.5;
+    mesh(k, new THREE.CylinderGeometry(r * 1.2, r * 1.2, Math.max(0.05, r * 0.45), 14).rotateZ(-Math.PI / 2), b.band, len * f, 0, 0, g);
   }
-  if (level === 17) {
-    // Armoured casemate: riveted armour skin, quad tubes, acoustic sensor masts
-    berm(k, 1.3, 1.5, 0.42, fl, 0.55, 0.4);
-    casemateDrum(k, 1.0, 1.32, 0.7, fl, 0.5, 0.4, CONCRETE, '#7f7b72');
-    riveted(k, 1.35, 0.56, fl + 0.06, 18, 0.5, 0.4);
-    disc(k, 1.0, 0.014, '#a9a59c', 0, fl, 0);
-    turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 4, deck: '#5c6166', rim: HAZ, armour: ARMOUR, accent: HAZ, seed: 29, crewLook: SEC });
-    magazine(k, -1.0, -1.0, fl, 0.8, 0.72, 1.38, Math.PI / 4, ARMOUR_D, ARMOUR, 7);
-    acousticMast(k, 1.22, -1.22, fl, 1.4);
-    acousticMast(k, -1.3, 0.75, fl, 1.2);
-    beacon(k, 0.95, fl + 0.77, -0.95);
-    beacon(k, -0.8, fl + 0.77, 0.95);
-    cctv(k, 1.3, 0.9, fl, 1.1, Math.PI);
-    return;
-  }
-  if (level === 18) {
-    // Drone-spotted casemate: + T-wall corners, drone pad on the magazine, tethered drone overhead
-    casemateDrum(k, 0.98, 1.3, 0.74, fl, 0.5, 0.4, CONCRETE, '#7f7b72');
-    riveted(k, 1.33, 0.6, fl + 0.06, 18, 0.5, 0.4);
-    disc(k, 0.98, 0.014, '#a9a59c', 0, fl, 0);
-    turntable(k, 0.05, fl + 0.05, 0.05, level, { tubes: 4, deck: '#5c6166', rim: HAZ, armour: ARMOUR, accent: HAZ, seed: 30, crewLook: SEC });
-    magazine(k, -1.0, -1.0, fl, 0.82, 0.74, 1.44, Math.PI / 4, ARMOUR_D, ARMOUR, 7);
-    sub(k, 1.0, fl, -1.0, -Math.PI / 4, (s) => {
-      s.box(0.7, 0.9, 0.62, CONCRETE, 0, 0, 0);
-      s.box(0.72, 0.05, 0.64, '#7f7b72', 0, 0.9, 0);
-      s.helipad(0, 0.95, 0, 0.5);
-      s.box(0.3, 0.42, 0.03, '#4a4f54', 0, 0, 0.315);
-    });
-    drone(k, 1.0, -1.0, fl + 1.0, 1.0);
-    for (const [tx, tz, ry] of [[1.3, 1.0, Math.PI / 2], [-1.3, 0.95, Math.PI / 2], [-0.95, 1.32, 0]] as [number, number, number][]) tWall(k, tx, tz, fl, ry, 0.8);
-    acousticMast(k, -1.32, -0.15, fl, 1.4);
-    beacon(k, 0.85, fl + 0.82, 0.62);
-    cctv(k, 1.32, -0.25, fl, 1.2, Math.PI);
-    return;
-  }
-  // 19–20: twin turntables inside a stadium-shaped casemate
-  const col = CONCRETE, top = gold ? GOLD : '#7f7b72';
-  sub(k, 0, fl, 0, 0, (s) => {
-    // Stadium wall: two half-rings joined by straight walls
-    for (const sd of [-1, 1]) {
-      const g = new THREE.LatheGeometry([new THREE.Vector2(1.42, 0), new THREE.Vector2(1.42, 0.78), new THREE.Vector2(1.14, 0.78), new THREE.Vector2(1.14, 0)], 18, sd > 0 ? Math.PI : 0, Math.PI);
-      const m = new THREE.Mesh(g, mat(col, { side: THREE.DoubleSide }));
-      m.scale.set(0.98, 1, 0.98);
-      s.add(m);
-      const c = new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(1.45, 0), new THREE.Vector2(1.45, 0.07), new THREE.Vector2(1.12, 0.07), new THREE.Vector2(1.12, 0)], 18, sd > 0 ? Math.PI : 0, Math.PI), mat(top, { side: THREE.DoubleSide }));
-      c.position.y = 0.78;
-      c.scale.set(0.98, 1, 0.98);
-      s.add(c);
+  if (b.lash) {
+    // Timber slats lashed round the middle with rope
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      mesh(k, new THREE.BoxGeometry(len * 0.3, 0.04, 0.05), TIMBER, len * 0.55, Math.cos(a) * r * 1.12, Math.sin(a) * r * 1.12, g).rotation.x = a;
     }
-  });
-  disc(k, 1.12, 0.014, '#a9a59c', 0, fl, 0);
-  riveted(k, 1.43, 0.62, fl + 0.08, 22, 0.55, 0.0);
-  // Entry cut in the front with blast doors
-  k.box(0.5, 0.86, 0.36, '#4a4f54', 0, fl, 1.26);
-  for (const sd of [-1, 1]) k.box(0.16, 0.96, 0.4, col, sd * 0.33, fl, 1.26);
-  k.box(0.82, 0.12, 0.42, gold ? GOLD : HAZ, 0, fl + 0.86, 1.26);
-  const doors = [-1, 1].map((sd) => k.box(0.24, 0.8, 0.04, '#5c6166', sd * 0.12, fl, 1.45));
-  k.anims.push((t) => {
-    const u = cyc(t, 10);
-    const o = u < 0.1 ? sm(u / 0.1) : u < 0.4 ? 1 : u < 0.5 ? 1 - sm((u - 0.4) / 0.1) : 0;
-    doors.forEach((d, i) => (d.position.x = (i ? 1 : -1) * (0.12 + o * 0.2)));
-  });
-  for (const sd of [-1, 1]) {
-    turntable(k, sd * 0.56, fl + 0.05, -0.05, level, { tubes: 2, deck: '#5c6166', rim: gold ? GOLD : HAZ, armour: ARMOUR, accent: gold ? GOLD : HAZ, seed: 31 + sd, crewLook: SEC, scale: 0.64, gold });
+    for (const f of [0.44, 0.66]) mesh(k, new THREE.CylinderGeometry(r * 1.28, r * 1.28, 0.03, 12).rotateZ(-Math.PI / 2), '#d8c48a', len * f, 0, 0, g);
   }
-  // Central magazine spine between the turntables
-  magazine(k, 0, -1.0, fl, 1.0, 0.62, gold ? 1.66 : 1.56, 0, ARMOUR_D, gold ? GOLD : ARMOUR, 7, 0, gold);
-  drone(k, 0, -1.0, fl + (gold ? 1.84 : 1.74), 0.9, gold);
-  sensorBall(k, 1.2, -1.2, fl + 0.4, 1.0, gold);
-  if (!gold) {
-    acousticMast(k, -1.2, -1.2, fl + 0.4, 1.0);
-    beacon(k, 1.15, fl + 0.86, 0.3);
-    beacon(k, -1.15, fl + 0.86, 0.3);
-    cctv(k, -1.38, 1.2, fl, 1.1, 0);
-    return;
+  if (b.spring) {
+    // Recoil spring housing slung under the barrel
+    const sy = -r * 1.55;
+    mesh(k, new THREE.CylinderGeometry(r * 0.42, r * 0.42, len * 0.55, 10).rotateZ(-Math.PI / 2), '#33383d', len * 0.42, sy, 0, g);
+    for (let i = 0; i < 7; i++) mesh(k, new THREE.TorusGeometry(r * 0.5, r * 0.1, 5, 12).rotateY(Math.PI / 2), b.spring, len * 0.2 + i * len * 0.075, sy, 0, g);
+    for (const f of [0.18, 0.68]) mesh(k, new THREE.BoxGeometry(0.06, r * 1.4, r * 0.9), '#33383d', len * f, sy * 0.55, 0, g);
   }
-  // 20: citadel: gold-capped bastions at the corners, gold crest over the entry, flags
-  for (const [bx, bz] of [[-1.18, 1.18], [-1.22, -1.22]] as [number, number][]) {
-    const bs = k.box(0.42, 1.0, 0.42, CONCRETE, bx, fl, bz);
-    bs.rotation.y = Math.PI / 4;
-    const cap = k.box(0.48, 0.08, 0.48, GOLD, bx, fl + 1.0, bz);
-    cap.rotation.y = Math.PI / 4;
-    pulse(k, 0.06, 0.06, 0.06, '#ffe48a', bx, fl + 1.08, bz, 2);
-  }
-  const crest = mesh(k, new THREE.CylinderGeometry(0.15, 0.15, 0.04, 16).rotateX(Math.PI / 2), GOLD, 0, fl + 1.12, 1.46);
-  mesh(k, new THREE.CylinderGeometry(0.1, 0.1, 0.045, 16).rotateX(Math.PI / 2), '#2f5a3a', 0, fl + 1.12, 1.47);
-  void crest;
-  beacon(k, -1.22, fl + 1.08, -1.22, '#ffd23f');
-  k.flagpole(-1.18, 1.18, 1.4, fl + 1.08);
+  const m = new THREE.Object3D();
+  m.position.x = len;
+  g.add(m);
+  const t: Tube = { g, len, z, o, r };
+  rig.tubes.push(t);
+  return t;
 }
 
-// ------------------------------------------------------------------ build
+/** Muzzle mouth (plus `e` along the bore) in yaw space. */
+const mouth = (rig: Rig, t: Tube, e = 0) => {
+  const L = t.len + e, c = Math.cos(LOB), s = Math.sin(LOB);
+  return V(rig.px + L * c - t.o * s, rig.py + L * s + t.o * c, t.z);
+};
+
+function registerRig(k: Kit, rig: Rig, level: number, seed = 0, sweep = 0.8, base = 0.5) {
+  const yaw = rig.yaw, pitch = rig.pitch;
+  k.turret({
+    yaw, pitch,
+    muzzles: rig.tubes.map((t) => t.g.children[t.g.children.length - 1]),
+    recoil: rig.tubes.map((t) => t.g),
+    weapon: 'mortar', targets: 'ground', rate: 0.25, lob: LOB,
+    turnRate: 0.9 + level * 0.06, kick: 0.06 + Math.min(0.06, rig.tubes[0].r * 0.3),
+    idle: (t) => {
+      yaw.rotation.y = base + Math.sin(t * 0.21 + seed) * sweep + Math.sin(t * 0.083 + seed * 2) * sweep * 0.6;
+      pitch.rotation.z = LOB + Math.sin(t * 0.55 + seed) * 0.015;
+    },
+  });
+}
+
+/** Barrels laid out in the pitch group: in a row (z) or a 2×2 square. */
+function barrels(k: Kit, rig: Rig, b: Barrel, n: number, layout: 'row' | 'square' = 'row') {
+  const gap = b.r * 2.7;
+  if (layout === 'square') for (const o of [-1, 1]) for (const z of [-1, 1]) addBarrel(k, rig, b, (z * gap) / 2, (o * gap) / 2);
+  else for (let i = 0; i < n; i++) addBarrel(k, rig, b, (i - (n - 1) / 2) * gap);
+}
+
+/** Field mount: a chunky baseplate under the breech and a fat bipod to a yoke round the barrel(s). */
+function bipodMount(k: Kit, rig: Rig, plate: string, legs: string, plateR: number) {
+  const Y = rig.yaw, t0 = rig.tubes[0];
+  const zs = rig.tubes.map((t) => t.z);
+  const zMax = Math.max(...zs.map(Math.abs));
+  const wide = zMax > 0;
+  if (wide) {
+    k.box(plateR * 1.6, 0.09, zMax * 2 + plateR * 1.4, plate, rig.px, 0, 0, Y);
+    k.box(plateR * 1.7, 0.03, zMax * 2 + plateR * 1.5, '#2a2e2a', rig.px, 0, 0, Y);
+  } else {
+    disc(k, plateR, 0.09, plate, rig.px, 0, 0, 14, Y);
+    disc(k, plateR * 1.05, 0.03, '#2a2e2a', rig.px, 0, 0, 14, Y);
+    for (let i = 0; i < 4; i++) k.box(0.05, 0.05, plateR * 2.1, plate, rig.px, 0.07, 0, Y).rotation.y = (i * Math.PI) / 4;
+  }
+  const d = t0.len * 0.52;
+  const cx = rig.px + d * Math.cos(LOB), cy = rig.py + d * Math.sin(LOB);
+  const spread = zMax + t0.r * 2.6 + 0.12;
+  const lr = 0.03 + t0.r * 0.15;
+  for (const s of [-1, 1]) {
+    strut(k, Y, V(cx + 0.28, 0.02, s * spread), V(cx, cy, s * (zMax + t0.r * 1.3)), lr, legs, 6);
+    k.box(0.14, 0.04, 0.12, '#2a2e2a', cx + 0.28, 0, s * spread, Y);
+  }
+  strut(k, Y, V(cx + 0.17, cy * 0.42, -spread * 0.62), V(cx + 0.17, cy * 0.42, spread * 0.62), lr * 0.8, legs, 6);
+  strut(k, Y, V(cx + 0.17, cy * 0.42, 0), V(cx, cy, 0), lr * 1.1, '#2a2e2a', 6);
+  // Yoke clamped round the barrels
+  for (const t of rig.tubes) mesh(k, new THREE.CylinderGeometry(t.r * 1.32, t.r * 1.32, 0.09, 12).rotateZ(-Math.PI / 2), '#2a2e2a', d, t.o, t.z, rig.pitch);
+  if (wide) mesh(k, new THREE.BoxGeometry(0.07, 0.07, zMax * 2 + 0.1), '#2a2e2a', d, 0, 0, rig.pitch);
+  // Sight box
+  mesh(k, new THREE.BoxGeometry(0.1, 0.08, 0.06), '#2f3a22', cx + 0.03, cy + 0.05, -(zMax + t0.r * 1.5 + 0.06), Y);
+}
+
+type Plat = 'crate' | 'timber' | 'steel' | 'white' | 'dark' | 'gold';
+
+/** The loader on a step beside the muzzle of tube t, with ready rounds behind him. */
+function crewLoader(k: Kit, rig: Rig, t: Tube, look: Look, seed: number, plat: Plat, period = 4.4, offset = 0, ready = true) {
+  const M = mouth(rig, t, 0.1);
+  const s = t.z < 0 ? -1 : 1;
+  const target = M.y + 0.08;
+  const sh = 0.45 * CS, ar = 0.2 * CS;
+  let th = 2.1, feet = target - (sh - ar * Math.cos(th));
+  if (feet < 0.03) {
+    th = Math.acos(Math.max(-1, Math.min(1, (sh - target) / ar)));
+    feet = 0;
+  }
+  const lz = t.z + s * (ar * Math.sin(th) + t.r * 0.25);
+  const Y = rig.yaw;
+  if (feet > 0.01) {
+    const px = M.x - 0.02, pz = lz + s * 0.04;
+    if (plat === 'crate') ammoBox(k, px, 0, pz, 0, '#8a6038', 0.34, feet, 0.28, 'HE', Y);
+    else if (plat === 'timber') {
+      k.box(0.36, feet, 0.3, TIMBER, px, 0, pz, Y);
+      for (let i = 0; i < 3; i++) k.box(0.37, 0.02, 0.06, LOGC, px, feet - 0.02, pz - 0.1 + i * 0.1, Y);
+    } else {
+      const col = plat === 'white' ? '#e8e9e6' : plat === 'dark' ? '#3a3f45' : plat === 'gold' ? '#2a2b2d' : STEEL;
+      k.box(0.36, feet, 0.3, col, px, 0, pz, Y);
+      const edge = plat === 'white' ? TEAL : plat === 'gold' ? GOLD : HAZ;
+      for (let i = 0; i < 4; i++) k.box(0.09, 0.025, 0.31, i % 2 && plat !== 'white' && plat !== 'gold' ? C.kerbB : edge, px - 0.135 + i * 0.09, feet - 0.02, pz, Y);
+      for (const sd of [-1, 1]) k.box(0.025, 0.3, 0.025, edge, px - 0.16, feet, pz + sd * 0.13, Y);
+      k.box(0.025, 0.025, 0.28, edge, px - 0.16, feet + 0.28, pz, Y);
+    }
+  }
+  loader(k, Y, V(M.x, feet, lz), s > 0 ? Math.PI / 2 : -Math.PI / 2, th, look, seed, { parent: t.g, from: V(t.len + 0.1, 0, 0), to: V(t.len - 0.4, 0, 0), rot: -Math.PI / 2 }, period, offset, s * 1.25);
+  if (ready) {
+    const bx = M.x - 0.36, bz = lz + s * 0.02;
+    ammoBox(k, bx, feet, bz, 0, OLIVE, 0.18, 0.09, 0.24, '', Y);
+    for (const dz of [-0.06, 0, 0.06]) bomb(k, Y, GUN, HAZ, 1.1).position.set(bx, feet + 0.17, bz + dz);
+  }
+}
+
+// ------------------------------------------------------------------ rings
+
+/** Lathe ring with a material (for textured walls). */
+function ringM(k: Kit, rIn: number, rOut: number, h: number, y: number, m: THREE.Material, gap = 0, gapAt = 0, seg = 36) {
+  const pts = [new THREE.Vector2(rOut, 0), new THREE.Vector2(rOut, h), new THREE.Vector2(rIn, h), new THREE.Vector2(rIn, 0)];
+  const geo = new THREE.LatheGeometry(pts, seg, gapAt + gap / 2, Math.PI * 2 - gap);
+  const mm = new THREE.Mesh(geo, m);
+  mm.position.y = y;
+  return k.add(mm);
+}
+
+let BRICK: THREE.MeshStandardMaterial | null = null;
+function brickMat() {
+  if (BRICK) return BRICK;
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 64;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#e6d6bd';
+  g.fillRect(0, 0, 128, 64);
+  const cols = ['#b5523b', '#a84a35', '#bf5c42', '#9e4430'];
+  for (let row = 0; row < 4; row++) for (let i = -1; i < 4; i++) {
+    g.fillStyle = cols[(row * 3 + i + 4) % 4];
+    g.fillRect(i * 32 + (row % 2) * 16 + 2, row * 16 + 2, 28, 12);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(26, 2);
+  BRICK = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85, side: THREE.DoubleSide, flatShading: true });
+  return BRICK;
+}
+
+/** Red brick ring with cream coping and brick piers at the opening. */
+function brickRing(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number, piers = 0) {
+  ringM(k, rIn, rOut, h, y, brickMat(), gap, gapAt);
+  ring(k, rIn - 0.03, rOut + 0.04, 0.07, y + h, C.wall, gap, gapAt, 'wall', 36);
+  const pier = (phi: number, hh: number) => {
+    const [px, pz] = P(phi, (rIn + rOut) / 2);
+    const p = k.box(0.2, hh, rOut - rIn + 0.1, '#b5523b', px, y, pz);
+    p.rotation.y = phi;
+    const cap = k.box(0.26, 0.07, rOut - rIn + 0.16, C.wall, px, y + hh, pz);
+    cap.rotation.y = phi;
+  };
+  for (const sd of [-1, 1]) pier(gapAt + sd * (gap / 2 + 0.05), h + 0.14);
+  for (let i = 0; i < piers; i++) {
+    const phi = gapAt + gap / 2 + ((i + 1) / (piers + 1)) * (Math.PI * 2 - gap);
+    pier(phi, h + 0.1);
+  }
+}
+
+/** Grey concrete ring with a yellow/black painted rim. */
+function hazardRing(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number, wall = CONCRETE, n = 24) {
+  ring(k, rIn, rOut, h, y, wall, gap, gapAt, 'wall', 36);
+  for (let i = 0; i < n; i++) {
+    const phi = ((i + 0.5) / n) * Math.PI * 2;
+    const dphi = Math.atan2(Math.sin(phi - gapAt), Math.cos(phi - gapAt));
+    if (Math.abs(dphi) < gap / 2 + 0.06) continue;
+    const [px, pz] = P(phi, (rIn + rOut) / 2);
+    const seg = k.box(((2 * Math.PI * (rIn + rOut)) / 2 / n) * 1.02, 0.07, rOut - rIn + 0.04, i % 2 ? C.kerbB : HAZ, px, y + h, pz);
+    seg.rotation.y = phi;
+  }
+  for (const sd of [-1, 1]) {
+    const phi = gapAt + sd * (gap / 2 + 0.05);
+    const [px, pz] = P(phi, (rIn + rOut) / 2);
+    const p = k.box(0.16, h + 0.16, rOut - rIn + 0.08, wall, px, y, pz);
+    p.rotation.y = phi;
+    const c = k.box(0.18, 0.06, rOut - rIn + 0.1, HAZ, px, y + h + 0.16, pz);
+    c.rotation.y = phi;
+  }
+}
+
+/** White ring with a bold teal rim. */
+function whiteRing(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number) {
+  ring(k, rIn, rOut, h, y, C.white, gap, gapAt, 'wall', 40);
+  ring(k, rIn - 0.03, rOut + 0.04, 0.08, y + h, TEAL, gap, gapAt, 'wall', 40);
+  ring(k, rOut, rOut + 0.015, 0.06, y + 0.06, TEAL, gap, gapAt, 'wall', 40);
+  for (const sd of [-1, 1]) {
+    const phi = gapAt + sd * (gap / 2 + 0.05);
+    const [px, pz] = P(phi, (rIn + rOut) / 2);
+    const p = k.box(0.14, h + 0.18, rOut - rIn + 0.08, C.white, px, y, pz);
+    p.rotation.y = phi;
+    const [lx, lz] = P(phi, rOut + 0.05);
+    pulse(k, 0.06, 0.06, 0.06, '#5fe0d0', lx, y + h + 0.1, lz, 2.4);
+  }
+}
+
+/** Octagonal armoured block round the weapon well, with a contrasting rim. */
+function armourBlock(k: Kit, rIn: number, rOut: number, h: number, y: number, wall: string, rim: string, chevrons?: string) {
+  const pts = [new THREE.Vector2(rOut, 0), new THREE.Vector2(rOut - 0.08, h), new THREE.Vector2(rIn, h), new THREE.Vector2(rIn, 0)];
+  const g = new THREE.LatheGeometry(pts, 8, Math.PI / 8, Math.PI * 2);
+  mesh(k, g, mat(wall, { side: THREE.DoubleSide }), 0, y, 0);
+  const rg = new THREE.LatheGeometry([new THREE.Vector2(rOut - 0.04, 0), new THREE.Vector2(rOut - 0.04, 0.07), new THREE.Vector2(rIn - 0.03, 0.07), new THREE.Vector2(rIn - 0.03, 0)], 8, Math.PI / 8, Math.PI * 2);
+  mesh(k, rg, mat(rim, { side: THREE.DoubleSide }), 0, y + h, 0);
+  if (chevrons) for (let i = 0; i < 8; i++) {
+    const phi = (i / 8) * Math.PI * 2 + Math.PI / 8 + Math.PI / 8;
+    const r = Math.cos(Math.PI / 8) * rOut - 0.02;
+    for (let j = 0; j < 4; j++) {
+      const [cx, cz] = P(phi + (j - 1.5) * 0.11, r + 0.005);
+      const c = k.box(0.12, 0.2, 0.02, j % 2 ? '#2a2b2d' : chevrons, cx, y + h * 0.3, cz);
+      c.rotation.set(0, phi, j % 2 ? 0.6 : -0.6);
+    }
+  }
+}
+
+function floor(k: Kit, r: number, y: number, color: string) {
+  disc(k, r, 0.014, color, 0, y, 0, 36);
+  return y + 0.014;
+}
+
+// ------------------------------------------------------------------ extra set pieces
+
+/** Tall fire-direction hut on stilts, with a spotter on the deck and a ladder. */
+function stiltHut(k: Kit, x: number, z: number, y: number, ry: number, h: number) {
+  sub(k, x, y, z, ry, (s) => {
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) s.box(0.06, h, 0.06, TIMBER, sx * 0.3, 0, sz * 0.26);
+    strut(s, undefined, V(-0.3, 0.05, 0.26), V(0.3, h - 0.05, 0.26), 0.02, TIMBER);
+    strut(s, undefined, V(0.3, 0.05, -0.26), V(-0.3, h - 0.05, -0.26), 0.02, TIMBER);
+    s.box(0.8, 0.06, 0.74, TIMBER, 0, h, 0.04);
+    s.box(0.64, 0.42, 0.5, '#6b7a4a', 0, h + 0.06, -0.08);
+    s.box(0.5, 0.12, 0.02, '#1d2326', 0, h + 0.3, 0.175);
+    const roof = s.box(0.82, 0.05, 0.72, C.zinc, 0, h + 0.5, -0.04);
+    roof.rotation.x = 0.12;
+    for (let i = 0; i < 4; i++) s.box(0.8, 0.02, 0.02, TIMBER, 0, h + 0.2, 0.4).position.set(0, h + 0.18, 0.4);
+    for (const sx of [-1, 1]) s.box(0.03, 0.22, 0.03, TIMBER, sx * 0.38, h + 0.06, 0.4);
+    // Ladder
+    for (const sx of [-0.08, 0.08]) {
+      const rail = s.box(0.025, h + 0.1, 0.025, TIMBER, sx, 0, 0.55);
+      rail.rotation.x = -0.2;
+    }
+    spotter(s, 0.15, h + 0.06, 0.25, face(0.6, 1), FIELD, 41, false);
+    s.antenna(-0.3, h + 0.5, -0.3, 0.6);
+  });
+}
+
+/** Revolving magazine drum (bomb noses round the top) that steps round each load. */
+function magDrum(k: Kit, parent: THREE.Object3D, x: number, y: number, z: number, r: number, h: number, accent: string) {
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+  disc(k, r + 0.03, 0.06, '#c9ced2', 0, 0, 0, 14, g);
+  disc(k, r, h, '#e8e9e6', 0, 0.06, 0, 14, g);
+  for (const f of [0.25, 0.75]) disc(k, r + 0.015, 0.05, accent, 0, 0.06 + h * f, 0, 14, g);
+  disc(k, r + 0.03, 0.05, '#c9ced2', 0, h + 0.06, 0, 14, g);
+  for (let i = 0; i < 8; i++) {
+    const [bx, bz] = P((i / 8) * Math.PI * 2, r * 0.7);
+    bomb(k, g, GUN, accent, 1.3).position.set(bx, h + 0.17, bz);
+  }
+  parent.add(g);
+  k.anims.push((t) => {
+    const n = Math.floor((t + 100) / 4.4), u = cyc(t, 4.4);
+    g.rotation.y = (n + sm((u - 0.8) / 0.15)) * (Math.PI / 4);
+  });
+  return g;
+}
+
+/** Big yellow sliding roof hatch doors on a casemate (open and close on a loop). */
+function hatchDoors(k: Kit, y: number, w: number, d: number, gapClosed: number, gapOpen: number) {
+  const doors = [-1, 1].map((sd) => {
+    const g = new THREE.Group();
+    k.box(w, 0.08, d, HAZ, 0, 0, 0, g);
+    for (let i = 0; i < 4; i++) {
+      const c = k.box(0.08, 0.085, d * 0.9, '#2a2b2d', -w / 2 + 0.12 + i * (w - 0.2) / 3, 0, 0, g);
+      c.rotation.y = 0.5 * sd;
+    }
+    k.box(w + 0.04, 0.03, 0.06, '#3a3f45', 0, 0.08, d / 2, g);
+    k.box(w + 0.04, 0.03, 0.06, '#3a3f45', 0, 0.08, -d / 2, g);
+    g.position.y = y;
+    k.add(g);
+    return { g, sd };
+  });
+  for (const sd of [-1, 1]) k.box(0.06, 0.06, d + 0.3, '#2a2b2d', sd * (gapOpen + w), y - 0.03, 0);
+  k.anims.push((t) => {
+    const u = cyc(t, 9);
+    const open = u < 0.12 ? sm(u / 0.12) : u < 0.7 ? 1 : u < 0.85 ? 1 - sm((u - 0.7) / 0.15) : 0;
+    const gp = gapClosed + (gapOpen - gapClosed) * open;
+    doors.forEach(({ g, sd }) => (g.position.x = sd * (gp + w / 2)));
+  });
+}
+
+/** Striped turntable disc (alternating wedges) for the yaw group. */
+function stripedDisc(k: Kit, parent: THREE.Object3D, r: number, h: number, a: string, b: string, n = 16) {
+  for (let i = 0; i < n; i++) {
+    const g = new THREE.CylinderGeometry(r, r, h, 4, 1, false, (i / n) * Math.PI * 2, (Math.PI * 2) / n).translate(0, h / 2, 0);
+    mesh(k, g, i % 2 ? a : b, 0, 0, 0, parent);
+  }
+  ring(k, r - 0.03, r + 0.03, h + 0.02, 0, '#33383d', 0, 0, 'wall', 32, parent);
+  disc(k, 0.16, h + 0.03, '#33383d', 0, 0, 0, 12, parent);
+}
+
+// ------------------------------------------------------------------ the 20 levels
+
+const OLV = '#66773b';
+const GREEN = '#3f8a4a';
+const BLUE = '#4f7193';
+const INK = '#24272b';
 
 function build(level: number): Kit {
   const k = new Kit();
   const y = k.pad(3, 3);
-  if (level <= 3) field(k, level, y);
-  else if (level <= 6) camp(k, level, y);
-  else if (level <= 10) base(k, level, y);
-  else if (level <= 15) command(k, level, y);
-  else secure(k, level, y);
+  const fl = y;
+  switch (level) {
+    case 1: {
+      // Dirt scrape: a brown earth bowl, one olive tube, a timber ammo box
+      ring(k, 0.95, 1.42, 0.14, fl, EARTH, 0.7, 0.6, 'berm', 36);
+      const f = floor(k, 1.0, fl, DIRT_D);
+      const rig = newRig(k, 0.05, f, 0.0, -0.25, 0.1);
+      barrels(k, rig, { len: 0.95, r: 0.11, color: OLV, band: GUN_D, bands: 1, lip: GUN_D }, 1);
+      bipodMount(k, rig, STEEL, GUN_D, 0.3);
+      crewLoader(k, rig, rig.tubes[0], FIELD, 1, 'crate');
+      registerRig(k, rig, level, 1);
+      sub(k, -0.62, f, -0.62, 0.5, (s) => {
+        s.box(0.56, 0.3, 0.36, TIMBER, 0, 0, 0);
+        for (const dy of [0.04, 0.24]) s.box(0.58, 0.04, 0.38, LOGC, 0, dy, 0);
+        board(s, 'AMMO', 0.3, 0.1, 0, 0.1, 0.185, TIMBER, '#f2e3a0');
+        for (let i = 0; i < 3; i++) bomb(s, undefined, GUN, HAZ, 1.2).position.set(-0.15 + i * 0.15, 0.4, 0);
+      });
+      spotter(k, -0.6, f, 0.45, face(0.5, 1), FIELD, 2);
+      pennant(k, -1.2, -1.15, fl, 0.8);
+      aimingStakes(k, 0.95, 1.18, fl, 2, 0.18, 0.05);
+      jerrycan(k, 0.75, -0.75, f, 0.4);
+      fieldPhone(k, -0.85, 0.15, f, 0.5);
+      break;
+    }
+    case 2: {
+      // Sandbag pit: a tan ring of big sandbags, timber-lashed tube
+      ring(k, 1.15, 1.45, 0.1, fl, EARTH, 0.6, 0.6, 'berm', 36);
+      const f = floor(k, 1.12, fl, DIRT_D);
+      const bags = new Bags(22, 1.35);
+      bags.ring(1.17, 3, fl, 0.55, 0.6);
+      bags.flush(k);
+      const rig = newRig(k, 0.05, f, 0.05, -0.27, 0.1);
+      barrels(k, rig, { len: 1.0, r: 0.12, color: OLV, band: GUN_D, bands: 1, lip: GUN_D, lash: true }, 1);
+      bipodMount(k, rig, STEEL, GUN_D, 0.32);
+      crewLoader(k, rig, rig.tubes[0], FIELD, 3, 'crate');
+      registerRig(k, rig, level, 2);
+      crateStack(k, -0.5, f, -0.65, 0.6, 5, 1);
+      camoNet(k, -0.55, -0.6, 0.95, 0.6, f, 0.62, 0.8, 4);
+      bearer(k, V(-0.75, f, -0.25), V(-0.45, f, 0.15), FIELD, 4, 8, 1.5, false);
+      spotter(k, 0.62, f, -0.62, face(0.4, 1), FIELD, 5);
+      pennant(k, 1.25, -1.22, fl, 0.85);
+      aimingStakes(k, 1.05, 1.15, fl, 3, 0.15, 0.04);
+      break;
+    }
+    case 3: {
+      // Log-revetted pit: a ring of brown logs, tube on a red-painted baseplate
+      ring(k, 1.25, 1.48, 0.12, fl, EARTH, 0.55, 0.6, 'berm', 36);
+      const f = floor(k, 1.16, fl, DIRT_D);
+      for (let i = 0; i < 7; i++) k.box(0.12, 0.02, 1.3, TIMBER, -0.45 + i * 0.15, f, 0.0);
+      const logs: THREE.BufferGeometry[] = [];
+      const n = 46;
+      for (let i = 0; i < n; i++) {
+        const phi = (i / n) * Math.PI * 2;
+        if (Math.abs(Math.atan2(Math.sin(phi - 0.6), Math.cos(phi - 0.6))) < 0.3) continue;
+        const [px, pz] = P(phi, 1.2);
+        const hh = 0.44 + (i % 3) * 0.04;
+        logs.push(new THREE.CylinderGeometry(0.08, 0.085, hh, 7).translate(px, fl + hh / 2, pz).toNonIndexed());
+      }
+      mesh(k, mergeGeometries(logs)!, LOGC);
+      ring(k, 1.1, 1.3, 0.05, fl + 0.44, '#a8784a', 0.6, 0.6, 'wall', 36);
+      const rig = newRig(k, 0.05, f + 0.02, 0.05, -0.28, 0.12);
+      barrels(k, rig, { len: 1.05, r: 0.125, color: OLV, band: GUN_D, bands: 2, lip: GUN_D }, 1);
+      bipodMount(k, rig, RED, GUN_D, 0.38);
+      crewLoader(k, rig, rig.tubes[0], FIELD, 6, 'timber');
+      registerRig(k, rig, level, 3);
+      bearer(k, V(-0.8, f, -0.3), V(-0.5, f, 0.1), FIELD, 7, 8, 2.5, false);
+      spotter(k, 0.6, f, -0.7, face(0.3, 1), FIELD, 8, false);
+      crateStack(k, -0.55, f, -0.75, 0.6, 4, 2);
+      rangeFlag(k, 1.28, -1.28, fl, 1.7);
+      lantern(k, -1.3, 0.9, fl, 0.62, 1);
+      signPost(k, 'DANGER', -1.0, 1.35, fl, 0.3, RED, 0.42, 0.14, 0.3);
+      break;
+    }
+    case 4:
+    case 5:
+    case 6: {
+      // Brick bay: red brick ring with cream coping; L5 adds the green-roofed shed, L6 twin tubes
+      const rr = level === 6 ? 1.18 : 1.12;
+      brickRing(k, rr, rr + 0.17, level === 6 ? 0.42 : 0.36, fl, 0.6, 0.6, level === 6 ? 4 : 0);
+      const f = floor(k, rr, fl, '#cfc9bb');
+      const twin = level === 6;
+      const rig = newRig(k, 0.05, f, 0.05, -0.3, 0.1);
+      barrels(k, rig, { len: twin ? 1.05 : 1.1, r: twin ? 0.11 : 0.13, color: GREEN, band: level >= 5 ? '#f7f5ef' : '#2f6a3a', bands: level >= 5 ? 3 : 2, lip: '#2f6a3a' }, twin ? 2 : 1);
+      bipodMount(k, rig, STEEL, '#2f5a3a', 0.36);
+      crewLoader(k, rig, rig.tubes[twin ? 1 : 0], CAMP, 9 + level, 'steel');
+      registerRig(k, rig, level, level, 0.7, 0.6);
+      if (level === 4) {
+        bombRack(k, -0.55, f, -0.62, -0.75, 6);
+        bombRack(k, 0.62, f, -0.55, 0.75, 5);
+        bearer(k, V(-1.25, fl, 0.3), V(-0.75, f, 0.1), CAMP, 12, 9, 1, true);
+        signPost(k, 'MORTAR BAY', -1.0, 1.3, fl, 0.6, C.trim, 0.6, 0.16, 0.36, C.white);
+        k.lamp(1.25, 1.25, fl, 1.1);
+        spotter(k, 0.62, f, 0.0, face(0.5, 1), CAMP, 13, false);
+        break;
+      }
+      // Green-roofed ammo shed (big silhouette at the back-left corner)
+      const b = bearer(k, V(-0.95, fl, -0.95), V(-0.55, f, -0.45), CAMP, 14, 9);
+      ammoHut(k, -1.06, -1.06, fl, Math.PI / 4, b.open, 0.78, 0.62, C.roofGreen);
+      bombRack(k, 0.62, f, -0.55, 0.75, 6);
+      k.lamp(1.25, 1.25, fl, 1.1);
+      signPost(k, level === 5 ? 'MORTAR BAY' : 'TWIN BAY', 0.3, 1.36, fl, 0, C.trim, 0.56, 0.16, 0.36, C.white);
+      if (level === 6) {
+        // Alarm bell with a swinging striker
+        const [bx, bz] = P(2.0, 1.42);
+        k.box(0.06, 1.0, 0.06, C.trim, bx, fl, bz);
+        k.box(0.24, 0.05, 0.05, C.trim, bx - 0.08, fl + 0.98, bz);
+        const bell = new THREE.Group();
+        bell.position.set(bx - 0.17, fl + 0.96, bz);
+        mesh(k, new THREE.CylinderGeometry(0.05, 0.1, 0.13, 10).translate(0, -0.065, 0), '#d8b24a', 0, 0, 0, bell);
+        mesh(k, new THREE.SphereGeometry(0.025, 6, 4), '#7a5a2a', 0, -0.15, 0, bell);
+        k.add(bell);
+        k.anims.push((t) => (bell.rotation.z = Math.sin(t * 7) * 0.25 * (cyc(t, 6) < 0.3 ? 1 : 0.15)));
+      } else spotter(k, 0.7, f, 0.1, face(0.5, 1), OFFICER, 15, false);
+      break;
+    }
+    case 7: {
+      // Concrete pit: grey ring with a yellow/black rim, one big black-and-yellow tube
+      hazardRing(k, 1.12, 1.32, 0.42, fl, 0.6, 0.6);
+      const f = floor(k, 1.12, fl, '#c2bdb2');
+      const pl = plinth(k, 0.62, f, 0.06);
+      const rig = newRig(k, 0.0, pl, 0.0, -0.32, 0.11);
+      barrels(k, rig, { len: 1.15, r: 0.16, color: INK, band: HAZ, bands: 3, lip: HAZ }, 1);
+      bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.42);
+      crewLoader(k, rig, rig.tubes[0], BASE, 16, 'steel');
+      registerRig(k, rig, level, 7);
+      readyBunker(k, -1.02, -1.02, fl, Math.PI / 4, 0.82, 0.56, 0.62);
+      rangefinder(k, 0.7, -0.6, f, 1);
+      spotter(k, 0.95, f, -0.25, face(0.3, 1), BASE, 17, false);
+      bombRack(k, -0.75, f, 0.3, -1.4, 6, '#4b6b3a');
+      k.lamp(1.3, 1.3, fl, 1.15);
+      signPost(k, 'NO SMOKING', -1.2, 1.2, fl, 0.7, RED, 0.48, 0.14, 0.32, C.metal);
+      break;
+    }
+    case 8: {
+      // Heavy pit: the biggest single tube, steel blue with a recoil spring housing
+      berm(k, 1.26, 1.5, 0.36, fl, 0.6, 0.6);
+      hazardRing(k, 1.1, 1.3, 0.46, fl, 0.6, 0.6);
+      const f = floor(k, 1.1, fl, '#c2bdb2');
+      const rig = newRig(k, 0.1, f, 0.08, -0.36, 0.14);
+      barrels(k, rig, { len: 1.28, r: 0.19, color: BLUE, band: '#33465a', bands: 2, lip: '#33465a', spring: '#d8b24a' }, 1);
+      bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.48);
+      crewLoader(k, rig, rig.tubes[0], BASE, 18, 'steel');
+      registerRig(k, rig, level, 8);
+      shelter(k, -1.02, -1.02, fl, Math.PI / 4, 0.72, 0.56, 0.95, 72);
+      davit(k, 1.0, -0.95, fl + 0.32, 1.2, 0.62, face(-1, 1));
+      k.box(0.34, 0.32, 0.34, CONCRETE, 1.0, fl, -0.95);
+      k.lamp(1.3, 1.3, fl + 0.2, 1.1);
+      break;
+    }
+    case 9: {
+      // Fire-direction pit: twin heavy blue tubes + a tall FDC hut on stilts
+      berm(k, 1.26, 1.5, 0.38, fl, 0.6, 0.6);
+      hazardRing(k, 1.1, 1.3, 0.48, fl, 0.6, 0.6);
+      const f = floor(k, 1.1, fl, '#c2bdb2');
+      const rig = newRig(k, 0.12, f, 0.12, -0.34, 0.13);
+      barrels(k, rig, { len: 1.18, r: 0.15, color: BLUE, band: '#33465a', bands: 2, lip: '#33465a', spring: '#d8b24a' }, 2);
+      bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.42);
+      crewLoader(k, rig, rig.tubes[1], BASE, 20, 'steel');
+      registerRig(k, rig, level, 9);
+      stiltHut(k, -1.0, -1.0, fl, Math.PI / 4, 0.95);
+      davit(k, 1.02, -0.95, fl + 0.34, 1.2, 0.6, face(-1, 1), 11);
+      k.box(0.34, 0.34, 0.34, CONCRETE, 1.02, fl, -0.95);
+      k.lamp(1.3, 1.3, fl + 0.2, 1.1);
+      break;
+    }
+    case 10: {
+      // Mortar battery: triple tubes on a cream bunker with a red-tile skirt and a gold rim
+      ring(k, 1.08, 1.32, 0.46, fl, C.wall, 0, 0, 'wall', 40);
+      ring(k, 1.32, 1.335, 0.12, fl, C.trim, 0, 0, 'wall', 40);
+      ring(k, 1.02, 1.45, 0.18, fl + 0.46, C.roof, 0, 0, 'berm', 40);
+      ring(k, 1.0, 1.06, 0.08, fl + 0.6, GOLD, 0, 0, 'wall', 40);
+      for (let i = 0; i < 8; i++) {
+        const [wx, wz] = P((i / 8) * Math.PI * 2 + 0.2, 1.335);
+        const w = k.box(0.18, 0.06, 0.02, '#1d2326', wx, fl + 0.24, wz);
+        w.rotation.y = (i / 8) * Math.PI * 2 + 0.2;
+      }
+      const deck = fl + 0.42;
+      disc(k, 1.06, deck - fl, '#d9d4c8', 0, fl, 0, 36);
+      ring(k, 0.86, 0.9, 0.006, deck, GOLD, 0, 0, 'wall', 36);
+      const rig = newRig(k, 0.05, deck, 0.0, -0.3, 0.12);
+      barrels(k, rig, { len: 1.05, r: 0.12, color: BLUE, band: GOLD, bands: 2, lip: '#33465a' }, 3);
+      bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.34);
+      crewLoader(k, rig, rig.tubes[2], BASE, 21, 'steel');
+      registerRig(k, rig, level, 10);
+      // Steps up to the deck and a gateway sign
+      for (let i = 0; i < 3; i++) {
+        const [sx, sz] = P(0.6, 1.36 + i * 0.07);
+        k.box(0.5, 0.42 - i * 0.13, 0.1, '#c2bcae', sx, fl, sz).rotation.y = 0.6;
+      }
+      board(k, 'MORTAR BATTERY', 0.7, 0.13, -0.62, fl + 0.24, 1.2, C.trim, '#ffffff', 0.5);
+      k.flagpole(-1.3, -1.3, 1.9, fl);
+      k.flagpole(1.3, -1.3, 1.9, fl);
+      k.lamp(1.3, 1.3, fl, 1.2);
+      spotter(k, -0.55, deck, -0.55, face(0.4, 1), OFFICER, 22, false);
+      bombRack(k, 0.62, deck, -0.6, 0.75, 6, '#4b6b3a');
+      break;
+    }
+    case 11: {
+      // Dome turret: a white half-sphere with a slot, teal-rimmed white ring
+      whiteRing(k, 1.12, 1.3, 0.38, fl, 0.6, 0.6);
+      const f = floor(k, 1.12, fl, '#dcdedd');
+      disc(k, 0.66, 0.05, '#9aa0a4', 0.0, f, 0.0, 28);
+      const rig = newRig(k, 0.0, f + 0.05, 0.0, -0.05, 0.36);
+      const Y = rig.yaw;
+      mesh(k, new THREE.SphereGeometry(0.6, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), C.white, 0, 0, 0, Y);
+      ring(k, 0.58, 0.63, 0.1, 0, TEAL, 0, 0, 'wall', 28, Y);
+      const slot = k.box(0.5, 0.06, 0.3, '#2a2e2a', 0.25, 0.48, 0, Y);
+      slot.rotation.z = -0.6;
+      disc(k, 0.1, 0.08, '#d5d9dc', -0.25, 0.5, 0.2, 10, Y);
+      barrels(k, rig, { len: 1.05, r: 0.13, color: '#4a4f54', band: TEAL, bands: 2, lip: '#33383d' }, 1);
+      crewLoader(k, rig, rig.tubes[0], CMD, 23, 'white');
+      registerRig(k, rig, level, 11);
+      kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.62, 0.5, 0.56, 2);
+      k.flagpole(1.25, -1.25, 1.9, fl);
+      k.lamp(1.3, 1.25, fl, 1.2);
+      signPost(k, 'MORTAR 11', -1.15, 1.25, fl, 0.6, TEAL, 0.5, 0.15, 0.34, C.white);
+      break;
+    }
+    case 12: {
+      // Autoloader: low white turret, a big revolving magazine drum beside the tube
+      whiteRing(k, 1.12, 1.3, 0.4, fl, 0.6, 0.6);
+      const f = floor(k, 1.12, fl, '#dcdedd');
+      disc(k, 0.7, 0.05, '#9aa0a4', 0.0, f, 0.0, 28);
+      const rig = newRig(k, 0.0, f + 0.05, 0.0, -0.15, 0.3);
+      const Y = rig.yaw;
+      disc(k, 0.55, 0.26, C.white, 0, 0, 0, 24, Y);
+      ring(k, 0.54, 0.57, 0.06, 0.16, TEAL, 0, 0, 'wall', 24, Y);
+      k.box(0.34, 0.2, 0.42, '#e2e5e7', -0.15, 0.24, 0, Y);
+      barrels(k, rig, { len: 1.08, r: 0.14, color: '#4a4f54', band: TEAL, bands: 2, lip: '#33383d' }, 1);
+      magDrum(k, Y, -0.3, 0.26, -0.42, 0.24, 0.5, TEAL);
+      crewLoader(k, rig, rig.tubes[0], CMD, 24, 'white');
+      registerRig(k, rig, level, 12);
+      kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.66, 0.5, 0.62, 2);
+      metMast(k, 1.25, -1.25, fl, 1.2);
+      k.lamp(1.3, 1.25, fl, 1.2);
+      signPost(k, 'AUTOLOADER', -1.15, 1.25, fl, 0.6, TEAL, 0.52, 0.15, 0.34, C.white);
+      break;
+    }
+    case 13: {
+      // Roof-deck turret: raised white podium with a green deck, twin-tube white turret
+      const top = fl + 0.4;
+      k.box(2.5, 0.4, 2.5, C.white, 0, fl, 0);
+      k.box(2.56, 0.06, 2.56, TEAL, 0, fl + 0.12, 0);
+      k.box(2.4, 0.04, 2.4, C.roofGreen, 0, top, 0);
+      for (const [hx, hz, w, d] of [[0, -1.12, 2.2, 0.18], [-1.12, 0, 0.18, 2.2]] as [number, number, number, number][]) k.hedge(hx, hz, w, d, top + 0.04);
+      for (let i = 0; i < 3; i++) k.box(0.6, 0.4 - i * 0.13, 0.12, '#c9c3b5', 0.6, fl, 1.3 + i * 0.08);
+      const rig = newRig(k, 0.1, top + 0.04, 0.1, -0.2, 0.3);
+      const Y = rig.yaw;
+      disc(k, 0.5, 0.06, '#9aa0a4', 0, 0, 0, 24, Y);
+      k.box(0.7, 0.32, 0.74, C.white, -0.15, 0.06, 0, Y);
+      k.box(0.72, 0.06, 0.76, TEAL, -0.15, 0.24, 0, Y);
+      const gl = k.box(0.3, 0.06, 0.74, C.white, 0.25, 0.28, 0, Y);
+      gl.rotation.z = -0.6;
+      barrels(k, rig, { len: 1.0, r: 0.12, color: '#4a4f54', band: C.white, bands: 2, lip: '#33383d' }, 2);
+      crewLoader(k, rig, rig.tubes[1], CMD, 25, 'white');
+      registerRig(k, rig, level, 13);
+      metMast(k, -1.1, -1.1, top + 0.04, 1.0);
+      balloon(k, 1.0, -1.0, top + 0.04, 1.1);
+      k.flagpole(-1.05, 0.9, 1.6, top + 0.04);
+      pulse(k, 0.5, 0.06, 0.02, '#5fe0d0', 0, fl + 0.26, 1.255, 1.8);
+      break;
+    }
+    case 14: {
+      // Turntable: a big red/white striped disc is the traversing mount; tube on a wheeled carriage
+      whiteRing(k, 1.22, 1.36, 0.22, fl, 0.6, 0.6);
+      const f = floor(k, 1.22, fl, '#dcdedd');
+      const rig = newRig(k, 0.0, f, 0.0, -0.28, 0.36);
+      const Y = rig.yaw;
+      stripedDisc(k, Y, 1.14, 0.08, RED, '#f7f5ef', 16);
+      for (const sd of [-1, 1]) {
+        k.box(0.8, 0.2, 0.06, '#e2e5e7', -0.15, 0.08, sd * 0.24, Y);
+        for (const wx of [-0.42, 0.12]) mesh(k, new THREE.CylinderGeometry(0.11, 0.11, 0.06, 12).rotateX(Math.PI / 2), '#33383d', wx, 0.19, sd * 0.3, Y);
+      }
+      k.box(0.3, 0.22, 0.42, '#e2e5e7', -0.28, 0.12, 0, Y);
+      barrels(k, rig, { len: 1.08, r: 0.14, color: '#e8e9e6', band: TEAL, bands: 3, lip: TEAL }, 1);
+      for (const sd of [-1, 1]) strut(k, Y, V(0.22, 0.26, sd * 0.24), mouth(rig, rig.tubes[0], -0.55).add(V(0, 0, sd * 0.2)), 0.035, HAZ, 8);
+      crewLoader(k, rig, rig.tubes[0], CMD, 26, 'white');
+      registerRig(k, rig, level, 14);
+      kiosk(k, -1.08, -1.08, fl, Math.PI / 4, 0.62, 0.48, 0.66, 2);
+      k.flagpole(1.3, -1.3, 1.9, fl);
+      beacon(k, 1.3, fl, 1.3, '#ffd23f');
+      break;
+    }
+    case 15: {
+      // Quad rotunda: teal-and-white round platform raised a step, quad tubes in a square
+      const top = fl + 0.28;
+      disc(k, 1.42, 0.12, '#cfd3d2', 0, fl, 0, 40);
+      disc(k, 1.28, 0.28, C.white, 0, fl, 0, 40);
+      ring(k, 1.28, 1.3, 0.1, fl + 0.12, TEAL, 0, 0, 'wall', 40);
+      ring(k, 1.2, 1.3, 0.04, top, TEAL, 0, 0, 'wall', 40);
+      for (let i = 0; i < 10; i++) {
+        const [px, pz] = P((i / 10) * Math.PI * 2 + 0.3, 1.2);
+        k.cyl(0.05, 0.42, C.white, px, top, pz, 8);
+        pulse(k, 0.08, 0.05, 0.08, '#5fe0d0', px, top + 0.42, pz, 1.6);
+      }
+      const rig = newRig(k, 0.0, top, 0.0, -0.22, 0.36);
+      const Y = rig.yaw;
+      disc(k, 0.55, 0.3, C.white, 0, 0, 0, 24, Y);
+      ring(k, 0.54, 0.57, 0.07, 0.18, TEAL, 0, 0, 'wall', 24, Y);
+      k.box(0.4, 0.36, 0.62, '#e2e5e7', -0.2, 0.18, 0, Y);
+      barrels(k, rig, { len: 0.98, r: 0.11, color: '#4a4f54', band: TEAL, bands: 2, lip: TEAL }, 4, 'square');
+      crewLoader(k, rig, rig.tubes[3], CMD, 27, 'white');
+      registerRig(k, rig, level, 15);
+      k.flagpole(-1.25, -1.25, 1.9, fl);
+      k.flagpole(1.3, -1.3, 1.9, fl);
+      const crest = mesh(k, new THREE.CylinderGeometry(0.14, 0.14, 0.04, 14).rotateX(Math.PI / 2), TEAL, -0.8, fl + 0.18, 1.12);
+      crest.rotation.y = 0.6;
+      break;
+    }
+    case 16: {
+      // Hatch casemate: dark steel block, two big yellow sliding roof doors either side of the well
+      const h = 0.5;
+      k.box(2.7, h, 2.7, '#3a3f45', 0, fl, 0);
+      k.box(2.74, 0.06, 2.74, '#2a2e33', 0, fl + 0.1, 0);
+      const f = floor(k, 0.82, fl + h - 0.3, '#2a2e33');
+      ring(k, 0.8, 0.86, 0.32, fl + h - 0.3, HAZ, 0, 0, 'wall', 28);
+      hatchDoors(k, fl + h, 0.42, 1.5, 0.62, 0.84);
+      const rig = newRig(k, 0.0, f, 0.0, -0.3, 0.12);
+      barrels(k, rig, { len: 1.18, r: 0.16, color: '#3a3f45', band: HAZ, bands: 2, lip: HAZ }, 1);
+      bipodMount(k, rig, '#2a2e33', '#2a2e2a', 0.4);
+      crewLoader(k, rig, rig.tubes[0], SEC, 28, 'dark');
+      registerRig(k, rig, level, 16);
+      k.box(0.5, 0.34, 0.04, '#5c6166', 0.6, fl, 1.36);
+      for (let i = 0; i < 6; i++) k.box(0.1, 0.06, 0.05, i % 2 ? C.kerbB : HAZ, 0.35 + i * 0.1, fl + 0.36, 1.36);
+      cctv(k, -1.25, -1.25, fl + h, 0.8, Math.PI * 0.25);
+      beacon(k, 1.2, fl + h, -1.2);
+      k.blinker(-1.2, fl + h, 1.2, '#ff3b30', 0.04);
+      break;
+    }
+    case 17: {
+      // Hydraulic mortar: olive armour block with orange chevrons, heavy single tube on rams
+      armourBlock(k, 0.86, 1.45, 0.48, fl, ARMOUR, '#e0782a', '#e0782a');
+      const f = floor(k, 0.86, fl, '#4a4f45');
+      const rig = newRig(k, 0.0, f, 0.0, -0.3, 0.3);
+      const Y = rig.yaw;
+      disc(k, 0.5, 0.14, ARMOUR_D, 0, 0, 0, 16, Y);
+      k.box(0.46, 0.3, 0.5, ARMOUR, -0.3, 0.1, 0, Y);
+      barrels(k, rig, { len: 1.25, r: 0.2, color: ARMOUR, band: '#e0782a', bands: 2, lip: ARMOUR_D }, 1);
+      for (const sd of [-1, 1]) {
+        const a = V(0.25, 0.14, sd * 0.3), b = mouth(rig, rig.tubes[0], -0.62).add(V(0, 0, sd * 0.3));
+        strut(k, Y, a, b, 0.06, HAZ, 10);
+        strut(k, Y, a.clone().lerp(b, 0.5), b, 0.035, '#c9ced2', 8);
+        mesh(k, new THREE.SphereGeometry(0.07, 8, 6), '#33383d', a.x, a.y, a.z, Y);
+      }
+      crewLoader(k, rig, rig.tubes[0], SEC, 29, 'dark');
+      registerRig(k, rig, level, 17);
+      acousticMast(k, -1.25, -1.25, fl, 1.3);
+      beacon(k, 1.0, fl + 0.55, -1.0);
+      beacon(k, -1.0, fl + 0.55, 1.0);
+      cctv(k, 1.32, 1.0, fl, 1.0, Math.PI);
+      break;
+    }
+    case 18: {
+      // Drone-spotted quad: dark armour base, drone pad and a hovering spotter drone, quad tubes
+      armourBlock(k, 0.9, 1.4, 0.5, fl, '#3a3f45', HAZ);
+      const f = floor(k, 0.9, fl, '#2a2e33');
+      sub(k, -1.0, fl, -1.0, Math.PI / 4, (s) => {
+        s.box(0.74, 0.86, 0.74, '#3a3f45', 0, 0, 0);
+        s.box(0.78, 0.05, 0.78, HAZ, 0, 0.86, 0);
+        s.helipad(0, 0.9, 0, 0.6);
+        s.box(0.3, 0.44, 0.03, '#5c6166', 0, 0, 0.375);
+      });
+      drone(k, -1.0, -1.0, fl + 0.95, 0.75);
+      const rig = newRig(k, 0.1, f, 0.1, -0.24, 0.36);
+      const Y = rig.yaw;
+      disc(k, 0.5, 0.32, '#3a3f45', 0, 0, 0, 16, Y);
+      ring(k, 0.49, 0.52, 0.06, 0.24, HAZ, 0, 0, 'wall', 16, Y);
+      k.box(0.36, 0.4, 0.62, '#2a2e33', -0.22, 0.2, 0, Y);
+      barrels(k, rig, { len: 1.0, r: 0.115, color: '#3a3f45', band: HAZ, bands: 2, lip: '#2a2e33' }, 4, 'square');
+      crewLoader(k, rig, rig.tubes[3], SEC, 30, 'dark');
+      registerRig(k, rig, level, 18);
+      acousticMast(k, 1.25, -1.25, fl, 1.3);
+      beacon(k, 1.05, fl + 0.56, 0.9);
+      cctv(k, -1.3, 1.1, fl, 1.0, 0);
+      break;
+    }
+    case 19: {
+      // Black turret: chamfered black turret with twin long tubes and red sensor lights
+      armourBlock(k, 0.92, 1.42, 0.5, fl, '#2a2d31', '#d8342c');
+      const f = floor(k, 0.92, fl, '#2a2e33');
+      const rig = newRig(k, 0.08, f, 0.08, -0.12, 0.42);
+      const Y = rig.yaw;
+      disc(k, 0.6, 0.12, '#1f2226', 0, 0, 0, 16, Y);
+      k.box(0.86, 0.42, 0.78, '#1f2226', -0.2, 0.12, 0, Y);
+      const gl = k.box(0.34, 0.06, 0.78, '#1f2226', 0.28, 0.42, 0, Y);
+      gl.rotation.z = -0.7;
+      k.box(0.88, 0.04, 0.8, RED, -0.2, 0.34, 0, Y);
+      for (const [lx, lz] of [[-0.45, 0.4], [-0.45, -0.4], [0.05, 0.4], [0.05, -0.4]]) pulse(k, 0.07, 0.06, 0.02, '#ff2a20', lx, 0.42, lz, 3.2, Y);
+      pulse(k, 0.14, 0.08, 0.1, '#ff2a20', -0.45, 0.58, 0, 2.2, Y);
+      barrels(k, rig, { len: 1.38, r: 0.11, color: INK, band: RED, bands: 3, lip: '#1f2226' }, 2);
+      crewLoader(k, rig, rig.tubes[1], SEC, 31, 'dark');
+      registerRig(k, rig, level, 19);
+      sensorBall(k, -1.2, -1.2, fl, 1.25);
+      for (const [bx, bz] of [[1.2, -1.2], [-1.2, 1.2]] as [number, number][]) k.blinker(bx, fl + 0.5, bz, '#ff2a20', 0.05, 1.0);
+      cctv(k, 1.3, 1.1, fl, 1.0, Math.PI);
+      beacon(k, 1.15, fl + 0.55, 0.35, '#ff3b30');
+      break;
+    }
+    default: {
+      // 20 Citadel mortar: huge gold-banded black barrel on a gold-rimmed armoured ring
+      armourBlock(k, 0.95, 1.45, 0.56, fl, '#1f2226', GOLD);
+      const f = floor(k, 0.95, fl, '#2a2e33');
+      ring(k, 0.75, 0.8, 0.006, f, GOLD, 0, 0, 'wall', 32);
+      const rig = newRig(k, 0.05, f, 0.05, -0.38, 0.16);
+      barrels(k, rig, { len: 1.4, r: 0.22, color: INK, band: GOLD, bands: 3, lip: GOLD }, 1);
+      bipodMount(k, rig, GOLD, '#1f2226', 0.52);
+      crewLoader(k, rig, rig.tubes[0], SEC, 32, 'gold');
+      registerRig(k, rig, level, 20);
+      for (const [bx, bz] of [[-1.18, 1.18], [-1.2, -1.2], [1.2, -1.2]] as [number, number][]) {
+        const bs = k.box(0.42, 0.86, 0.42, '#1f2226', bx, fl, bz);
+        bs.rotation.y = Math.PI / 4;
+        const cap = k.box(0.5, 0.08, 0.5, GOLD, bx, fl + 0.86, bz);
+        cap.rotation.y = Math.PI / 4;
+        pulse(k, 0.08, 0.08, 0.08, '#ffe48a', bx, fl + 0.94, bz, 2);
+      }
+      const crest = mesh(k, new THREE.CylinderGeometry(0.17, 0.17, 0.05, 16).rotateX(Math.PI / 2), GOLD, 0.95, fl + 0.36, 0.95);
+      crest.rotation.y = Math.PI / 4;
+      k.flagpole(-1.18, 1.18, 1.3, fl + 0.94);
+      k.flagpole(1.2, -1.2, 1.3, fl + 0.94);
+      drone(k, -1.2, -1.2, fl + 0.94, 0.7, true);
+      beacon(k, 1.05, fl + 0.62, 1.05 - 0.4, '#ffd23f');
+      break;
+    }
+  }
   return k;
 }
 
