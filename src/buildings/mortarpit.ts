@@ -18,10 +18,10 @@ import { DAY, HOUR, type BuildingDef, type LevelStats } from './types';
  */
 
 const TITLES = [
-  'Shell Scrape', 'Sandbag Pit', 'Revetted Pit', 'Mortar Bay', 'Fire-Post Bay', 'Twin-Tube Bay',
-  'Concrete Pit', 'Heavy Mortar Pit', 'Fire-Direction Pit', 'Mortar Battery', 'Turret Mortar', 'Autoloader Turret',
-  'Met-Station Turret', 'Turntable Mortar', 'Mortar Rotunda', 'Hardened Casemate', 'Armoured Casemate', 'Drone-Spotted Casemate',
-  'Twin-Turret Casemate', 'Citadel Mortar',
+  'Dirt Scrape', 'Sandbag Pit', 'Log-Revetted Pit', 'Brick Mortar Bay', 'Bay & Ammo Shed', 'Twin-Tube Bay',
+  'Concrete Pit', 'Heavy Mortar Pit', 'Fire-Direction Pit', 'Mortar Battery', 'Dome Turret', 'Autoloader Drum',
+  'Roof-Deck Turret', 'Turntable Mortar', 'Quad Rotunda', 'Hatch Casemate', 'Hydraulic Mortar', 'Drone-Spotted Quad',
+  'Black Turret', 'Citadel Mortar',
 ];
 const nice = (v: number) => {
   const p = Math.pow(10, Math.max(0, Math.floor(Math.log10(v)) - 1));
@@ -30,7 +30,7 @@ const nice = (v: number) => {
 const SUPPLIES = TITLES.map((_, i) => nice(25_000 * Math.pow(1.33, i)));
 const REPUTATION = TITLES.map((_, i) => nice(1_200 * Math.pow(1.16, i)));
 const TIME = [3 * HOUR, 4 * HOUR, 5 * HOUR, 6 * HOUR, 8 * HOUR, 10 * HOUR, 12 * HOUR, 15 * HOUR, 18 * HOUR, 22 * HOUR, 1.25 * DAY, 1.5 * DAY, 2 * DAY, 2.5 * DAY, 3 * DAY, 3.5 * DAY, 4.25 * DAY, 5 * DAY, 6 * DAY, 7 * DAY];
-const TUBES = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4];
+const TUBES = [1, 1, 1, 1, 1, 2, 1, 1, 2, 3, 1, 1, 2, 1, 4, 1, 1, 4, 2, 1];
 
 export const MORTAR_PIT_LEVELS: LevelStats[] = TITLES.map((title, i) => {
   const level = i + 1;
@@ -1073,7 +1073,8 @@ function brickMat() {
 /** Red brick ring with cream coping and brick piers at the opening. */
 function brickRing(k: Kit, rIn: number, rOut: number, h: number, y: number, gap: number, gapAt: number, piers = 0) {
   ringM(k, rIn, rOut, h, y, brickMat(), gap, gapAt);
-  ring(k, rIn - 0.03, rOut + 0.04, 0.07, y + h, C.wall, gap, gapAt, 'wall', 36);
+  ring(k, rOut - 0.05, rOut + 0.04, 0.07, y + h, C.wall, gap, gapAt, 'wall', 36);
+  ring(k, rIn - 0.02, rIn + 0.03, 0.05, y + h, C.wall, gap, gapAt, 'wall', 36);
   const pier = (phi: number, hh: number) => {
     const [px, pz] = P(phi, (rIn + rOut) / 2);
     const p = k.box(0.2, hh, rOut - rIn + 0.1, '#b5523b', px, y, pz);
@@ -1243,7 +1244,7 @@ function build(level: number): Kit {
       ring(k, 0.95, 1.42, 0.14, fl, EARTH, 0.7, 0.6, 'berm', 36);
       const f = floor(k, 1.0, fl, DIRT_D);
       const rig = newRig(k, 0.05, f, 0.0, -0.25, 0.1);
-      barrels(k, rig, { len: 0.95, r: 0.11, color: OLV, band: GUN_D, bands: 1, lip: GUN_D }, 1);
+      barrels(k, rig, { len: 1.1, r: 0.13, color: OLV, band: GUN_D, bands: 1, lip: GUN_D }, 1);
       bipodMount(k, rig, STEEL, GUN_D, 0.3);
       crewLoader(k, rig, rig.tubes[0], FIELD, 1, 'crate');
       registerRig(k, rig, level, 1);
@@ -1268,7 +1269,7 @@ function build(level: number): Kit {
       bags.ring(1.17, 3, fl, 0.55, 0.6);
       bags.flush(k);
       const rig = newRig(k, 0.05, f, 0.05, -0.27, 0.1);
-      barrels(k, rig, { len: 1.0, r: 0.12, color: OLV, band: GUN_D, bands: 1, lip: GUN_D, lash: true }, 1);
+      barrels(k, rig, { len: 1.15, r: 0.14, color: OLV, band: GUN_D, bands: 1, lip: GUN_D, lash: true }, 1);
       bipodMount(k, rig, STEEL, GUN_D, 0.32);
       crewLoader(k, rig, rig.tubes[0], FIELD, 3, 'crate');
       registerRig(k, rig, level, 2);
@@ -1297,7 +1298,7 @@ function build(level: number): Kit {
       mesh(k, mergeGeometries(logs)!, LOGC);
       ring(k, 1.1, 1.3, 0.05, fl + 0.44, '#a8784a', 0.6, 0.6, 'wall', 36);
       const rig = newRig(k, 0.05, f + 0.02, 0.05, -0.28, 0.12);
-      barrels(k, rig, { len: 1.05, r: 0.125, color: OLV, band: GUN_D, bands: 2, lip: GUN_D }, 1);
+      barrels(k, rig, { len: 1.2, r: 0.145, color: OLV, band: GUN_D, bands: 2, lip: GUN_D }, 1);
       bipodMount(k, rig, RED, GUN_D, 0.38);
       crewLoader(k, rig, rig.tubes[0], FIELD, 6, 'timber');
       registerRig(k, rig, level, 3);
@@ -1318,7 +1319,7 @@ function build(level: number): Kit {
       const f = floor(k, rr, fl, '#cfc9bb');
       const twin = level === 6;
       const rig = newRig(k, 0.05, f, 0.05, -0.3, 0.1);
-      barrels(k, rig, { len: twin ? 1.05 : 1.1, r: twin ? 0.11 : 0.13, color: GREEN, band: level >= 5 ? '#f7f5ef' : '#2f6a3a', bands: level >= 5 ? 3 : 2, lip: '#2f6a3a' }, twin ? 2 : 1);
+      barrels(k, rig, { len: twin ? 1.15 : level === 5 ? 1.25 : 1.2, r: twin ? 0.13 : 0.15, color: GREEN, band: level >= 5 ? '#f7f5ef' : '#2f6a3a', bands: level >= 5 ? 3 : 2, lip: '#2f6a3a' }, twin ? 2 : 1);
       bipodMount(k, rig, STEEL, '#2f5a3a', 0.36);
       crewLoader(k, rig, rig.tubes[twin ? 1 : 0], CAMP, 9 + level, 'steel');
       registerRig(k, rig, level, level, 0.7, 0.6);
@@ -1357,7 +1358,7 @@ function build(level: number): Kit {
       const f = floor(k, 1.12, fl, '#c2bdb2');
       const pl = plinth(k, 0.62, f, 0.06);
       const rig = newRig(k, 0.0, pl, 0.0, -0.32, 0.11);
-      barrels(k, rig, { len: 1.15, r: 0.16, color: INK, band: HAZ, bands: 3, lip: HAZ }, 1);
+      barrels(k, rig, { len: 1.3, r: 0.18, color: INK, band: HAZ, bands: 3, lip: HAZ }, 1);
       bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.42);
       crewLoader(k, rig, rig.tubes[0], BASE, 16, 'steel');
       registerRig(k, rig, level, 7);
@@ -1375,7 +1376,7 @@ function build(level: number): Kit {
       hazardRing(k, 1.1, 1.3, 0.46, fl, 0.6, 0.6);
       const f = floor(k, 1.1, fl, '#c2bdb2');
       const rig = newRig(k, 0.1, f, 0.08, -0.36, 0.14);
-      barrels(k, rig, { len: 1.28, r: 0.19, color: BLUE, band: '#33465a', bands: 2, lip: '#33465a', spring: '#d8b24a' }, 1);
+      barrels(k, rig, { len: 1.4, r: 0.21, color: BLUE, band: '#33465a', bands: 2, lip: '#33465a', spring: '#d8b24a' }, 1);
       bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.48);
       crewLoader(k, rig, rig.tubes[0], BASE, 18, 'steel');
       registerRig(k, rig, level, 8);
@@ -1391,7 +1392,7 @@ function build(level: number): Kit {
       hazardRing(k, 1.1, 1.3, 0.48, fl, 0.6, 0.6);
       const f = floor(k, 1.1, fl, '#c2bdb2');
       const rig = newRig(k, 0.12, f, 0.12, -0.34, 0.13);
-      barrels(k, rig, { len: 1.18, r: 0.15, color: BLUE, band: '#33465a', bands: 2, lip: '#33465a', spring: '#d8b24a' }, 2);
+      barrels(k, rig, { len: 1.3, r: 0.17, color: BLUE, band: '#33465a', bands: 2, lip: '#33465a', spring: '#d8b24a' }, 2);
       bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.42);
       crewLoader(k, rig, rig.tubes[1], BASE, 20, 'steel');
       registerRig(k, rig, level, 9);
@@ -1416,7 +1417,7 @@ function build(level: number): Kit {
       disc(k, 1.06, deck - fl, '#d9d4c8', 0, fl, 0, 36);
       ring(k, 0.86, 0.9, 0.006, deck, GOLD, 0, 0, 'wall', 36);
       const rig = newRig(k, 0.05, deck, 0.0, -0.3, 0.12);
-      barrels(k, rig, { len: 1.05, r: 0.12, color: BLUE, band: GOLD, bands: 2, lip: '#33465a' }, 3);
+      barrels(k, rig, { len: 1.15, r: 0.13, color: BLUE, band: GOLD, bands: 2, lip: '#33465a' }, 3);
       bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.34);
       crewLoader(k, rig, rig.tubes[2], BASE, 21, 'steel');
       registerRig(k, rig, level, 10);
@@ -1445,7 +1446,7 @@ function build(level: number): Kit {
       const slot = k.box(0.5, 0.06, 0.3, '#2a2e2a', 0.25, 0.48, 0, Y);
       slot.rotation.z = -0.6;
       disc(k, 0.1, 0.08, '#d5d9dc', -0.25, 0.5, 0.2, 10, Y);
-      barrels(k, rig, { len: 1.05, r: 0.13, color: '#4a4f54', band: TEAL, bands: 2, lip: '#33383d' }, 1);
+      barrels(k, rig, { len: 1.2, r: 0.15, color: '#4a4f54', band: TEAL, bands: 2, lip: '#33383d' }, 1);
       crewLoader(k, rig, rig.tubes[0], CMD, 23, 'white');
       registerRig(k, rig, level, 11);
       kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.62, 0.5, 0.56, 2);
@@ -1464,7 +1465,7 @@ function build(level: number): Kit {
       disc(k, 0.55, 0.26, C.white, 0, 0, 0, 24, Y);
       ring(k, 0.54, 0.57, 0.06, 0.16, TEAL, 0, 0, 'wall', 24, Y);
       k.box(0.34, 0.2, 0.42, '#e2e5e7', -0.15, 0.24, 0, Y);
-      barrels(k, rig, { len: 1.08, r: 0.14, color: '#4a4f54', band: TEAL, bands: 2, lip: '#33383d' }, 1);
+      barrels(k, rig, { len: 1.2, r: 0.16, color: '#4a4f54', band: TEAL, bands: 2, lip: '#33383d' }, 1);
       magDrum(k, Y, -0.3, 0.26, -0.42, 0.24, 0.5, TEAL);
       crewLoader(k, rig, rig.tubes[0], CMD, 24, 'white');
       registerRig(k, rig, level, 12);
@@ -1489,7 +1490,7 @@ function build(level: number): Kit {
       k.box(0.72, 0.06, 0.76, TEAL, -0.15, 0.24, 0, Y);
       const gl = k.box(0.3, 0.06, 0.74, C.white, 0.25, 0.28, 0, Y);
       gl.rotation.z = -0.6;
-      barrels(k, rig, { len: 1.0, r: 0.12, color: '#4a4f54', band: C.white, bands: 2, lip: '#33383d' }, 2);
+      barrels(k, rig, { len: 1.1, r: 0.13, color: '#4a4f54', band: C.white, bands: 2, lip: '#33383d' }, 2);
       crewLoader(k, rig, rig.tubes[1], CMD, 25, 'white');
       registerRig(k, rig, level, 13);
       metMast(k, -1.1, -1.1, top + 0.04, 1.0);
@@ -1510,7 +1511,7 @@ function build(level: number): Kit {
         for (const wx of [-0.42, 0.12]) mesh(k, new THREE.CylinderGeometry(0.11, 0.11, 0.06, 12).rotateX(Math.PI / 2), '#33383d', wx, 0.19, sd * 0.3, Y);
       }
       k.box(0.3, 0.22, 0.42, '#e2e5e7', -0.28, 0.12, 0, Y);
-      barrels(k, rig, { len: 1.08, r: 0.14, color: '#e8e9e6', band: TEAL, bands: 3, lip: TEAL }, 1);
+      barrels(k, rig, { len: 1.2, r: 0.16, color: '#e8e9e6', band: TEAL, bands: 3, lip: TEAL }, 1);
       for (const sd of [-1, 1]) strut(k, Y, V(0.22, 0.26, sd * 0.24), mouth(rig, rig.tubes[0], -0.55).add(V(0, 0, sd * 0.2)), 0.035, HAZ, 8);
       crewLoader(k, rig, rig.tubes[0], CMD, 26, 'white');
       registerRig(k, rig, level, 14);
@@ -1536,7 +1537,7 @@ function build(level: number): Kit {
       disc(k, 0.55, 0.3, C.white, 0, 0, 0, 24, Y);
       ring(k, 0.54, 0.57, 0.07, 0.18, TEAL, 0, 0, 'wall', 24, Y);
       k.box(0.4, 0.36, 0.62, '#e2e5e7', -0.2, 0.18, 0, Y);
-      barrels(k, rig, { len: 0.98, r: 0.11, color: '#4a4f54', band: TEAL, bands: 2, lip: TEAL }, 4, 'square');
+      barrels(k, rig, { len: 1.05, r: 0.12, color: '#4a4f54', band: TEAL, bands: 2, lip: TEAL }, 4, 'square');
       crewLoader(k, rig, rig.tubes[3], CMD, 27, 'white');
       registerRig(k, rig, level, 15);
       k.flagpole(-1.25, -1.25, 1.9, fl);
@@ -1554,7 +1555,7 @@ function build(level: number): Kit {
       ring(k, 0.8, 0.86, 0.32, fl + h - 0.3, HAZ, 0, 0, 'wall', 28);
       hatchDoors(k, fl + h, 0.42, 1.5, 0.62, 0.84);
       const rig = newRig(k, 0.0, f, 0.0, -0.3, 0.12);
-      barrels(k, rig, { len: 1.18, r: 0.16, color: '#3a3f45', band: HAZ, bands: 2, lip: HAZ }, 1);
+      barrels(k, rig, { len: 1.3, r: 0.18, color: '#3a3f45', band: HAZ, bands: 2, lip: HAZ }, 1);
       bipodMount(k, rig, '#2a2e33', '#2a2e2a', 0.4);
       crewLoader(k, rig, rig.tubes[0], SEC, 28, 'dark');
       registerRig(k, rig, level, 16);
@@ -1567,13 +1568,13 @@ function build(level: number): Kit {
     }
     case 17: {
       // Hydraulic mortar: olive armour block with orange chevrons, heavy single tube on rams
-      armourBlock(k, 0.86, 1.45, 0.48, fl, ARMOUR, '#e0782a', '#e0782a');
+      armourBlock(k, 0.86, 1.45, 0.48, fl, ARMOUR, ARMOUR_D, '#e0782a');
       const f = floor(k, 0.86, fl, '#4a4f45');
       const rig = newRig(k, 0.0, f, 0.0, -0.3, 0.3);
       const Y = rig.yaw;
       disc(k, 0.5, 0.14, ARMOUR_D, 0, 0, 0, 16, Y);
       k.box(0.46, 0.3, 0.5, ARMOUR, -0.3, 0.1, 0, Y);
-      barrels(k, rig, { len: 1.25, r: 0.2, color: ARMOUR, band: '#e0782a', bands: 2, lip: ARMOUR_D }, 1);
+      barrels(k, rig, { len: 1.35, r: 0.22, color: ARMOUR, band: '#e0782a', bands: 2, lip: ARMOUR_D }, 1);
       for (const sd of [-1, 1]) {
         const a = V(0.25, 0.14, sd * 0.3), b = mouth(rig, rig.tubes[0], -0.62).add(V(0, 0, sd * 0.3));
         strut(k, Y, a, b, 0.06, HAZ, 10);
@@ -1590,7 +1591,7 @@ function build(level: number): Kit {
     }
     case 18: {
       // Drone-spotted quad: dark armour base, drone pad and a hovering spotter drone, quad tubes
-      armourBlock(k, 0.9, 1.4, 0.5, fl, '#3a3f45', HAZ);
+      armourBlock(k, 0.9, 1.4, 0.5, fl, '#4a5662', '#2a2e33', HAZ);
       const f = floor(k, 0.9, fl, '#2a2e33');
       sub(k, -1.0, fl, -1.0, Math.PI / 4, (s) => {
         s.box(0.74, 0.86, 0.74, '#3a3f45', 0, 0, 0);
@@ -1604,7 +1605,7 @@ function build(level: number): Kit {
       disc(k, 0.5, 0.32, '#3a3f45', 0, 0, 0, 16, Y);
       ring(k, 0.49, 0.52, 0.06, 0.24, HAZ, 0, 0, 'wall', 16, Y);
       k.box(0.36, 0.4, 0.62, '#2a2e33', -0.22, 0.2, 0, Y);
-      barrels(k, rig, { len: 1.0, r: 0.115, color: '#3a3f45', band: HAZ, bands: 2, lip: '#2a2e33' }, 4, 'square');
+      barrels(k, rig, { len: 1.1, r: 0.13, color: '#3a3f45', band: HAZ, bands: 2, lip: '#2a2e33' }, 4, 'square');
       crewLoader(k, rig, rig.tubes[3], SEC, 30, 'dark');
       registerRig(k, rig, level, 18);
       acousticMast(k, 1.25, -1.25, fl, 1.3);
@@ -1625,7 +1626,7 @@ function build(level: number): Kit {
       k.box(0.88, 0.04, 0.8, RED, -0.2, 0.34, 0, Y);
       for (const [lx, lz] of [[-0.45, 0.4], [-0.45, -0.4], [0.05, 0.4], [0.05, -0.4]]) pulse(k, 0.07, 0.06, 0.02, '#ff2a20', lx, 0.42, lz, 3.2, Y);
       pulse(k, 0.14, 0.08, 0.1, '#ff2a20', -0.45, 0.58, 0, 2.2, Y);
-      barrels(k, rig, { len: 1.38, r: 0.11, color: INK, band: RED, bands: 3, lip: '#1f2226' }, 2);
+      barrels(k, rig, { len: 1.5, r: 0.12, color: INK, band: RED, bands: 3, lip: '#1f2226' }, 2);
       crewLoader(k, rig, rig.tubes[1], SEC, 31, 'dark');
       registerRig(k, rig, level, 19);
       sensorBall(k, -1.2, -1.2, fl, 1.25);
@@ -1640,7 +1641,7 @@ function build(level: number): Kit {
       const f = floor(k, 0.95, fl, '#2a2e33');
       ring(k, 0.75, 0.8, 0.006, f, GOLD, 0, 0, 'wall', 32);
       const rig = newRig(k, 0.05, f, 0.05, -0.38, 0.16);
-      barrels(k, rig, { len: 1.4, r: 0.22, color: INK, band: GOLD, bands: 3, lip: GOLD }, 1);
+      barrels(k, rig, { len: 1.55, r: 0.25, color: INK, band: GOLD, bands: 3, lip: GOLD }, 1);
       bipodMount(k, rig, GOLD, '#1f2226', 0.52);
       crewLoader(k, rig, rig.tubes[0], SEC, 32, 'gold');
       registerRig(k, rig, level, 20);
