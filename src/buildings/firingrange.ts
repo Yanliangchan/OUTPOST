@@ -867,7 +867,7 @@ function railGantry(k: Kit, y: number, n: number, h: number) {
 }
 
 /** Continuous louvred roof over the lanes (indoor ranges); thin slats let the line show through. */
-function louvreRoof(k: Kit, y: number, x0: number, x1: number, h: number, frame: string, slat: string, step = 0.42) {
+function louvreRoof(k: Kit, y: number, x0: number, x1: number, h: number, frame: string, slat: string, step = 0.42, tilt = 0.7) {
   const z0 = Z0 - 0.06, z1 = Z1 + 0.06;
   for (const z of [z0, z1]) k.box(x1 - x0, 0.08, 0.08, frame, (x0 + x1) / 2, y + h, z);
   for (let x = x0; x <= x1 + 0.01; x += (x1 - x0) / Math.round((x1 - x0) / 0.9)) {
@@ -876,7 +876,7 @@ function louvreRoof(k: Kit, y: number, x0: number, x1: number, h: number, frame:
   }
   for (let x = x0 + 0.1; x < x1; x += step) {
     const s = k.box(0.24, 0.035, z1 - z0, slat, x, y + h - 0.02, (z0 + z1) / 2);
-    s.rotation.z = 0.7;
+    s.rotation.z = tilt;
   }
 }
 
@@ -1214,7 +1214,7 @@ function command(k: Kit, level: number, y: number) {
   }
   if (level >= 13) {
     // Indoor Range: continuous baffled roof over the lanes and a tall white back wall
-    louvreRoof(k, y, -1.65, XS - 0.05, 1.45, '#f2f1ec', C.roofGreen, 0.27);
+    louvreRoof(k, y, -1.65, XS - 0.05, 1.45, '#f2f1ec', '#5fae3e', 0.27, 0.3);
     const wx0 = XB + 0.05, wx1 = TX - TW / 2 - 0.05;
     k.box(wx1 - wx0, 1.25, 0.12, '#f2f1ec', (wx0 + wx1) / 2, y, Z0 - 0.1);
     k.box(wx1 - wx0, 0.06, 0.14, TEAL, (wx0 + wx1) / 2, y + 1.0, Z0 - 0.1);

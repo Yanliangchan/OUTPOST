@@ -19,7 +19,7 @@ export const RELEASE_MAX_LEVEL = 10;
 - **Every building is alive:** each has a signature "working" micro-animation at every level, like the Clash of Clans gold-mine cart (see the table below). Each building also gets a random timing offset so a base never moves in lockstep. Checked with `__outpost.animCheck()`, which counts moving parts per level; every level has at least one, on top of flags, blinking lights, steam and sparks. **Walls are the one exception:** a base holds hundreds of wall pieces, so they stay static and low-poly for performance. They're also exempt from the height/presence metric: see-through fence levels (chain-link, mesh, laser) are deliberately thin, so the progression is judged visually.
 - **Defences idle now, fight later:** every defence's weapon is built on a shared combat rig (`src/buildings/turret.ts`). With no target it runs an idle scan (sweeping, sentries looking round); once the Raids phase hands it a target it slews, aims and fires with muzzle flash and recoil, and reports each shot so the combat layer can spawn projectiles and apply damage. Preview it with `?showcase=<id>&combat` (raiders on foot and drones circle each defence).
 - **Walls are placed tile by tile:** each 1×1 piece is a post plus half-segments toward its neighbouring wall tiles, so runs, corners and T-junctions join up automatically (Clash of Clans style).
-- **Every level is a visible change.** Each level adds a recognisable silhouette or detail.
+- **Every level reads apart from far (the Clash of Clans rule).** At game zoom small props vanish, so each level must change at least one big, far-visible thing: silhouette (roof shape, height, a tower, a dome, a new wing), a large colour block (roof, walls, ground, a material tier), or the count/size of the main element (barrels, lanes, towers). Checked on a zoomed-out grid (`far.png` in each building's docs folder).
 - **Five art bands:** Field (1–3) → Camp (4–6) → Base (7–10) → Command (11–15, post-release) → Secure (16–20, reserve).
 - **Stats live in data:** cost, Reputation, build time, HP and building-specific stats, defined per level in each building's file.
 
@@ -45,6 +45,9 @@ export const RELEASE_MAX_LEVEL = 10;
 | **Searchlight** | Beams sweep the sky and ground (figure-eights, ground sweeps, circles, sector steps), then slew onto a raider and hold; the lens flares on every lock pulse; the laser dazzler strikes; iris and louvre shutters blink signals; LED arrays shimmer; halo and crown rings turn | Generators shake, spin their fans and puff exhaust; operators raise binoculars, crank, point and check tablets; cable reels wind; extractor and roof fans spin; beacons turn; tarp, lantern and pennants sway; sentry patrols; sensor balls and cameras pan |
 | **Artillery Emplacement** | Gun lays onto a new bearing and elevation every few seconds; in a raid it slews round, fires with a muzzle flash and the barrel recoils on its cradle; the loader fetches a round, the rammer rams it, the layer pulls the lanyard and the empty brass case drops out (Lv 1–9); ammunition bearers and shell trolleys shuttle rounds; gantry hoist, deck hoists and lift cages carry rounds; range-finders, EO sensors and spotters scan; loading arm, conveyors, carousels and drones in the Command/Secure bands | Camo nets breathe, lanterns and signal flags swing, handwheels and anemometers spin, blast doors slide, CCTV pans, beacons blink |
 | **Air Defence** | Search radars turn (Yagi, bedspring, truss, planar, AESA; turret-borne radars spin on the moving turret); guns sweep the sky with barrels raised and in combat slew, elevate and fire alternating barrels with recoil; tracking dishes elevate with the guns; missiles vanish on launch and reload up their tubes; armour lids, clamshell doors and sliding hatches open and shut as the launcher raises and stows; loaders carry ammo and feed clips, gunners turn handwheels, spotters and commanders scan with binoculars; ammo hoist, shell conveyor and reload crane cycle; phased-array scan bars sweep | Windsock sways, canvas flap swings, camo net breathes, generator and cooling fans spin and exhaust smokes, aircon fans, beacons and status LEDs blink, flags wave |
+| **Training Shed** | Recruits climb ropes hand over hand and slide down; crawlers low-crawl under nets and through culverts; runners high-knee through tyres; climbers scale the wall, swing along monkey bars and scramble up nets; push-ups, jumping jacks and pad work; instructor paces, points and blows the whistle; sand-table trainees nod and raise hands; sim pods tilt; VR trainees turn and reach in glowing rings; holo terrain turns; abseilers hop down the tower; blast doors slide; drones circle in the cage; fast-ropers slide from the helicopter mock-up as its rotors turn | Ropes sway, flags wave, radar spins, rotor turns, CCTV pans, beacons blink |
+| **Armoury** | Strongroom door opens and shuts on a loop (timber, container, steel, sliding, round vault with spinning wheel, blast, gold); armourer hammers and lifts the part to the lamp; porter wheels a kit case out and back; sentry glances round and salutes the open door; test jigs and test stands spin; test-chamber vanes spin; dome slit turns; holograms turn and bob with rising rings; sensor ring and sensor heads sweep; laser scan bars sweep the door | Status light switches red/green with the door; bench lamps flicker; lanterns sway; CCTV pans; flags wave; blinkers |
+| **Firing Range** | Recruits shoot prone, kneeling and standing with recoil, muzzle flash, spent-case puffs and tracers; pop-up targets shake, fall and rise (paper → electronic → rail carriers → LED → holograms that glitch out), with a strike puff on the berm; range officer walks the line and points; red range flag streams; lookouts scan with binoculars; scoreboard bars count hits; rail trolleys shuttle overhead (Lv 12); sensor heads spin; LED wall figures run and the scan bar sweeps | Target-lifter lamps flash on a hit; tower and antenna lights blink; teal LED strip pulses |
 | **Secure band (16–20)** | Boom gate lifts to let vehicles in; CCTV cameras pan | |
 
 ## Roster and build order
@@ -72,6 +75,9 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 17 | **Searchlight** | 2×2 | 9 | Locks on, reveals and slows raiders; boosts nearby defences | ✅ 20/20 designed |
 | 18 | **Artillery Emplacement** | 3×3 | 11 | Long-range heavy gun vs ground | ✅ 20/20 designed |
 | 19 | **Air Defence** | 3×3 | 13 | Flak and missiles vs air | ✅ 20/20 designed |
+| 20 | **Training Shed** | 4×3 | 7 | Trains Recruits into squads; unlocks troop types | ✅ 20/20 designed |
+| 21 | **Armoury** | 3×3 | 9 | Research: upgrades defences and troop kit | ✅ 20/20 designed |
+| 22 | **Firing Range** | 5×3 | 10 | Camp-wide defence accuracy; troop marksmanship | ✅ 20/20 designed |
 | — | Special plots: Boat Jetty (Cove), Adventure Training Centre (Lakeside), Signal Station (Ridge) | 9×9 sites | 8–9 | Late-game landmarks | planned |
 
 ---
@@ -1139,3 +1145,170 @@ The camp's anti-aircraft defence: it **only shoots flying raiders** (drones and 
 | 20 | **Sky Citadel:** pale gold-banded citadel tower with gold-framed phased arrays, **gold-rimmed AESA** plus a counter-rotating dark array, the biggest clamshell launcher (**24 gold-tipped missiles**), gold-capped bollards, flags |
 
 Review scene: open the game with `?showcase=airdefence`.
+
+# Training Shed: full specification
+
+The Training Shed turns Recruits into trained squads, the troops that later defend the camp and go on raids. Higher levels train bigger squads faster and unlock new troop types. Its signature at every level is **Recruits visibly training in field-craft drills, led by an instructor in a campaign hat** who paces, points at the drill and blows a whistle. The drills include rope climbs, low crawls under a net, a scaling wall, a tyre run, monkey bars, a scramble net, sandbag carries, push-ups, jumping jacks, pad work and sand-table lessons. The structure grows through the bands: a tarp basha, then atap and zinc sheds, a red-roofed camp shed, a concrete drill hall (red gable, then a green barrel vault with a banded rope tower), a cream classroom block with an abseil frame, a white sim centre (motion pods, VR deck, holo sand-table, abseil tower), a hardened tactical complex (urban-ops village, grass-bermed bunker, drone cage, fast-rope helicopter mock-up) and finally a cream-and-gold citadel. Footprint **4×3**; unlocks at **HQ 7**; bulk rises from about 1.25 to 3.4 storeys (cap about 3.5).
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Squad capacity | Training speed | Unlocks |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Basha Drill Shed | 60,000 | 1,000 | 2 h | 900 | 10 | +0% | Riflemen |
+| 2 | Atap Drill Shed | 78,000 | 1,250 | 3 h | 1,080 | 12 | +5% | — |
+| 3 | Zinc Training Shed | 101,000 | 1,550 | 4 h | 1,300 | 16 | +10% | Scouts |
+| 4 | Training Shed | 132,000 | 1,900 | 6 h | 1,560 | 18 | +15% | — |
+| 5 | Training Shed · Store Annex | 171,000 | 2,300 | 8 h | 1,870 | 20 | +20% | — |
+| 6 | Twin-Bay Training Shed | 223,000 | 2,750 | 10 h | 2,240 | 24 | +25% | Engineers |
+| 7 | Drill Hall | 290,000 | 3,250 | 14 h | 2,690 | 26 | +30% | — |
+| 8 | Drill Hall · Rope Tower | 377,000 | 3,800 | 18 h | 3,220 | 28 | +35% | — |
+| 9 | Drill Hall · Classroom Wing | 490,000 | 4,400 | 22 h | 3,870 | 32 | +40% | Medics |
+| 10 | Training Wing *(release cap)* | 637,000 | 5,100 | 1.25 d | 4,640 | 34 | +45% | — |
+| 11 | Sim Training Centre | 828,000 | 5,900 | 1.5 d | 5,570 | 36 | +50% | — |
+| 12 | Holo Sand-Table Pavilion | 1,076,000 | 6,800 | 2 d | 6,690 | 38 | +55% | Signallers |
+| 13 | VR Training Deck | 1,399,000 | 7,800 | 2.5 d | 8,020 | 42 | +60% | — |
+| 14 | Abseil Tower | 1,819,000 | 8,900 | 3 d | 9,630 | 44 | +65% | — |
+| 15 | Training Campus | 2,365,000 | 10,100 | 3.5 d | 11,560 | 46 | +70% | Commandos |
+| 16 | Urban Ops Village | 3,074,000 | 11,500 | 4 d | 13,870 | 50 | +75% | — |
+| 17 | Bermed Drill Bunker | 3,996,000 | 13,000 | 4.5 d | 16,640 | 52 | +80% | — |
+| 18 | Drone Ops Cage | 5,195,000 | 14,700 | 5.25 d | 19,970 | 54 | +85% | Drone Operators |
+| 19 | Fast-Rope Gantry | 6,754,000 | 16,600 | 6 d | 23,960 | 58 | +90% | — |
+| 20 | Training Citadel | 8,780,000 | 18,700 | 7 d | 28,750 | 60 | +95% | — |
+*Levels 11–15 are post-release; 16–20 are reserve.* HP ≈ 900·1.2^(lv−1). Capacity is the number of Recruits trained per squad batch; troop types unlock cumulatively.
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Basha Drill Shed:** olive tarp basha on timber poles over a sand-model lesson, lashed-log tripod with a **Recruit climbing the swinging rope**, low crawl under a pegged net, push-ups, pacing instructor, dirt yard |
+| 2 | **Atap Drill Shed:** bigger timber shed with a **tan thatched atap roof**, raised sand table, goal-post rope frame, **tyre run with two high-kneeing runners**, jumping jacks |
+| 3 | **Zinc Training Shed:** open shed with a **silver zinc roof** and plank half-walls, tall timber rope tower with a slatted platform and pennant, **scaling wall a Recruit climbs over**, sandbag-carry relay |
+| 4 | **Training Shed:** first permanent shed: cream columns, **red-brown hip roof**, green mats with push-ups and jacks, yellow sand pit with a crawl net, green scaling wall, steel rope frame |
+| 5 | **Training Shed · Store Annex:** **L-shape** with a cream red-roofed store wing; **monkey bars with a Recruit swinging across**; raised sand-table lesson |
+| 6 | **Twin-Bay Training Shed:** taller shed under **twin red gables**, enclosed store bay, **pad-work pair**, tall green **three-rope gantry** with yellow beams |
+| 7 | **Drill Hall:** concrete portal-framed hall with a **ridge monitor roof**, a row of **jumping jacks drilled from a dais**, maroon rubber yard with tyre run and scaling wall, flag |
+| 8 | **Drill Hall · Rope Tower:** concrete hall under a **green barrel-vault roof** with ribs, and a tall **red/white banded rope tower** with a red hip roof rising well above it; **a Recruit climbs the scramble net** down to the yard |
+| 9 | **Drill Hall · Classroom Wing:** flat-roofed **two-storey cream classroom block** with a green-roofed porch, and a big **red/white abseil frame** with a striped face board; **trainees abseil down it in hops**; green-roofed sand-table shelter, monkey bars |
+| 10 | **Training Wing:** taller hall with a gold-lettered TRAINING WING fascia, **gold-banded tower with a red pyramid roof and flag**, wing with a gold band, three rows of drills *(release cap)* |
+| 11 | **Sim Training Centre:** white three-storey block with teal bands and fins, glass sim hall with **tilting motion-simulator pods**, teal yard under a white shade sail, white rope frame |
+| 12 | **Holo Sand-Table Pavilion:** + hexagonal glass pavilion with a green roof around a **glowing holo sand-table with a turning wireframe terrain**, roof garden |
+| 13 | **VR Training Deck:** sim-hall roof becomes a deck under a **big white canopy** with **VR trainees walking and reaching inside glowing rings** |
+| 14 | **Abseil Tower:** + tall white tower with teal stripes; **trainees abseil down its face in hops** |
+| 15 | **Training Campus:** + a great **white rope arch** over the yard with climbers; three flags; mint pavilion roof |
+| 16 | **Urban Ops Village:** secure band: tall concrete tactical block with **abseilers**, two shell houses, **ladder entry into an upper window**, squad **stacking at a doorway**, culvert-pipe crawl, breach wall, fence and CCTV |
+| 17 | **Bermed Drill Bunker:** a wide, low **grass-roofed earth berm** across the whole back, with **hazard-striped blast doors that slide open on drilling Recruits**, a grass mound with a crawl tunnel, a spinning radar and no tower |
+| 18 | **Drone Ops Cage:** the berm gets a flat grass roof carrying a bright **white-and-teal netted drone cage** with **three drones flying inside**; operators with controllers below |
+| 19 | **Fast-Rope Gantry:** a big white-and-red **helicopter mock-up, nose to the front, on a steel gantry over a yellow helipad**; its rotor turns and **trainees fast-rope down** and run clear; grass berm behind |
+| 20 | **Training Citadel:** three-storey **cream citadel with gold floor bands, merlons and a gold entrance**, a glass drum crowned by a **gold dome**, abseilers on its face, a cream-and-gold helicopter on a gold gantry over a yellow pad, and a gold-roofed holo sand-table pavilion |
+
+Review scene: open the game with `?showcase=trainingshed`.
+
+# Armoury: full specification
+
+The Armoury is the outpost's research building, the camp's answer to a Laboratory. It researches upgrades for defences and troop kit. Each slot runs one research at a time; higher levels open higher research tiers, research faster and add slots. Every level has the same signature: a **secure strongroom with a heavy door that opens and shuts on a loop**, an **armourer at a workbench** hammering a part and lifting it to the lamp to inspect it, a **sentry** at the door who salutes when it opens, a **porter wheeling a kit case** out of the strongroom and back, and a **research glow** that grows with the bands: bench lamp and spinning test jig → test stand → blueprint table → test chamber → hologram projector → gold vault. Guns appear only as chunky dark cartoon silhouettes on racks. The door also changes with the bands: timber door → container doors → steel slab → sliding slab → round vault door → blast door → gold vault door. Footprint **3×3**, unlocked at **HQ 9**. Bulk rises from about 1.1 storeys to about 3.4 storeys and stays at or under ~3.5 storeys.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Research speed | Research slots | Max tier |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Sandbag Strongpoint | 150,000 | 2,000 | 4 h | 1,000 | +0% | 1 | 1 |
+| 2 | Container Strongroom | 190,000 | 2,400 | 6 h | 1,200 | +5% | 1 | 2 |
+| 3 | Arms Hut | 250,000 | 2,900 | 8 h | 1,440 | +10% | 1 | 3 |
+| 4 | Armoury | 310,000 | 3,400 | 10 h | 1,730 | +15% | 1 | 4 |
+| 5 | Armoury · Test Bay | 400,000 | 4,000 | 12 h | 2,070 | +20% | 1 | 5 |
+| 6 | Two-Storey Armoury | 520,000 | 4,700 | 16 h | 2,490 | +25% | 1 | 6 |
+| 7 | Vault Armoury | 660,000 | 5,500 | 20 h | 2,990 | +30% | 1 | 7 |
+| 8 | Blueprint Hall | 840,000 | 6,400 | 1 d | 3,580 | +35% | 1 | 8 |
+| 9 | Test Chamber | 1,100,000 | 7,400 | 1.25 d | 4,300 | +40% | 1 | 9 |
+| 10 | Armoury Complex *(release cap)* | 1,400,000 | 8,500 | 1.5 d | 5,160 | +45% | 1 | 10 |
+| 11 | Research Lab | 1,800,000 | 9,700 | 2 d | 6,190 | +50% | 1 | 11 |
+| 12 | Twin Lab | 2,300,000 | 11,000 | 2.5 d | 7,430 | +55% | 2 | 12 |
+| 13 | Hologram Lab | 2,900,000 | 12,500 | 3 d | 8,920 | +60% | 2 | 13 |
+| 14 | Test Dome | 3,700,000 | 14,000 | 3.5 d | 10,700 | +65% | 2 | 14 |
+| 15 | Research Spire | 4,800,000 | 15,700 | 4 d | 12,840 | +70% | 2 | 15 |
+| 16 | Hardened Lab | 6,100,000 | 17,500 | 5 d | 15,410 | +75% | 2 | 16 |
+| 17 | Bunker Vault | 7,800,000 | 19,500 | 5.5 d | 18,490 | +80% | 2 | 17 |
+| 18 | Triple Vault | 10,000,000 | 21,600 | 6 d | 22,190 | +85% | 3 | 18 |
+| 19 | Scanner Vault | 13,000,000 | 23,800 | 7 d | 26,620 | +90% | 3 | 19 |
+| 20 | Gold Vault | 16,000,000 | 26,000 | 8 d | 31,950 | +95% | 3 | 20 |
+
+*Levels 11–15 are post-release; 16–20 are reserve.* Each level opens one research tier (Rifle sights, Helmet padding, Sandbag fill, Sentry optics, Mortar fuzes, Body-armour plates, Wall reinforcement, Searchlight lenses, Mortar range, Tower armour, Artillery shells, Night vision, Air-defence tracking, Drone jammers, Composite armour, Hardened walls, Guided rounds, Thermal optics, Sensor fusion, Citadel-grade armour). HP ≈ 1,000 · 1.2^(Lv−1); Supplies ≈ 150,000 · 1.28^(Lv−1). All numbers are first-pass balance.
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Sandbag Strongpoint:** sandbagged dugout on an earth mound, log roof under an olive tarp, **timber door that swings open** on a lamp-lit store; armourer at a folding bench under a tan awning; lantern, rifle rack, field drums |
+| 2 | **Container Strongroom:** olive shipping container with **double doors that swing wide** as the porter wheels a kit case out; big tan awning off its side, spinning test stand |
+| 3 | **Arms Hut:** timber hut with a **grey zinc gable roof** and a lamp-lit window beside the container strongroom, which now has a **hazard-framed steel door with a locking wheel** |
+| 4 | **Armoury:** first permanent building: cream walls, **red-brown hip roof**, steel strongroom door under a green porch, barred windows |
+| 5 | **Armoury · Test Bay:** **L-shape**: a red-gabled open-front test bay wing with a **spinning test stand** behind a blast shield |
+| 6 | **Two-Storey Armoury:** first **two storeys**, a glowing research lantern on the ridge, a **sliding strongroom door** on a rail, green sentry box |
+| 7 | **Vault Armoury:** concrete hall with a **slate barrel-vault roof**; a projecting portal holds a **round bank-vault door** whose wheel spins before it swings open |
+| 8 | **Blueprint Hall:** concrete hall under a **stepped terracotta roof** (low hip, glowing clerestory, top hip), plus a two-storey drawing-office wing with a **glowing blue blueprint wall** as a clear second mass; officer at an outdoor blueprint table |
+| 9 | **Test Chamber:** a tall **concrete test silo** with a glowing orange band and **vanes spinning inside**, domed cap and beacon |
+| 10 | **Armoury Complex:** **red-roofed barrel hall**, white columned portico with a red pediment over the vault door, taller test silo, two sentries, flagpole *(release cap)* |
+| 11 | **Research Lab:** three-storey **white block with punched windows under a green hip roof**, teal bands, entrance canopy; white sliding vault door, glass lobby with a test stand |
+| 12 | **Twin Lab:** **twin cream towers with teal butterfly mono-pitch roofs**, joined by a glass sky-bridge over a central round vault; one armourer per research bay |
+| 13 | **Hologram Lab:** **dark-glass** lab and wing; the wing roof carries a big teal hologram inside **two large glowing halo rings** that tilt and bob and dominate the silhouette |
+| 14 | **Test Dome:** a **white observatory-style test dome** whose glowing slit **slowly turns**, a spinning part in its window, rooftop hologram |
+| 15 | **Research Spire:** a **teal glass rotunda tower** with a green dome, spire and **orbiting ring**, beside the lab and the test dome |
+| 16 | **Hardened Lab:** grey armoured block with angled side plates, **big yellow/black hazard-striped armour shields** either side of a huge **sliding blast door** with a laser scan bar; sensor mast, CCTV |
+| 17 | **Bunker Vault:** a **dominant bright-green grass berm** with a concrete portal and blast door; a planted green-walled research block on top with a glowing test cupola |
+| 18 | **Triple Vault:** podium with **three armoured research pods with bright teal glowing caps and light strips** round a central command block, each with its own **round vault door**; three armourers |
+| 19 | **Scanner Vault:** **pale cream hardened block** crowned by a big **rotating white sensor ring** with glowing pods; red **laser scan arch** over the porter's path |
+| 20 | **Gold Vault:** octagonal armoured keep with gold bands under a **ribbed gold dome**, a **giant gold vault door**, gold hologram crown, gold-capped sensor pylons |
+
+Review scene: open the game with `?showcase=armoury`.
+
+# Firing Range: full specification
+
+Trains marksmanship: boosts the accuracy and damage of every defence camp-wide and raises troop marksmanship. **Signature at every level:** firing lanes running along the long axis, with a firing point at the near (+x) end where Recruits shoot prone, kneeling and standing (chunky dark rifle silhouettes, recoil, muzzle flash, spent-case puff and a tracer); pop-up targets at the far end that stand up, shake when hit, fall flat and rise again on a staggered loop; an earth berm / bullet catcher behind them that kicks up a strike puff; a **red range flag** flying while the range is live; and a range officer in a high-vis vest walking the line and pointing down the range. From Lv 7 a second, mid-range row of pop-ups falls to the first shot. Footprint **5×3**; unlocked at HQ 10; long and low, with bulk between 0.7 and 2.95 storeys (the berm, range tower and firing-point hall give the height).
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Lanes | Defence accuracy | Marksmanship |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Bale Range | 250,000 | 3,000 | 6 h | 1,000 | 2 | +2% | +5% |
+| 2 | Field Range | 320,000 | 3,350 | 8 h | 1,200 | 3 | +3% | +8% |
+| 3 | Sandbag Range | 405,000 | 3,750 | 10 h | 1,440 | 3 | +5% | +11% |
+| 4 | Camp Range | 510,000 | 4,150 | 12 h | 1,730 | 4 | +6% | +14% |
+| 5 | Range Tower | 650,000 | 4,650 | 16 h | 2,070 | 4 | +8% | +17% |
+| 6 | Butts Range | 825,000 | 5,150 | 20 h | 2,490 | 5 | +9% | +19% |
+| 7 | Concrete Range | 1,050,000 | 5,750 | 1 d | 2,990 | 5 | +11% | +22% |
+| 8 | Electronic Range | 1,330,000 | 6,450 | 1.25 d | 3,580 | 6 | +12% | +25% |
+| 9 | Control Tower Range | 1,690,000 | 7,150 | 1.5 d | 4,300 | 6 | +14% | +28% |
+| 10 | Range Complex *(release cap)* | 2,150,000 | 8,000 | 2 d | 5,160 | 7 | +15% | +31% |
+| 11 | Baffle Range | 2,730,000 | 8,900 | 2.5 d | 6,190 | 7 | +17% | +34% |
+| 12 | Rail Target Range | 3,470,000 | 9,950 | 3 d | 7,430 | 7 | +18% | +37% |
+| 13 | Indoor Range | 4,400,000 | 11,100 | 3.5 d | 8,920 | 8 | +20% | +40% |
+| 14 | Gallery Range | 5,590,000 | 12,350 | 4 d | 10,700 | 8 | +21% | +43% |
+| 15 | Landmark Range | 7,100,000 | 13,750 | 4.5 d | 12,840 | 8 | +23% | +46% |
+| 16 | Hardened Range | 9,020,000 | 15,350 | 5 d | 15,410 | 8 | +24% | +48% |
+| 17 | Smart Range | 11,450,000 | 17,100 | 5.5 d | 18,490 | 8 | +26% | +51% |
+| 18 | Armoured Hall | 14,550,000 | 19,100 | 6 d | 22,190 | 8 | +27% | +54% |
+| 19 | Simulator Range | 18,450,000 | 21,300 | 7 d | 26,620 | 8 | +29% | +57% |
+| 20 | Citadel Range | 23,450,000 | 23,750 | 8 d | 31,950 | 8 | +30% | +60% |
+
+Defence damage also rises camp-wide, from +1% to +15% (`stats.defenceDamage`).
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Bale Range:** two dirt lanes with lime lines and grass tufts; a **wall of straw bales** as the bullet catcher; paper targets on timber frames that **pop up, get hit and fall**; prone Recruits on groundsheets; red flag on a timber pole; ammo boxes, LIVE FIRING board |
+| 2 | **Field Range:** three lanes; brown **earth bank** faced with bales; a long **khaki canvas fly** over the range control table |
+| 3 | **Sandbag Range:** taller timber-revetted bank with a grass cap; sandbag mantlet and firing-bay walls; **grey zinc lean-to** on timber posts; kneeling shooters; spotter on a timber stand with binoculars |
+| 4 | **Camp Range:** first permanent band: four **bright-green grass lanes** with white lines, grassed berm, concrete mantlet with yellow/black band, **cream firing hut with a red hip roof** and veranda, low cream back wall |
+| 5 | **Range Tower:** a **tall cream range tower with a steep red pyramid cap** rises well above the hut at the back corner, flying a red flag from its apex; lookout scans with binoculars |
+| 6 | **Butts Range:** five lanes; raised cream butts wall; a **long green-roofed markers' gallery runs the full width along the top of the berm**, with markers on watch |
+| 7 | **Concrete Range:** base band: **grey concrete-faced berm** with a sand bullet trap, darker turf lanes, flat-roofed concrete firing point with a slab canopy, concrete lookout tower; electronic pop-ups plus a **second mid-range row** of targets |
+| 8 | **Electronic Range:** six lanes; **tall dark buttressed back wall** carrying a **big yellow-framed hit scoreboard** whose bars count up |
+| 9 | **Control Tower Range:** the tower becomes a **control tower with a wide glazed cab and red roof**, antenna with a blinking light |
+| 10 | **Range Complex:** seven lanes; **two-storey firing point with a spectators' gallery and red roof**, "RANGE COMPLEX" sign, floodlight masts, flagpole *(release cap)* |
+| 11 | **Baffle Range:** command band: **teal lanes**, white bullet catcher with steel deflectors, **three white overhead baffle portals** with teal bands, **two-storey white hall with sun fins and a green roof**, white tower with a glazed cab, glass booth dividers |
+| 12 | **Rail Target Range:** open to the sky: an **orange overhead rail gantry runs the length of every lane** with **trolleys shuttling along it**; targets ride ground carriers toward the line and back; **glass control room** on the hall roof |
+| 13 | **Indoor Range:** eight lanes; a **solid bright-green louvred roof over the whole range** and a tall white back wall |
+| 14 | **Gallery Range:** a **long glass viewing gallery with a green roof runs the full length of the camera side** |
+| 15 | **Landmark Range:** a **three-storey white tower with a teal drum crown, spire and beacon** dominates the range; pulsing teal LED strip, plaza flags |
+| 16 | **Hardened Range:** secure band: armoured bullet catcher with angled plates; **six sand-coloured precast blast baffles** and a sand blast wall; two-storey grey bunker firing point with slits and a cyan light band; **LED target screens** with glowing silhouettes |
+| 17 | **Smart Range:** steel baffles with **bright teal slats and glowing teal bands**, a teal glow band along the armour wall; **holographic cyan targets** that glitch and collapse when hit; **armoured control pod** on the bunker roof; sensor masts with **spinning sensor heads** |
+| 18 | **Armoured Hall:** a **pale steel louvred roof** over the lanes and a tall armour wall with glowing sensor pods |
+| 19 | **Simulator Range:** **big bright blue LED screens**, one as the bullet catcher and one along the back wall facing the camera, with **figures running across them and a sweeping scan bar** |
+| 20 | **Citadel Range:** **gold louvre roof, gold canopy and gold crown** on the tower, gold lane lines, gold-framed holographic targets, trophy plinth |
+
+Review scene: open the game with `?showcase=firingrange`.
