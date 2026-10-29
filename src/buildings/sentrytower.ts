@@ -1511,7 +1511,7 @@ function secure(k: Kit, level: number, y0: number, rate: number) {
     for (const [x, z, r] of [[-0.62, -0.84, 0], [-0.2, -0.84, 0], [0.22, -0.84, 0], [0.64, -0.84, 0], [-0.84, -0.4, Math.PI / 2], [-0.84, 0.02, Math.PI / 2], [-0.84, 0.44, Math.PI / 2], [0.84, -0.4, -Math.PI / 2], [0.84, 0.02, -Math.PI / 2]] as [number, number, number][]) {
       tWall(k, x, z, y0, r, 0.72);
     }
-    const tx = 0, tz = -0.15, w = 1.12, top = 2.6;
+    const tx = 0, tz = -0.15, w = 1.12, top = 2.88;
     k.box(w + 0.2, 0.5, w + 0.2, DCON, tx, y0, tz);
     // Hardened apron with jersey kerbs across the front
     for (const [ax, aw] of [[-0.66, 0.4], [0.45, 0.8]]) {
@@ -1520,7 +1520,7 @@ function secure(k: Kit, level: number, y0: number, rate: number) {
     }
     for (const x of [0.3, 0.68]) tWall(k, x, 0.68, y0 + 0.34, Math.PI, 0.5);
     k.box(w, top - y0 - 0.5, w, DCON, tx, y0 + 0.5, tz);
-    for (const yy of [1.2, 2.0]) k.box(w + 0.04, 0.06, w + 0.04, '#8f8b83', tx, yy, tz);
+    for (const yy of [1.2, 2.0, 2.6]) k.box(w + 0.04, 0.06, w + 0.04, "#8f8b83", tx, yy, tz);
     for (const x of [-0.25, 0.25]) k.box(0.18, 0.05, 0.03, '#1f2326', tx + x, 1.6, tz + w / 2 + 0.005);
     k.box(0.44, 0.6, 0.04, '#4a4f54', tx - 0.2, y0, tz + w / 2 + 0.11);
     const door = k.box(0.36, 0.52, 0.04, '#6b757b', tx - 0.2, y0 + 0.02, tz + w / 2 + 0.14);
