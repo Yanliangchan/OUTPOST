@@ -31,6 +31,11 @@ export interface BuildingDef {
   /** Highest level that currently has a visual design (grows as art is built). */
   designedLevels: number;
   build(level: number): Kit;
+  /**
+   * Tile-joining buildings (walls): build one piece that links toward the
+   * given neighbouring tiles. `build` shows a straight piece for icons.
+   */
+  connect?(level: number, links: { n?: boolean; e?: boolean; s?: boolean; w?: boolean }): Kit;
 }
 
 export const MIN = 60;

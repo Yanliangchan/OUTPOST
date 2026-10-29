@@ -51,7 +51,7 @@ groundUniform.value = groundY + 0.06;
 
 // Phase 2 review: ?showcase lays every building/level out in the start clearing.
 const params = new URLSearchParams(location.search);
-const showcase = params.has('showcase') ? createShowcase(groundY, particles, params.get('showcase') || null, params.get('only')?.split(',') ?? null) : null;
+const showcase = params.has('showcase') ? createShowcase(groundY, particles, params.get('showcase') || null, params.get('only')?.split(',') ?? null, params.has('combat')) : null;
 if (showcase) {
   // Clear the whole plateau so every building is unobstructed.
   for (const z of ZONES) if (z.kind !== 'hidden') vegetation.clearables[z.id].group.visible = false;

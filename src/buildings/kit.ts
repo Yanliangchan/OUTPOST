@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { PALETTE } from '../config/palette';
 import { timeUniform } from '../core/wind';
+import { Turret, type TurretSpec } from './turret';
 
 /**
  * Architecture kit for the SAF-camp look: cream walls, dark green trim and doors,
@@ -125,6 +126,16 @@ export class Kit {
   readonly anims: ((t: number) => void)[] = [];
   /** Random phase so identical buildings don't animate in lockstep. */
   readonly phase = Math.random() * 100;
+  /** Weapons (defences only): idle-scan until given a target, then aim and fire. See turret.ts. */
+  readonly turrets: Turret[] = [];
+
+  /** Register a weapon rig; its idle/aim/fire update runs with the other micro-animations. */
+  turret(spec: TurretSpec) {
+    const t = new Turret(spec);
+    this.turrets.push(t);
+    this.anims.push((time) => t.update(time));
+    return t;
+  }
 
   /** Advance all micro-animations. */
   animate(time: number) {
