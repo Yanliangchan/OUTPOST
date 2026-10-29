@@ -37,6 +37,7 @@ export const RELEASE_MAX_LEVEL = 10;
 | **Medical Centre** | Ambulance light bars flash blue/amber and ambulances pull out and back; cross signs and cross-cube beacons turn; IV drips and privacy curtains sway; heartbeat monitors pulse; ceiling fans spin; medevac rotors spin and the helicopter lifts off at Lv 14; scanner ring turns; field-hospital domes breathe; isolation vents spin; gold ring orbits the citadel cross | |
 | **Motor Pool** | Vehicles pull out of their bays and reverse back in (wheels turning); boom barriers lift at dispatch huts; fuel hoses sway; wash-bay brushes spin with spray; tow-truck beacon flashes; camo net breathes; turntable rotates; blast doors slide; stacker lift rises; LED gantry flashes; pods circle the guideway; a jeep laps the rotunda | |
 | **Parade Square** | Squads of Recruits march in step around the square (legs and arms swing, leader out front); drill instructor paces and points; flags raised, held and lowered; drummers beat; crowds bob and cheer | Bunting sways, sprinklers spray, scoreboard and mast lights blink, LED screens and grid floor cycle colours |
+| **Guardhouse** | Barrier lifts (pole, boom, swing gates, bollards, wedge, portcullis) for a vehicle that drives up, waits and passes through; the sentry walks out, checks the pass and salutes; searchlights sweep; siren turns; inspector checks under the truck; X-ray gantry glides; turnstiles and speed gates let visitors through; lasers pulse | Traffic lights switch red/green with the barrier; lanterns sway; camo net breathes |
 | **Secure band (16–20)** | Boom gate lifts to let vehicles in; CCTV cameras pan | |
 
 ## Roster and build order
@@ -57,7 +58,7 @@ Buildings are completed **one at a time** through all 15 levels: art and stats, 
 | 10 | **Medical Centre** | 4×3 | 4 | Recovery (and healing units, later) | ✅ 20/20 designed |
 | 11 | **Motor Pool** | 5×4 | 4 | Vehicles: faster deliveries | ✅ 20/20 designed |
 | 12 | **Parade Square** | 6×6 | 5 | Fall-in events; Cohesion | ✅ 20/20 designed |
-| 13 | Guardhouse | 3×2 | 6 | Entrance; first line of defence | planned |
+| 13 | **Guardhouse** | 3×2 | 6 | Entrance; first line of defence; spots raiders | ✅ 20/20 designed |
 | 14+ | Defences: Sentry Tower, Sandbag Wall, Mortar Pit, Searchlight, Artillery, Air Defence | various | 6–13 | Raids phase | planned |
 | — | Special plots: Boat Jetty (Cove), Adventure Training Centre (Lakeside), Signal Station (Ridge) | 9×9 sites | 8–9 | Late-game landmarks | planned |
 
@@ -745,3 +746,57 @@ The camp's fall-in ground: hosts Fall-in ceremonies and builds Cohesion, which l
 | 20 | **Parade Citadel:** gold-trimmed colonnaded ring of stands, glass corner pavilions, obelisk |
 
 Review scene: open the game with `?showcase=parade`.
+
+# Guardhouse: full specification
+
+The camp entrance and first line of defence: puts sentries on duty and spots raiders early. **Signature at every level:** a vehicle lane on the left whose barrier lifts for an arriving vehicle, and a sentry who walks out to check the driver's pass, walks back and salutes it through. The barrier evolves with the bands: timber pole → painted pole → boom → swing gates → bollards → wedge → laser tripwire → portcullis. Footprint **3×2**; unlocked at HQ 6; height stays at or under ~3 storeys.
+
+| Lv | Title | Supplies | Reputation | Build time | HP | Sentries | Spots raiders |
+|---|---|---|---|---|---|---|---|
+| 1 | Sandbag Checkpoint | 8,000 | 300 | 2 h | 900 | 1 | 6 tiles |
+| 2 | Atap Sentry Post | 14,000 | 450 | 3 h | 1,100 | 1 | 7 tiles |
+| 3 | Stilt Guard Hut | 22,000 | 650 | 4 h | 1,340 | 1 | 8 tiles |
+| 4 | Guardroom | 33,000 | 900 | 6 h | 1,630 | 1 | 9 tiles |
+| 5 | Guardroom · Sentry Box | 48,000 | 1,200 | 8 h | 1,990 | 2 | 10 tiles |
+| 6 | Guardroom · Alarm Post | 68,000 | 1,550 | 11 h | 2,430 | 2 | 11 tiles |
+| 7 | Main Gate | 95,000 | 1,950 | 14 h | 2,970 | 2 | 12 tiles |
+| 8 | Inspection Canopy | 130,000 | 2,400 | 18 h | 3,620 | 2 | 13 tiles |
+| 9 | Watchtower Gate | 175,000 | 2,900 | 22 h | 4,420 | 3 | 14 tiles |
+| 10 | Main Guardhouse *(release cap)* | 235,000 | 3,500 | 1.25 d | 5,390 | 3 | 15 tiles |
+| 11 | Visitor Centre | 310,000 | 4,200 | 1.5 d | 6,570 | 3 | 16 tiles |
+| 12 | Vehicle Screening Bay | 400,000 | 5,000 | 2 d | 8,020 | 3 | 17 tiles |
+| 13 | Rising-Bollard Gate | 510,000 | 6,000 | 2.5 d | 9,780 | 4 | 18 tiles |
+| 14 | Gate Bridge | 650,000 | 7,200 | 3 d | 11,940 | 4 | 19 tiles |
+| 15 | Landmark Gate | 820,000 | 8,500 | 3.5 d | 14,560 | 4 | 20 tiles |
+| 16 | Hardened Checkpoint | 1,020,000 | 10,000 | 4 d | 17,770 | 4 | 21 tiles |
+| 17 | Serpentine Chicane | 1,260,000 | 12,000 | 4.5 d | 21,680 | 5 | 22 tiles |
+| 18 | Biometric Gate | 1,550,000 | 14,300 | 5 d | 26,450 | 5 | 23 tiles |
+| 19 | Sensor Gate | 1,900,000 | 16,900 | 5.5 d | 32,260 | 5 | 24 tiles |
+| 20 | Citadel Gate | 2,300,000 | 19,800 | 6 d | 39,360 | 5 | 25 tiles |
+
+## Visual progression
+
+| Lv | Look |
+|---|---|
+| 1 | **Sandbag Checkpoint:** sandbag sangar, timber pole barrier with a sandbag counterweight, striped drums, HALT board, field telephone, swinging hurricane lantern; a Recruit cycles through |
+| 2 | **Atap Sentry Post:** timber sentry box with a thatched atap roof, cook fire with a smoking kettle, sandbag step; the first jeep |
+| 3 | **Stilt Guard Hut:** timber hut on stilts with a veranda and zinc roof, painted red/white pole barrier with a counterweight drum, antenna, sentry on the veranda |
+| 4 | **Guardroom:** first permanent cream guardroom with a red hip roof and a pass hatch facing the lane, standard yellow/black boom, speed hump, bicycle rack |
+| 5 | **Guardroom · Sentry Box:** gable-roofed guardroom with an entrance gable, classic sentry box at the barrier, lamps over the lane, convex traffic mirror, hedge |
+| 6 | **Guardroom · Alarm Post:** guardroom with a green veranda, **alarm siren rotating** on a steel mast with a beacon, swinging fire buckets, off-duty sentry |
+| 7 | **Main Gate:** twin cream pillars with lamp globes and a crest, **steel swing gates** in place of the boom, gatekeeper's bay window, wall with concertina wire |
+| 8 | **Inspection Canopy:** green drive-through canopy; an **inspector checks under a 3-tonner with a mirror on a pole** |
+| 9 | **Watchtower Gate:** square concrete watchtower with a glazed cab and a **sweeping searchlight**, jersey-barrier chicane, traffic light, patrolling sentry |
+| 10 | **Main Guardhouse:** two-storey guardhouse with a balcony over the lane, **round watchtower** with a gold band and conical roof, glass sentry booth, OUTPOST crest wall, flag |
+| 11 | **Visitor Centre:** white two-storey pavilion with fins, glass ground floor and roof garden; visitors pass through **turnstiles** under an entrance canopy; a visitor's car |
+| 12 | **Vehicle Screening Bay:** yellow **X-ray gantry glides over a waiting truck**; glass control room with a pulsing scan screen and a rooftop plant room |
+| 13 | **Rising-Bollard Gate:** steel **bollards sink into the road** to let traffic through; mono-pitch green-roofed office cantilevered over the island |
+| 14 | **Gate Bridge:** the guard office **bridges over the lane**; traffic passes underneath; cameras on the bridge corners pan |
+| 15 | **Landmark Gate:** glass drum pavilion with a gold band under a sweeping white wing canopy, **scrolling LED welcome strip**, crest monument, three flags |
+| 16 | **Hardened Checkpoint:** concrete bunker with slit windows and a **rotating camera turret**, T-wall blast barriers, sally-port roof, **wedge barrier and tyre-killer spikes** |
+| 17 | **Serpentine Chicane:** staggered jersey barriers the **jeep slaloms through**, armoured observation cab on a steel stilt frame, breathing camo net |
+| 18 | **Biometric Gate:** sleek white curved block with a roof garden, **face-scan arch** whose light bar sweeps the vehicle, pedestrian **speed gates with glass flaps** |
+| 19 | **Sensor Gate:** red **laser tripwires** across the lane, thermal camera and **spinning radar bar** on a mast, sensor canopy with glowing pods, armour-plated post |
+| 20 | **Citadel Gate:** fortress portal over the lane with a **rising steel portcullis**, gold crest, gold-finned block with a glass command cab, CCTV |
+
+Review scene: open the game with `?showcase=guardhouse`.
