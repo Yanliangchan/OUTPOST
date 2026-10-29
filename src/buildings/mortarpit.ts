@@ -30,7 +30,6 @@ const nice = (v: number) => {
 const SUPPLIES = TITLES.map((_, i) => nice(25_000 * Math.pow(1.33, i)));
 const REPUTATION = TITLES.map((_, i) => nice(1_200 * Math.pow(1.16, i)));
 const TIME = [3 * HOUR, 4 * HOUR, 5 * HOUR, 6 * HOUR, 8 * HOUR, 10 * HOUR, 12 * HOUR, 15 * HOUR, 18 * HOUR, 22 * HOUR, 1.25 * DAY, 1.5 * DAY, 2 * DAY, 2.5 * DAY, 3 * DAY, 3.5 * DAY, 4.25 * DAY, 5 * DAY, 6 * DAY, 7 * DAY];
-const TUBES = [1, 1, 1, 1, 1, 2, 1, 1, 2, 3, 1, 1, 2, 1, 4, 1, 1, 4, 2, 1];
 
 export const MORTAR_PIT_LEVELS: LevelStats[] = TITLES.map((title, i) => {
   const level = i + 1;
@@ -43,8 +42,8 @@ export const MORTAR_PIT_LEVELS: LevelStats[] = TITLES.map((title, i) => {
     reputation: REPUTATION[i],
     buildTime: TIME[i],
     hp: Math.round((900 * Math.pow(1.2, i)) / 10) * 10,
-    stats: { damage, splash, range, minRange: 3, reload: 4, tubes: TUBES[i] },
-    unlocks: [`${damage} splash damage (${splash}-tile radius) every 4 s`, `Range ${range} tiles (3-tile dead zone)`, `${TUBES[i]} tube${TUBES[i] > 1 ? 's' : ''}`],
+    stats: { damage, splash, range, minRange: 3, reload: 4 },
+    unlocks: [`${damage} splash damage (${splash}-tile radius) every 4 s`, `Range ${range} tiles (3-tile dead zone)`],
   };
 });
 
@@ -705,8 +704,8 @@ function plinth(k: Kit, r: number, y: number, h = 0.06) {
 /** Small red-roofed ammo hut whose door swings open for the bearer. */
 function ammoHut(k: Kit, x: number, z: number, y: number, ry: number, open: (t: number) => number, w = 0.6, d = 0.52, roof: string = C.roof) {
   sub(k, x, y, z, ry, (s) => {
-    s.block(w, d, 0.68, 0, 0, 0);
-    s.hipRoof(w, d, 0.34, 0, 0.646, 0, roof, 0.12);
+    s.block(w, d, 0.78, 0, 0, 0);
+    s.hipRoof(w, d, 0.36, 0, 0.741, 0, roof, 0.12);
     const hinge = new THREE.Group();
     hinge.position.set(-0.12, 0, d / 2 + 0.02);
     s.box(0.24, 0.46, 0.035, C.trim, 0.12, 0, 0, hinge);
@@ -1150,6 +1149,33 @@ function floor(k: Kit, r: number, y: number, color: string) {
 
 // ------------------------------------------------------------------ extra set pieces
 
+/** Brick bomb store: two piers and a red-tile lean-to roof over a bomb rack. */
+function bombStore(k: Kit, x: number, z: number, y: number, ry: number, h: number) {
+  sub(k, x, y, z, ry, (s) => {
+    s.box(0.78, h * 0.8, 0.12, '#b5523b', 0, 0, -0.26);
+    for (const sx of [-1, 1]) s.box(0.12, h * 0.85, 0.12, '#b5523b', sx * 0.33, 0, 0.22);
+    const roof = s.box(0.92, 0.06, 0.72, C.roof, 0, h * 0.85, -0.02);
+    roof.rotation.x = 0.22;
+    s.box(0.94, 0.04, 0.05, C.wall, 0, h * 0.85 - 0.08, 0.32);
+    bombRack(s, 0, 0, -0.05, 0, 6);
+  });
+}
+
+/** Armoured command cupola with slit windows and a hazard-striped rim. */
+function cupola(k: Kit, x: number, z: number, y: number, ry: number, w: number, h: number, col: string, rim: string) {
+  sub(k, x, y, z, ry, (s) => {
+    s.box(w, h, w, col, 0, 0, 0);
+    s.box(w + 0.06, 0.07, w + 0.06, rim, 0, h, 0);
+    for (const [sx, sz, r] of [[0, w / 2, 0], [w / 2, 0, Math.PI / 2]] as [number, number, number][]) {
+      const sl = s.box(w * 0.6, 0.07, 0.02, '#ff3b30', sx, h - 0.25, sz + (r ? 0 : 0.005));
+      sl.rotation.y = r;
+      if (r) sl.position.x += 0.005;
+    }
+    s.box(0.3, 0.44, 0.03, '#5c6166', 0, 0, w / 2 + 0.01);
+    s.antenna(-w / 2 + 0.1, h + 0.07, -w / 2 + 0.1, 0.55);
+  });
+}
+
 /** Tall fire-direction hut on stilts, with a spotter on the deck and a ladder. */
 function stiltHut(k: Kit, x: number, z: number, y: number, ry: number, h: number) {
   sub(k, x, y, z, ry, (s) => {
@@ -1324,7 +1350,7 @@ function build(level: number): Kit {
       crewLoader(k, rig, rig.tubes[twin ? 1 : 0], CAMP, 9 + level, 'steel');
       registerRig(k, rig, level, level, 0.7, 0.6);
       if (level === 4) {
-        bombRack(k, -0.55, f, -0.62, -0.75, 6);
+        bombStore(k, -1.02, -1.02, fl, Math.PI / 4, 1.12);
         bombRack(k, 0.62, f, -0.55, 0.75, 5);
         bearer(k, V(-1.25, fl, 0.3), V(-0.75, f, 0.1), CAMP, 12, 9, 1, true);
         signPost(k, 'MORTAR BAY', -1.0, 1.3, fl, 0.6, C.trim, 0.6, 0.16, 0.36, C.white);
@@ -1362,7 +1388,7 @@ function build(level: number): Kit {
       bipodMount(k, rig, '#4a4f54', '#2a2e2a', 0.42);
       crewLoader(k, rig, rig.tubes[0], BASE, 16, 'steel');
       registerRig(k, rig, level, 7);
-      readyBunker(k, -1.02, -1.02, fl, Math.PI / 4, 0.82, 0.56, 0.62);
+      readyBunker(k, -1.02, -1.02, fl, Math.PI / 4, 0.82, 0.56, 1.0);
       rangefinder(k, 0.7, -0.6, f, 1);
       spotter(k, 0.95, f, -0.25, face(0.3, 1), BASE, 17, false);
       bombRack(k, -0.75, f, 0.3, -1.4, 6, '#4b6b3a');
@@ -1449,7 +1475,7 @@ function build(level: number): Kit {
       barrels(k, rig, { len: 1.2, r: 0.15, color: '#4a4f54', band: TEAL, bands: 2, lip: '#33383d' }, 1);
       crewLoader(k, rig, rig.tubes[0], CMD, 23, 'white');
       registerRig(k, rig, level, 11);
-      kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.62, 0.5, 0.56, 2);
+      kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.62, 0.5, 0.66, 2);
       k.flagpole(1.25, -1.25, 1.9, fl);
       k.lamp(1.3, 1.25, fl, 1.2);
       signPost(k, 'MORTAR 11', -1.15, 1.25, fl, 0.6, TEAL, 0.5, 0.15, 0.34, C.white);
@@ -1469,7 +1495,7 @@ function build(level: number): Kit {
       magDrum(k, Y, -0.3, 0.26, -0.42, 0.24, 0.5, TEAL);
       crewLoader(k, rig, rig.tubes[0], CMD, 24, 'white');
       registerRig(k, rig, level, 12);
-      kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.66, 0.5, 0.62, 2);
+      kiosk(k, -1.02, -1.02, fl, Math.PI / 4, 0.66, 0.5, 0.7, 2);
       metMast(k, 1.25, -1.25, fl, 1.2);
       k.lamp(1.3, 1.25, fl, 1.2);
       signPost(k, 'AUTOLOADER', -1.15, 1.25, fl, 0.6, TEAL, 0.52, 0.15, 0.34, C.white);
@@ -1561,7 +1587,8 @@ function build(level: number): Kit {
       registerRig(k, rig, level, 16);
       k.box(0.5, 0.34, 0.04, '#5c6166', 0.6, fl, 1.36);
       for (let i = 0; i < 6; i++) k.box(0.1, 0.06, 0.05, i % 2 ? C.kerbB : HAZ, 0.35 + i * 0.1, fl + 0.36, 1.36);
-      cctv(k, -1.25, -1.25, fl + h, 0.8, Math.PI * 0.25);
+      cupola(k, -1.0, -1.0, fl, Math.PI / 4, 0.74, 1.3, '#3a3f45', HAZ);
+      cctv(k, 1.25, 1.25, fl + h, 0.8, Math.PI * 1.25);
       beacon(k, 1.2, fl + h, -1.2);
       k.blinker(-1.2, fl + h, 1.2, '#ff3b30', 0.04);
       break;
@@ -1583,23 +1610,25 @@ function build(level: number): Kit {
       }
       crewLoader(k, rig, rig.tubes[0], SEC, 29, 'dark');
       registerRig(k, rig, level, 17);
-      acousticMast(k, -1.25, -1.25, fl, 1.3);
-      beacon(k, 1.0, fl + 0.55, -1.0);
+      cupola(k, -1.0, -1.0, fl, Math.PI / 4, 0.74, 1.36, ARMOUR, '#e0782a');
+      acousticMast(k, 1.25, -1.25, fl, 1.3);
+      beacon(k, 1.0, fl + 0.55, 1.0 - 2.0);
       beacon(k, -1.0, fl + 0.55, 1.0);
       cctv(k, 1.32, 1.0, fl, 1.0, Math.PI);
       break;
     }
     case 18: {
       // Drone-spotted quad: dark armour base, drone pad and a hovering spotter drone, quad tubes
-      armourBlock(k, 0.9, 1.4, 0.5, fl, '#4a5662', '#2a2e33', HAZ);
+      armourBlock(k, 0.9, 1.46, 0.5, fl, '#4a5662', '#2a2e33', HAZ);
       const f = floor(k, 0.9, fl, '#2a2e33');
       sub(k, -1.0, fl, -1.0, Math.PI / 4, (s) => {
-        s.box(0.74, 0.86, 0.74, '#3a3f45', 0, 0, 0);
-        s.box(0.78, 0.05, 0.78, HAZ, 0, 0.86, 0);
-        s.helipad(0, 0.9, 0, 0.6);
+        s.box(0.74, 1.3, 0.74, '#3a3f45', 0, 0, 0);
+        s.box(0.78, 0.05, 0.78, HAZ, 0, 1.3, 0);
+        s.box(0.5, 0.06, 0.02, '#ff3b30', 0, 1.0, 0.375);
+        s.helipad(0, 1.34, 0, 0.6);
         s.box(0.3, 0.44, 0.03, '#5c6166', 0, 0, 0.375);
       });
-      drone(k, -1.0, -1.0, fl + 0.95, 0.75);
+      drone(k, -1.0, -1.0, fl + 1.39, 0.6);
       const rig = newRig(k, 0.1, f, 0.1, -0.24, 0.36);
       const Y = rig.yaw;
       disc(k, 0.5, 0.32, '#3a3f45', 0, 0, 0, 16, Y);
